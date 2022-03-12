@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>だんじょん・ばとる</title>
+</head>
+<body>
+  <h1 style="text-align:center">だんじょん・ばとる</h1>
+  <br>
+  <div id="canv">
+    <canvas id="main_lay" width="640" height="480"></canvas>
+    <canvas id="character_lay" width="640" height="480"></canvas>
+  </div>
+  <br>
+  <p style="text-align:center">
+    ダンジョンでバトルするゲームです。※PC専用
+  </p>
+  <style>
+    #canv {
+      width: 640px;
+      height: 480px;
+      position: relative;
+      border: 2px solid black;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    #main_lay { z-index: 1; }
+    #character_lay { z-index: 2; }
+  </style>
+  <script type="text/javascript" src="js/mazegen.js"> </script>
+  <script type="text/javascript" src="js/main.js"> </script>
+</body>
+</html>
