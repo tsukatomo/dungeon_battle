@@ -19,25 +19,25 @@ const useriCtx = useriLay.getContext("2d");
 // get resouce path
 // image - background
 let backImage = new Image();
-backImage.src = "img/background.png";
+backImage.src = "./img/background.png";
 let fighterImage1 = new Image();
-fighterImage1.src = "img/fighter1.png";
+fighterImage1.src = "./img/fighter1.png";
 let fighterImage2 = new Image();
-fighterImage2.src = "img/fighter2.png";
+fighterImage2.src = "./img/fighter2.png";
 let slimeImage1 = new Image();
-slimeImage1.src = "img/slime1.png";
+slimeImage1.src = "./img/slime1.png";
 let slimeImage2 = new Image();
-slimeImage2.src = "img/slime2.png";
+slimeImage2.src = "./img/slime2.png";
 let gobImage1 = new Image();
-gobImage1.src = "img/gob1.png";
+gobImage1.src = "./img/gob1.png";
 let gobImage2 = new Image();
-gobImage2.src = "img/gob2.png";
+gobImage2.src = "./img/gob2.png";
 let ohakaImage = new Image();
-ohakaImage.src = "img/ohaka.png";
+ohakaImage.src = "./img/ohaka.png";
 let zkeyImage1 = new Image();
-zkeyImage1.src = "img/pressZkey1.png";
+zkeyImage1.src = "./img/pressZkey1.png";
 let zkeyImage2 = new Image();
-zkeyImage2.src = "img/pressZkey2.png";
+zkeyImage2.src = "./img/pressZkey2.png";
 
 
 
