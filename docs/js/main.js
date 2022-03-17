@@ -112,7 +112,7 @@ let enemyMove = {
         mainWindowText[0] = enemy.name + "の攻撃！"
       }
       else {
-        fighter.hp -= 4;
+        fighter.hp -= 5;
         mainWindowText[0] = enemy.name + "の怒りの一撃！"
       }
     }
