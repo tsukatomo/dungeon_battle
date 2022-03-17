@@ -315,7 +315,7 @@ let encount = function () {
     // create new enemy
     let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
     let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
-    console.log(eKey);
+    //console.log(eKey);
     enemy = new CharacterObject(
       eKey,
       enemyData[eKey].name,
@@ -524,7 +524,7 @@ let defeated = function () {
 
 window.onload = function() {
   backgCtx.drawImage(backImage, 0, 0);
-  console.log("a");
+  //console.log("a");
   scene = "encount";
   sceneInit = true;
   setInterval(gameLoop, 10);
