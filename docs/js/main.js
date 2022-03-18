@@ -13,6 +13,9 @@ const charaCtx = charaLay.getContext("2d");
 // canvas - UI layer
 const useriLay = document.getElementById("useri_lay");
 const useriCtx = useriLay.getContext("2d");
+// canvas - transition layer
+const transLay = document.getElementById("trans_lay");
+const transCtx = transLay.getContext("2d");
 
 
 
@@ -20,23 +23,33 @@ const useriCtx = useriLay.getContext("2d");
 // image - background
 let backImage = new Image();
 backImage.src = "./img/background.png";
+// image - fighter
 let fighterImage1 = new Image();
-fighterImage1.src = "./img/fighter1.png";
 let fighterImage2 = new Image();
+fighterImage1.src = "./img/fighter1.png";
 fighterImage2.src = "./img/fighter2.png";
+// image - slime
 let slimeImage1 = new Image();
-slimeImage1.src = "./img/slime1.png";
 let slimeImage2 = new Image();
+slimeImage1.src = "./img/slime1.png";
 slimeImage2.src = "./img/slime2.png";
+// image - gob
 let gobImage1 = new Image();
-gobImage1.src = "./img/gob1.png";
 let gobImage2 = new Image();
+gobImage1.src = "./img/gob1.png";
 gobImage2.src = "./img/gob2.png";
+// image - tree
+let treeImage1 = new Image();
+let treeImage2 = new Image();
+treeImage1.src = "./img/tree1.png";
+treeImage2.src = "./img/tree2.png";
+// image - grave
 let ohakaImage = new Image();
 ohakaImage.src = "./img/ohaka.png";
+// image - z key animation
 let zkeyImage1 = new Image();
-zkeyImage1.src = "./img/pressZkey1.png";
 let zkeyImage2 = new Image();
+zkeyImage1.src = "./img/pressZkey1.png";
 zkeyImage2.src = "./img/pressZkey2.png";
 
 
@@ -49,7 +62,7 @@ const windowFrameColor = "rgba(255, 255, 255, 1.0)";
 const windowCenterColor = "rgba(40, 130, 80, 0.80)";
 const windowStrokeColor = "rgba(40, 130, 80, 1.0)";
 const windowCursorColor = "rgba(190, 140, 120, 1.0)";
-let mainWindowText = ["", ""];
+let mainWindowText = ["", "", ""];
 let statusWindowText = [""];
 // for text in canvas
 const textSize = 24;
@@ -64,57 +77,87 @@ const counterMax = 100; // timeCounter counts 0 - counterMax-1
 let timeCounter = 0; // time counter in game loop
 let cursor = 0;
 let animeCount = 0; // animation counter
+let enemyStrategyParam = 0; // a parameter for strategy of enemy
 // for showing character
-let characterY = 160;
+let characterY = 128;
 let fighterX = 80;
-let enemyX = 400;
+let enemyX = 432;
+let hpBarY = 256;
+let hpBarWidth = 128;
+let HpBarHeight = 16;
 // for game scene
 let scene = "encount";
 let sceneInit = false; // Whenever scene changes, Don't forget set this true!!
+// for transition animation
+let transScene = "none";
+const transAnimeCountInit = 50;
+let transAnimeCount = 0;
+let sceneAfterTrans;
 
 
 
 // object
-let CharacterObject = function (type, name, hp, image1, image2) {
-  this.type = type;
-  this.name = name;
-  this.hp = hp;
-  this.maxhp = hp;
-  this.image1 = image1;
-  this.image2 = image2;
-};
+class CharacterObject {
+  constructor(type, name, hp, image1, image2) {
+    this.type = type;
+    this.name = name;
+    this.hp = hp;
+    this.maxhp = hp;
+    this.image1 = image1;
+    this.image2 = image2;
+  };
+  drawAnime(posX, posY, ctx) {
+    let image = timeCounter < counterMax / 2 ? this.image1 : this.image2;
+    ctx.drawImage(image, posX, posY);
+  };
+  addHp(amount) {
+    this.hp += amount;
+    if (this.hp > this.maxhp) this.hp = this.maxhp;
+    if (this.hp < 0) this.hp = 0;
+  };
+}
 
-CharacterObject.prototype.drawAnime = function (posX, posY, ctx) {
-  let image = timeCounter < counterMax / 2 ? this.image1 : this.image2;
-  ctx.drawImage(image, posX, posY);
-};
 
 let fighter = new CharacterObject("player", "闘士", 20, fighterImage1, fighterImage2);
 let enemy = new CharacterObject("enemy", "スライム", 15, slimeImage1, slimeImage2);
 
-let enemyData = {
-  "slime": {name: "スライム", hp:  9, image1: slimeImage1, image2: slimeImage2},
-  "gob"  : {name: "ちびゴブ", hp: 15, image1:   gobImage1, image2:   gobImage2}
-};
-
 // enemy moves
-let enemyMove = {
+let enemyData = {
   "slime":{
-    func:() => {
-      fighter.hp -= 2;
+    name: "スライム",
+    hp: 9,
+    image1: slimeImage1,
+    image2: slimeImage2,
+    strategy: () => {
+      fighter.addHp(-2);
       mainWindowText[0] = enemy.name + "の攻撃！"
-    }
+    },
   },
   "gob":{
-    func:() => {
+    name: "ちびゴブ",
+    hp: 15,
+    image1: gobImage1,
+    image2: gobImage2,
+    strategy: () => {
       if (enemy.hp > 5) {
-        fighter.hp -= 2;
+        fighter.addHp(-2);
         mainWindowText[0] = enemy.name + "の攻撃！"
       }
       else {
-        fighter.hp -= 5;
+        fighter.addHp(-6);
         mainWindowText[0] = enemy.name + "の怒りの一撃！"
       }
+    }
+  },
+  "tree":{
+    name: "モクモク",
+    hp: 20,
+    image1: treeImage1,
+    image2: treeImage2,
+    strategy: () => {
+      enemyStrategyParam += 1;
+      fighter.addHp(-Math.ceil(enemyStrategyParam / 2));
+      mainWindowText[0] = enemy.name + "の攻撃！"
     }
   }
 };
@@ -237,19 +280,41 @@ window.onkeyup = function (e) {
 
 // check if the key pressed in this loop
 let isKeyPressedNow = function(key) {
+  if (transScene != "none") return false; // トランジション中はキー入力を受け付けない
   return (keyPressed.indexOf(key) != -1 && keyPressedPrevious.indexOf(key) === -1);
 };
 
 
 
 // z key animation
-let zkeyAnime = function() {
+let zkeyAnime = function () {
+  if (transScene != "none") return false; // トランジション中は表示しない
   if (timeCounter < counterMax / 2) {
     useriCtx.drawImage(zkeyImage1, 560, 400);
   }
   else {
     useriCtx.drawImage(zkeyImage2, 560, 400);
   }
+};
+
+// hp bar
+let drawHpBar = function (x, y, hp, maxhp, ctx) {
+  ctx.fillStyle = "rgba(255, 255, 255, 1.0)";
+  ctx.fillRect(x, y, hpBarWidth, HpBarHeight);
+  ctx.fillStyle = "rgba(20, 20, 20, 1.0)";
+  ctx.fillRect(x + 4, y + 4, hpBarWidth - 8, HpBarHeight - 8);
+  ctx.fillStyle = "rgba(60, 200, 80, 1.0)";
+  if (hp * 4 < maxhp) ctx.fillStyle = "rgba(255, 120, 80, 1.0)";
+  ctx.fillRect(x + 4, y + 4, (hpBarWidth - 8) * hp / maxhp, HpBarHeight - 8);
+};
+
+
+
+// set transition animation
+let setTransition = function (nextscene) {
+  transScene = "in";
+  transAnimeCount = transAnimeCountInit;
+  sceneAfterTrans = nextscene;
 };
 
 
@@ -269,6 +334,7 @@ let gameLoop = function() {
   // reset canvas
   charaCtx.clearRect(0,0,640,480);
   useriCtx.clearRect(0,0,640,480);
+  transCtx.clearRect(0,0,640,480);
   timeCounter++;
   if (animeCount > 0) animeCount--;
   if (timeCounter > counterMax) timeCounter = 0;
@@ -277,9 +343,41 @@ let gameLoop = function() {
   keyPressed = keyInput.slice();
   //console.log(keyPressed,keyPressedPrevious);
   // text window
-  drawTextInWindow(mainWindowText, 0, 352, 640, useriCtx);
+  drawTextInWindow(mainWindowText, 0, 480 - gridSize * 5, 640, useriCtx);
   statusWindowText[0] = fighter.name + " HP：" + fighter.hp + "/" + fighter.maxhp;
   drawTextInWindow(statusWindowText, 0, 0, 640, useriCtx);
+  // scene transition
+  transCtx.fillStyle = "rgba(0, 0, 0, 1.0)"; // black
+  if (transScene === "in") {
+    //transCtx.globalAlpha = 1.0;
+    transCtx.fillRect(640 * (transAnimeCount / transAnimeCountInit), 0, 640, 480);
+    transCtx.globalAlpha = 1.0 - (transAnimeCount / transAnimeCountInit);
+    //transCtx.fillRect(0, 0, 640, 480);
+    if (--transAnimeCount <= 0) {
+      // set transition animation
+      transScene = "wait";
+      transAnimeCount = transAnimeCountInit;
+    }
+  }
+  else if (transScene === "wait") {
+    transCtx.fillRect(0, 0, 640, 480);
+    if (--transAnimeCount <= 0) {
+      // change scene
+      scene = sceneAfterTrans;
+      sceneInit = true;
+      // set transition animation
+      transScene = "out";
+      transAnimeCount = transAnimeCountInit;
+    }
+  }
+  else if (transScene === "out") {
+    transCtx.globalAlpha = transAnimeCount / transAnimeCountInit;
+    //transCtx.fillRect(0, 0, 640, 480);
+    transCtx.fillRect(0, 0, 640 * (transAnimeCount / transAnimeCountInit), 480);
+    if (--transAnimeCount <= 0) {
+      transScene = "none";
+    }
+  }
   // bunki
   if (scene === "encount") {
     encount();
@@ -315,7 +413,6 @@ let encount = function () {
     // create new enemy
     let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
     let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
-    //console.log(eKey);
     enemy = new CharacterObject(
       eKey,
       enemyData[eKey].name,
@@ -323,6 +420,7 @@ let encount = function () {
       enemyData[eKey].image1,
       enemyData[eKey].image2
     );
+    enemyStrategyParam = 0;
     // text
     mainWindowText[0] = enemy.name + "が立ちはだかる！"
     // anime count
@@ -332,6 +430,7 @@ let encount = function () {
   let edx = 8 * animeCount;
   fighter.drawAnime(fighterX, characterY, charaCtx);
   enemy.drawAnime(enemyX + edx, characterY, charaCtx);
+  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
   if (animeCount === 0) zkeyAnime();
   if (isKeyPressedNow("z") && animeCount === 0){
     scene = "combat";
@@ -348,13 +447,15 @@ let combat = function () {
   // character animation
   fighter.drawAnime(fighterX, characterY, charaCtx);
   enemy.drawAnime(enemyX, characterY, charaCtx);
+  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+  drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
   // combat menu
   let combatMenu = ["なぐる", "まほう", "どうぐ"];
   if (isKeyPressedNow("u")) cursor--;
   if (isKeyPressedNow("d")) cursor++;
   if (cursor < 0) cursor = 2;
   if (cursor > 2) cursor = 0;
-  drawTextInWindowWithCursor(combatMenu, 480, 320, 160, cursor, useriCtx);
+  drawTextInWindowWithCursor(combatMenu, 480, 480 - gridSize * 5, 160, cursor, useriCtx);
   // press z key and change scene
   if (isKeyPressedNow("z")) {
     if (cursor === 0) { // cursor0 → なぐる
@@ -375,7 +476,7 @@ let wallop = function () {
     // init flag
     sceneInit = false;
     // deal damage
-    enemy.hp -= 3;
+    enemy.addHp(-3);
     // text
     mainWindowText[0] = fighter.name + "の攻撃！"
     // anime count
@@ -400,6 +501,8 @@ let wallop = function () {
   }
   fighter.drawAnime(fighterX + fdx, characterY, charaCtx);
   enemy.drawAnime(enemyX + edx, characterY + edy, charaCtx);
+  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+  drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
   if (animeCount === 0) zkeyAnime();
   if (isKeyPressedNow("z") && animeCount === 0){
     if (enemy.hp <= 0) {
@@ -438,6 +541,8 @@ let magic = function () {
   }
   fighter.drawAnime(fighterX, characterY + fdy, charaCtx);
   enemy.drawAnime(enemyX, characterY, charaCtx);
+  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+  drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
   if (animeCount === 0) zkeyAnime();
   if (isKeyPressedNow("z") && animeCount === 0) {
     scene = "enemyturn";
@@ -452,7 +557,7 @@ let enemyturn = function () {
     // init flag
     sceneInit = false;
     // enemy move
-    enemyMove[enemy.type].func();
+    enemyData[enemy.type].strategy();
     // anime count
     animeCount = 32;
   }
@@ -467,6 +572,8 @@ let enemyturn = function () {
   }
   fighter.drawAnime(fighterX, characterY, charaCtx);
   enemy.drawAnime(enemyX + edx, characterY, charaCtx);
+  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+  drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
   if (animeCount === 0) zkeyAnime();
   if (isKeyPressedNow("z") && animeCount === 0) {
     if (fighter.hp <= 0) {
@@ -490,10 +597,12 @@ let victory = function () {
     mainWindowText[0] = enemy.name + "に勝利した！"
   }
   fighter.drawAnime(fighterX, characterY, charaCtx);
+  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
   if (animeCount === 0) zkeyAnime();
   if (isKeyPressedNow("z") && animeCount === 0) {
-    scene = "encount";
-    sceneInit = true;
+    setTransition("encount");
+    //scene = "encount";
+    //sceneInit = true;
   }
 }
 
@@ -510,13 +619,14 @@ let defeated = function () {
   // update
   charaCtx.drawImage(ohakaImage, fighterX, characterY); // ohaka
   enemy.drawAnime(enemyX, characterY, charaCtx);
+  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+  drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
   if (animeCount === 0) zkeyAnime();
   if (isKeyPressedNow("z") && animeCount === 0) {
     mainWindowText[0] = "";
     mainWindowText[1] = "";
     fighter = new CharacterObject("player", "闘士", 20, fighterImage1, fighterImage2);
-    scene = "encount";
-    sceneInit = true;
+    setTransition("encount");
   }
 }
 
