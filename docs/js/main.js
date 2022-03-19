@@ -176,7 +176,7 @@ let enemyData = {
 let magicData = {
   "flame": {
     name: "フレイム",
-    mp: 3,
+    mp: 2,
     image: magicFlameImage,
     description: "炎で攻撃。敵にそこそこのダメージを与える",
     effect: () => {
@@ -187,7 +187,7 @@ let magicData = {
   "heal": {
     name: "カイフク",
     mp: 3,
-    image: magicFlameImage,
+    image: magicHealImage,
     description: "自分のHPをまあまあ回復する。",
     effect: () => {
       player.addHp(player.maxhp / 2);
@@ -440,6 +440,8 @@ let sceneList = {
       enemyStrategyParam = 0;
       // text
       mainWindowText[0] = enemy.name + "が立ちはだかる！"
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
       // anime count
       animeCount = 32;
     }
@@ -460,6 +462,9 @@ let sceneList = {
     if (sceneInit) {
       sceneInit = false;
       mainWindowText[0] = fighter.name + "のターン";
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
+      cursor = 0;
     }
     // character animation
     fighter.drawAnime(fighterX, characterY, charaCtx);
@@ -495,6 +500,8 @@ let sceneList = {
       enemy.addHp(-3);
       // text
       mainWindowText[0] = fighter.name + "の攻撃！"
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
       // anime count
       animeCount = 32;
     }
@@ -534,8 +541,26 @@ let sceneList = {
 
   // scene: magicmenu（まほうー選択）--------------------------------------------------
   "magicmenu": () => {
-    scene = "magiccast";
-    sceneInit = true;
+    if (sceneInit) {
+      sceneInit = false;
+      cursor = 0;
+    }
+    if (isKeyPressedNow("l")) cursor--;
+    if (isKeyPressedNow("r")) cursor++;
+    if (cursor < 0) cursor = fighterMagic.length - 1;
+    if (cursor >= fighterMagic.length) cursor = 0;
+    charaCtx.drawImage(magicData[fighterMagic[cursor]].image, 288, 150);
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    enemy.drawAnime(enemyX, characterY, charaCtx);
+    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    mainWindowText[0] = magicData[fighterMagic[cursor]].name + "    MP: " +  magicData[fighterMagic[cursor]].mp;
+    mainWindowText[1] = magicData[fighterMagic[cursor]].description;
+    mainWindowText[2] = "";
+    if (isKeyPressedNow("z")) {
+      scene = "magiccast";
+      sceneInit = true;
+    }
   },
 
   // scene: magicmenu（まほうー使用）--------------------------------------------------
@@ -549,6 +574,8 @@ let sceneList = {
       if (fighter.hp > fighter.maxhp) fighter.hp = fighter.maxhp;
       // text
       mainWindowText[0] = fighter.name + "のヒール！"
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
       // anime count
       animeCount = 32;
     }
@@ -578,6 +605,10 @@ let sceneList = {
     if (sceneInit) {
       // init flag
       sceneInit = false;
+      // reset main window
+      mainWindowText[0] = "";
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
       // enemy move
       enemyData[enemy.type].strategy();
       // anime count
@@ -617,6 +648,8 @@ let sceneList = {
       sceneInit = false;
       // text 
       mainWindowText[0] = enemy.name + "に勝利した！"
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
     }
     fighter.drawAnime(fighterX, characterY, charaCtx);
     drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
@@ -637,6 +670,7 @@ let sceneList = {
       // text 
       mainWindowText[0] = fighter.name + "は死んでしまった……";
       mainWindowText[1] = "Zキーでリトライ";
+      mainWindowText[2] = "";
     }
     // update
     charaCtx.drawImage(ohakaImage, fighterX, characterY); // ohaka
