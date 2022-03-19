@@ -46,6 +46,12 @@ treeImage2.src = "./img/tree2.png";
 // image - grave
 let ohakaImage = new Image();
 ohakaImage.src = "./img/ohaka.png";
+// image - magic:flame
+let magicFlameImage = new Image();
+magicFlameImage.src = "./img/magic_flame.png";
+// image - magic:heal
+let magicHealImage = new Image();
+magicHealImage.src = "./img/magic_heal.png";
 // image - z key animation
 let zkeyImage1 = new Image();
 let zkeyImage2 = new Image();
@@ -75,9 +81,11 @@ let keyPressedPrevious = [];
 // for some uses
 const counterMax = 100; // timeCounter counts 0 - counterMax-1
 let timeCounter = 0; // time counter in game loop
+const combatMenu = ["なぐる", "まほう", "どうぐ"];
 let cursor = 0;
 let animeCount = 0; // animation counter
 let enemyStrategyParam = 0; // a parameter for strategy of enemy
+let fighterMagic = ["flame", "heal"]; // magic can be cast
 // for showing character
 let characterY = 128;
 let fighterX = 80;
@@ -121,7 +129,7 @@ class CharacterObject {
 let fighter = new CharacterObject("player", "闘士", 20, fighterImage1, fighterImage2);
 let enemy = new CharacterObject("enemy", "スライム", 15, slimeImage1, slimeImage2);
 
-// enemy moves
+// enemy data
 let enemyData = {
   "slime":{
     name: "スライム",
@@ -162,6 +170,31 @@ let enemyData = {
   }
 };
 
+
+
+// magic data
+let magicData = {
+  "flame": {
+    name: "フレイム",
+    mp: 3,
+    image: magicFlameImage,
+    description: "炎で攻撃。敵にそこそこのダメージを与える",
+    effect: () => {
+      enemy.addHp(-8);
+      mainWindowText[0] = fighter.name + "はフレイムをとなえた！"
+    }
+  },
+  "heal": {
+    name: "カイフク",
+    mp: 3,
+    image: magicFlameImage,
+    description: "自分のHPをまあまあ回復する。",
+    effect: () => {
+      player.addHp(player.maxhp / 2);
+      mainWindowText[0] = fighter.name + "はカイフクをとなえた！"
+    }
+  }
+};
 
 
 // Show text with window
@@ -335,13 +368,13 @@ let gameLoop = function() {
   charaCtx.clearRect(0,0,640,480);
   useriCtx.clearRect(0,0,640,480);
   transCtx.clearRect(0,0,640,480);
+  // counter
   timeCounter++;
   if (animeCount > 0) animeCount--;
   if (timeCounter > counterMax) timeCounter = 0;
   // get key input
   keyPressedPrevious = keyPressed.slice(); // storage previous key input
   keyPressed = keyInput.slice();
-  //console.log(keyPressed,keyPressedPrevious);
   // text window
   drawTextInWindow(mainWindowText, 0, 480 - gridSize * 5, 640, useriCtx);
   statusWindowText[0] = fighter.name + " HP：" + fighter.hp + "/" + fighter.maxhp;
@@ -375,262 +408,253 @@ let gameLoop = function() {
     //transCtx.fillRect(0, 0, 640, 480);
     transCtx.fillRect(0, 0, 640 * (transAnimeCount / transAnimeCountInit), 480);
     if (--transAnimeCount <= 0) {
+      // finish transition
       transScene = "none";
     }
   }
-  // bunki
-  if (scene === "encount") {
-    encount();
-  }
-  else if (scene === "combat") {
-    combat();
-  }
-  else if (scene === "wallop") {
-    wallop();
-  }
-  else if (scene === "magic") {
-    magic();
-  }
-  else if (scene === "enemyturn") {
-    enemyturn();
-  }
-  else if (scene === "victory") {
-    victory();
-  }
-  else if (scene === "defeated") {
-    defeated();
-  }
-  else {
-    /* 何も　しない */
-  }
+  // scene
+  sceneList[scene]();
 };
 
-// scene: encount（エンカウント）
-let encount = function () {
-  if (sceneInit) {
-    // init flag
-    sceneInit = false;
-    // create new enemy
-    let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
-    let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
-    enemy = new CharacterObject(
-      eKey,
-      enemyData[eKey].name,
-      enemyData[eKey].hp,
-      enemyData[eKey].image1,
-      enemyData[eKey].image2
-    );
-    enemyStrategyParam = 0;
-    // text
-    mainWindowText[0] = enemy.name + "が立ちはだかる！"
-    // anime count
-    animeCount = 32;
-  }
-  // update
-  let edx = 8 * animeCount;
-  fighter.drawAnime(fighterX, characterY, charaCtx);
-  enemy.drawAnime(enemyX + edx, characterY, charaCtx);
-  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-  if (animeCount === 0) zkeyAnime();
-  if (isKeyPressedNow("z") && animeCount === 0){
-    scene = "combat";
-    sceneInit = true;
-  } 
-}
 
-// scene: combat（コマンド選択）
-let combat = function () {
-  if (sceneInit) {
-    sceneInit = false;
-    mainWindowText[0] = fighter.name + "のターン";
-  }
-  // character animation
-  fighter.drawAnime(fighterX, characterY, charaCtx);
-  enemy.drawAnime(enemyX, characterY, charaCtx);
-  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-  drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
-  // combat menu
-  let combatMenu = ["なぐる", "まほう", "どうぐ"];
-  if (isKeyPressedNow("u")) cursor--;
-  if (isKeyPressedNow("d")) cursor++;
-  if (cursor < 0) cursor = 2;
-  if (cursor > 2) cursor = 0;
-  drawTextInWindowWithCursor(combatMenu, 480, 480 - gridSize * 5, 160, cursor, useriCtx);
-  // press z key and change scene
-  if (isKeyPressedNow("z")) {
-    if (cursor === 0) { // cursor0 → なぐる
-      scene = "wallop";
-      sceneInit = true;
-    }
-    else if (cursor === 1) { // cursor1 → まほう
-      scene = "magic";
-      sceneInit = true;
-    }
-  }
-};
 
-// scene: wallop（なぐる）
-let wallop = function () {
-  // initial
-  if (sceneInit) {
-    // init flag
-    sceneInit = false;
-    // deal damage
-    enemy.addHp(-3);
-    // text
-    mainWindowText[0] = fighter.name + "の攻撃！"
-    // anime count
-    animeCount = 32;
-  }
-  // update
-  // character animation
-  let fdx = 0;
-  let edx = 0;
-  let edy = 0;
-  // fighter
-  if (animeCount > 16) {
-    fdx = 4 * (- animeCount + 32);
-  }
-  else{
-    fdx = 4 * animeCount;
-  }
-  // if enemy is killed
-  if (enemy.hp <= 0) {
-    edx = 12 * (- animeCount + 32);
-    edy = -12 * (- animeCount + 32);
-  }
-  fighter.drawAnime(fighterX + fdx, characterY, charaCtx);
-  enemy.drawAnime(enemyX + edx, characterY + edy, charaCtx);
-  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-  drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
-  if (animeCount === 0) zkeyAnime();
-  if (isKeyPressedNow("z") && animeCount === 0){
-    if (enemy.hp <= 0) {
-      scene = "victory";
-      sceneInit = true;
-    }
-    else {
-      scene = "enemyturn";
-      sceneInit = true;
-    }
-  } 
-};
+// scene list ======================================================================
 
-// scene: magic（まほう）
-let magic = function () {
-  // initial
-  if (sceneInit) {
-    // init flag
-    sceneInit = false;
-    // apply magic
-    fighter.hp += 12;
-    if (fighter.hp > fighter.maxhp) fighter.hp = fighter.maxhp;
-    // text
-    mainWindowText[0] = fighter.name + "のヒール！"
-    // anime count
-    animeCount = 32;
-  }
-  // update
-  let fdy = 0;
-  // character animation
-  if (animeCount > 16) {
-    fdy = -4 * (- animeCount + 32);
-  }
-  else {
-    fdy = -4 * animeCount;
-  }
-  fighter.drawAnime(fighterX, characterY + fdy, charaCtx);
-  enemy.drawAnime(enemyX, characterY, charaCtx);
-  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-  drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
-  if (animeCount === 0) zkeyAnime();
-  if (isKeyPressedNow("z") && animeCount === 0) {
-    scene = "enemyturn";
-    sceneInit = true;
-  }
-};
+let sceneList = {
 
-// scene: enemy（敵の行動）
-let enemyturn = function () {
-  // initial
-  if (sceneInit) {
-    // init flag
-    sceneInit = false;
-    // enemy move
-    enemyData[enemy.type].strategy();
-    // anime count
-    animeCount = 32;
-  }
-  // update
-  let edx = 0;
-  // character animation
-  if (animeCount > 16) {
-    edx = -4 * (- animeCount + 32);
-  }
-  else {
-    edx = -4 * animeCount;
-  }
-  fighter.drawAnime(fighterX, characterY, charaCtx);
-  enemy.drawAnime(enemyX + edx, characterY, charaCtx);
-  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-  drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
-  if (animeCount === 0) zkeyAnime();
-  if (isKeyPressedNow("z") && animeCount === 0) {
-    if (fighter.hp <= 0) {
-      scene = "defeated";
-      sceneInit = true;
+  // scene: encount（エンカウント）-----------------------------------
+  "encount": () => {
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // create new enemy
+      let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
+      let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
+      enemy = new CharacterObject(
+        eKey,
+        enemyData[eKey].name,
+        enemyData[eKey].hp,
+        enemyData[eKey].image1,
+        enemyData[eKey].image2
+      );
+      enemyStrategyParam = 0;
+      // text
+      mainWindowText[0] = enemy.name + "が立ちはだかる！"
+      // anime count
+      animeCount = 32;
     }
-    else {
+    // update
+    let edx = 8 * animeCount;
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    enemy.drawAnime(enemyX + edx, characterY, charaCtx);
+    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0){
       scene = "combat";
       sceneInit = true;
     }
+  },
+
+  // scene: combat（コマンド選択）-----------------------------------
+  "combat": () => {
+    if (sceneInit) {
+      sceneInit = false;
+      mainWindowText[0] = fighter.name + "のターン";
+    }
+    // character animation
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    enemy.drawAnime(enemyX, characterY, charaCtx);
+    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    // combat menu
+    if (isKeyPressedNow("u")) cursor--;
+    if (isKeyPressedNow("d")) cursor++;
+    if (cursor < 0) cursor = 2;
+    if (cursor > 2) cursor = 0;
+    drawTextInWindowWithCursor(combatMenu, 480, 480 - gridSize * 5, 160, cursor, useriCtx);
+    // press z key and change scene
+    if (isKeyPressedNow("z")) {
+      if (cursor === 0) { // cursor0 → なぐる
+        scene = "wallop";
+        sceneInit = true;
+      }
+      else if (cursor === 1) { // cursor1 → まほう
+        scene = "magicmenu";
+        sceneInit = true;
+      }
+    }
+  },
+
+  // scene: wallop（なぐる）------------------------------------------------
+  "wallop": () => {
+    // initial
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // deal damage
+      enemy.addHp(-3);
+      // text
+      mainWindowText[0] = fighter.name + "の攻撃！"
+      // anime count
+      animeCount = 32;
+    }
+    // update
+    // character animation
+    let fdx = 0;
+    let edx = 0;
+    let edy = 0;
+    // fighter
+    if (animeCount > 16) {
+      fdx = 4 * (- animeCount + 32);
+    }
+    else{
+      fdx = 4 * animeCount;
+    }
+    // if enemy is killed
+    if (enemy.hp <= 0) {
+      edx = 12 * (- animeCount + 32);
+      edy = -12 * (- animeCount + 32);
+    }
+    fighter.drawAnime(fighterX + fdx, characterY, charaCtx);
+    enemy.drawAnime(enemyX + edx, characterY + edy, charaCtx);
+    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0){
+      if (enemy.hp <= 0) {
+        scene = "victory";
+        sceneInit = true;
+      }
+      else {
+        scene = "enemyturn";
+        sceneInit = true;
+      }
+    } 
+  },
+
+  // scene: magicmenu（まほうー選択）--------------------------------------------------
+  "magicmenu": () => {
+    scene = "magiccast";
+    sceneInit = true;
+  },
+
+  // scene: magicmenu（まほうー使用）--------------------------------------------------
+  "magiccast": () => {
+    // initial
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // apply magic
+      fighter.hp += 12;
+      if (fighter.hp > fighter.maxhp) fighter.hp = fighter.maxhp;
+      // text
+      mainWindowText[0] = fighter.name + "のヒール！"
+      // anime count
+      animeCount = 32;
+    }
+    // update
+    let fdy = 0;
+    // character animation
+    if (animeCount > 16) {
+      fdy = -4 * (- animeCount + 32);
+    }
+    else {
+      fdy = -4 * animeCount;
+    }
+    fighter.drawAnime(fighterX, characterY + fdy, charaCtx);
+    enemy.drawAnime(enemyX, characterY, charaCtx);
+    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      scene = "enemyturn";
+      sceneInit = true;
+    }
+  },
+
+  // scene: enemyturn（敵のターン）------------------------------------------------
+  "enemyturn": () => {
+    // initial
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // enemy move
+      enemyData[enemy.type].strategy();
+      // anime count
+      animeCount = 32;
+    }
+    // update
+    let edx = 0;
+    // character animation
+    if (animeCount > 16) {
+      edx = -4 * (- animeCount + 32);
+    }
+    else {
+      edx = -4 * animeCount;
+    }
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    enemy.drawAnime(enemyX + edx, characterY, charaCtx);
+    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      if (fighter.hp <= 0) {
+        scene = "defeated";
+        sceneInit = true;
+      }
+      else {
+        scene = "combat";
+        sceneInit = true;
+      }
+    }
+  },
+
+  // scene: victory（勝利！）-------------------------------------------------------
+  "victory": () => {
+    //initial
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // text 
+      mainWindowText[0] = enemy.name + "に勝利した！"
+    }
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      setTransition("encount");
+      //scene = "encount";
+      //sceneInit = true;
+    }
+  },
+
+  // scene: defeated（負け）--------------------------------------------------------
+  "defeated": () => {
+    //initial
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // text 
+      mainWindowText[0] = fighter.name + "は死んでしまった……";
+      mainWindowText[1] = "Zキーでリトライ";
+    }
+    // update
+    charaCtx.drawImage(ohakaImage, fighterX, characterY); // ohaka
+    enemy.drawAnime(enemyX, characterY, charaCtx);
+    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      mainWindowText[0] = "";
+      mainWindowText[1] = "";
+      fighter = new CharacterObject("player", "闘士", 20, fighterImage1, fighterImage2);
+      setTransition("encount");
+    }
   }
 };
 
-// scene: victory（戦闘勝利）
-let victory = function () {
-  //initial
-  if (sceneInit) {
-    // init flag
-    sceneInit = false;
-    // text 
-    mainWindowText[0] = enemy.name + "に勝利した！"
-  }
-  fighter.drawAnime(fighterX, characterY, charaCtx);
-  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-  if (animeCount === 0) zkeyAnime();
-  if (isKeyPressedNow("z") && animeCount === 0) {
-    setTransition("encount");
-    //scene = "encount";
-    //sceneInit = true;
-  }
-}
+// scene list ここまで ==============================================================
 
-// scene :defeated (負け)
-let defeated = function () {
-  //initial
-  if (sceneInit) {
-    // init flag
-    sceneInit = false;
-    // text 
-    mainWindowText[0] = fighter.name + "は死んでしまった……";
-    mainWindowText[1] = "Zキーでリトライ";
-  }
-  // update
-  charaCtx.drawImage(ohakaImage, fighterX, characterY); // ohaka
-  enemy.drawAnime(enemyX, characterY, charaCtx);
-  drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-  drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
-  if (animeCount === 0) zkeyAnime();
-  if (isKeyPressedNow("z") && animeCount === 0) {
-    mainWindowText[0] = "";
-    mainWindowText[1] = "";
-    fighter = new CharacterObject("player", "闘士", 20, fighterImage1, fighterImage2);
-    setTransition("encount");
-  }
-}
-
-// ------------------------------------------------------------------
 
 window.onload = function() {
   backgCtx.drawImage(backImage, 0, 0);
