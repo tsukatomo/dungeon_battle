@@ -88,7 +88,7 @@ let enemyStrategyParam = 0; // a parameter for strategy of enemy
 // for magic
 let fighterMagic = ["flame", "heal"]; // magic can be cast
 let magicCursor = 0;
-let fighterMp = 10;
+let fighterMp = 15;
 let castMagic;
 // for showing character
 let characterY = 128;
@@ -717,7 +717,9 @@ let sceneList = {
     if (isKeyPressedNow("z") && animeCount === 0) {
       mainWindowText[0] = "";
       mainWindowText[1] = "";
+      // rebirth
       fighter = new CharacterObject("player", "闘士", 20, fighterImage1, fighterImage2);
+      fighterMp = 15;
       setTransition("encount");
     }
   }
