@@ -43,6 +43,11 @@ let treeImage1 = new Image();
 let treeImage2 = new Image();
 treeImage1.src = "./img/tree1.png";
 treeImage2.src = "./img/tree2.png";
+// image - fairy
+let fairyImage1 = new Image();
+let fairyImage2 = new Image();
+fairyImage1.src = "./img/fairy1.png";
+fairyImage2.src = "./img/fairy2.png";
 // image - grave
 let ohakaImage = new Image();
 ohakaImage.src = "./img/ohaka.png";
@@ -85,6 +90,7 @@ const combatMenu = ["なぐる", "まほう", "どうぐ"];
 let combatCursor = 0;
 let animeCount = 0; // animation counter
 let enemyStrategyParam = 0; // a parameter for strategy of enemy
+let enemyStrategyCategory = "attack";
 // for magic
 let fighterMagic = ["flame", "heal"]; // magic can be cast
 let magicCursor = 0;
@@ -153,10 +159,12 @@ let enemyData = {
     strategy: () => {
       if (enemy.hp * 4 >= enemy.maxhp) {
         fighter.addHp(-2);
+        enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！"
       }
       else {
         fighter.addHp(-8);
+        enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の怒りの一撃！"
       }
     }
@@ -169,7 +177,27 @@ let enemyData = {
     strategy: () => {
       enemyStrategyParam += 1;
       fighter.addHp(-Math.ceil(enemyStrategyParam / 2));
+      enemyStrategyCategory = "attack";
       mainWindowText[0] = enemy.name + "の攻撃！"
+    }
+  },
+  "fairy":{
+    name: "ようせい",
+    hp: 10,
+    image1: fairyImage1,
+    image2: fairyImage2,
+    strategy: () => {
+      if (enemy.hp < enemy.maxhp / 2 && enemyStrategyParam < 3) {
+        enemyStrategyParam += 1;
+        enemy.addHp(5);
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "は回復した！";
+      }
+      else {
+        fighter.addHp(-randInt(2, 5));
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！"
+      }
     }
   }
 };
@@ -652,15 +680,25 @@ let sceneList = {
     }
     // update
     let edx = 0;
+    let edy = 0;
     // character animation
-    if (animeCount > 16) {
-      edx = -4 * (- animeCount + 32);
-    }
-    else {
-      edx = -4 * animeCount;
+    if (enemyStrategyCategory === "attack") {
+      if (animeCount > 16) {
+        edx = -4 * (- animeCount + 32);
+      }
+      else {
+        edx = -4 * animeCount;
+      }
+    } else if (enemyStrategyCategory === "magic") {
+      if (animeCount > 16) {
+        edy = -4 * (- animeCount + 32);
+      }
+      else {
+        edy = -4 * animeCount;
+      }
     }
     fighter.drawAnime(fighterX, characterY, charaCtx);
-    enemy.drawAnime(enemyX + edx, characterY, charaCtx);
+    enemy.drawAnime(enemyX + edx, characterY + edy, charaCtx);
     drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
     drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
     if (animeCount === 0) zkeyAnime();
