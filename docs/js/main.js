@@ -96,6 +96,9 @@ let fighterMagic = ["flame", "heal"]; // magic can be cast
 let magicCursor = 0;
 let fighterMp = 15;
 let castMagic;
+let fighterLv = 1;
+let dungeonFloor = 0;
+let money = 10;
 // for showing character
 let characterY = 128;
 let fighterX = 80;
@@ -210,21 +213,35 @@ let magicData = {
     name: "フレイム",
     mp: 2,
     image: magicFlameImage,
-    description: "炎で攻撃。敵に大ダメージを与える。",
+    description: "炎で攻撃。自分のLvに応じてダメージ量が上昇。",
     effect: () => {
-      enemy.addHp(-8);
+      enemy.addHp(-(7 + fighterLv));
     }
   },
   "heal": {
     name: "カイフク",
     mp: 3,
     image: magicHealImage,
-    description: "自分のHPをまあまあ回復する。",
+    description: "自分のHPを最大HPの50%だけ回復する。",
     effect: () => {
-      fighter.addHp(fighter.maxhp / 2);
+      fighter.addHp(Math.floor(fighter.maxhp / 2));
     }
   }
 };
+
+
+
+// level up
+let levelUp = function () {
+  // level up
+  fighterLv++;
+  // increase maxhp
+  fighter.maxhp += 3;
+  fighter.addHp(3);
+  // recover mp
+  fighterMp += 2;
+};
+
 
 
 // Show text with window
@@ -414,7 +431,7 @@ let gameLoop = function() {
   keyPressed = keyInput.slice();
   // text window
   drawTextInWindow(mainWindowText, 0, 480 - gridSize * 5, 640, useriCtx);
-  statusWindowText[0] = fighter.name + "  HP：" + fighter.hp + "/" + fighter.maxhp + "  MP：" + fighterMp;
+  statusWindowText[0] = fighter.name + " Lv." + fighterLv + "    HP " + fighter.hp + "/" + fighter.maxhp + "    MP " + fighterMp + "    " + dungeonFloor + "階    " + money + "円";
   drawTextInWindow(statusWindowText, 0, 0, 640, useriCtx);
   // scene transition
   transCtx.fillStyle = "rgba(0, 0, 0, 1.0)"; // black
@@ -475,6 +492,8 @@ let sceneList = {
         enemyData[eKey].image2
       );
       enemyStrategyParam = 0;
+      // floor
+      dungeonFloor++;
       // text
       mainWindowText[0] = enemy.name + "が立ちはだかる！"
       mainWindowText[1] = "";
@@ -533,7 +552,7 @@ let sceneList = {
       // init flag
       sceneInit = false;
       // deal damage
-      enemy.addHp(-3);
+      enemy.addHp(-(2 + fighterLv));
       // text
       mainWindowText[0] = fighter.name + "の攻撃！"
       mainWindowText[1] = "";
@@ -720,9 +739,11 @@ let sceneList = {
     if (sceneInit) {
       // init flag
       sceneInit = false;
+      // level up
+      levelUp();
       // text 
       mainWindowText[0] = enemy.name + "に勝利した！"
-      mainWindowText[1] = "";
+      mainWindowText[1] = fighter.name + "はレベルが上がった！";
       mainWindowText[2] = "";
     }
     fighter.drawAnime(fighterX, characterY, charaCtx);
