@@ -51,6 +51,11 @@ fairyImage2.src = "./img/fairy2.png";
 // image - grave
 let ohakaImage = new Image();
 ohakaImage.src = "./img/ohaka.png";
+// image - itemselect
+let itemSelectImage1 = new Image();
+itemSelectImage1.src = "./img/itemselect1.png";
+let itemSelectImage2 = new Image();
+itemSelectImage2.src = "./img/itemselect2.png";
 // image - magic:flame
 let magicFlameImage = new Image();
 magicFlameImage.src = "./img/magic_flame.png";
@@ -62,6 +67,11 @@ let zkeyImage1 = new Image();
 let zkeyImage2 = new Image();
 zkeyImage1.src = "./img/pressZkey1.png";
 zkeyImage2.src = "./img/pressZkey2.png";
+// image - merchant
+let merchantImage1 = new Image();
+let merchantImage2 = new Image();
+merchantImage1.src = "./img/merchant1.png";
+merchantImage2.src = "./img/merchant2.png";
 
 
 
@@ -605,6 +615,12 @@ let sceneList = {
     if (magicCursor < 0) magicCursor = fighterMagic.length - 1;
     if (magicCursor >= fighterMagic.length) magicCursor = 0;
     // image
+    if (timeCounter < counterMax / 2) {
+      charaCtx.drawImage(itemSelectImage1, 192, 118);
+    }
+    else {
+      charaCtx.drawImage(itemSelectImage2, 192, 118);
+    }
     charaCtx.drawImage(magicData[fighterMagic[magicCursor]].image, 288, 150);
     fighter.drawAnime(fighterX, characterY, charaCtx);
     enemy.drawAnime(enemyX, characterY, charaCtx);
@@ -781,6 +797,36 @@ let sceneList = {
       fighterMp = 15;
       setTransition("encount");
     }
+  },
+
+  // scene: shop（店）-------------------------------------------------------
+  "shop" : () => {
+    // init
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // counter (buffer)
+      animeCount = 8;
+      // text 
+      mainWindowText[0] = "商人「いってらっしゃー」";
+      mainWindowText[1] = "";
+      mainWindowText[2] = "（Zキーで進む）"; 
+    }
+    // update
+    // fighter animation
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    // merchant animation
+    if (timeCounter < counterMax / 2) {
+      charaCtx.drawImage(merchantImage1, 400, 64);
+    }
+    else {
+      charaCtx.drawImage(merchantImage2, 400, 64);
+    }
+    // z key 
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      setTransition("encount");
+    }
   }
 };
 
@@ -790,7 +836,7 @@ let sceneList = {
 window.onload = function() {
   backgCtx.drawImage(backImage, 0, 0);
   //console.log("a");
-  scene = "encount";
+  scene = "shop";
   sceneInit = true;
   setInterval(gameLoop, 10);
 };
