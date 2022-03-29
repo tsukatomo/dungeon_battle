@@ -259,7 +259,7 @@ let drawTextInWindow = function (textArray, x, y, width, ctx) {
   // window
   drawWindow(x, y, width, (textArray.length + 2) * gridSize, ctx);
   // text in window
-  ctx.font = textSize + "px sans-serif"
+  ctx.font = textSize + 'px "游ゴシック体"'
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
   ctx.fillStyle = textColor;
@@ -396,6 +396,7 @@ let zkeyAnime = function () {
 
 // hp bar
 let drawHpBar = function (x, y, hp, maxhp, ctx) {
+  // hp bar
   ctx.fillStyle = "rgba(255, 255, 255, 1.0)";
   ctx.fillRect(x, y, hpBarWidth, HpBarHeight);
   ctx.fillStyle = "rgba(20, 20, 20, 1.0)";
@@ -403,6 +404,18 @@ let drawHpBar = function (x, y, hp, maxhp, ctx) {
   ctx.fillStyle = "rgba(60, 200, 80, 1.0)";
   if (hp * 4 < maxhp) ctx.fillStyle = "rgba(255, 120, 80, 1.0)";
   ctx.fillRect(x + 4, y + 4, (hpBarWidth - 8) * hp / maxhp, HpBarHeight - 8);
+  // text
+  let hpText = hp + "/" + maxhp;
+  ctx.font = '20px "游ゴシック体"'
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.strokeStyle = "blue";
+  ctx.fillStyle = "white";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.strokeText(hpText, x + (hpBarWidth / 2), y + (HpBarHeight));
+  ctx.fillText(hpText, x + (hpBarWidth / 2), y + (HpBarHeight));
 };
 
 
