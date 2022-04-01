@@ -62,6 +62,15 @@ magicFlameImage.src = "./img/magic_flame.png";
 // image - magic:heal
 let magicHealImage = new Image();
 magicHealImage.src = "./img/magic_heal.png";
+// image - magic:thunder
+let magicThunderImage = new Image();
+magicThunderImage.src = "./img/magic_thunder.png";
+// image - cannot cast magic
+let cannotCastImage = new Image();
+cannotCastImage.src = "./img/cannotcast.png";
+// image - status:stun
+let statusStunImage = new Image();
+statusStunImage.src = "./img/status_stun.png";
 // image - z key animation
 let zkeyImage1 = new Image();
 let zkeyImage2 = new Image();
@@ -88,6 +97,7 @@ let statusWindowText = [""];
 // for text in canvas
 const textSize = 24;
 const textPaddingLeft = 8;
+const fontFamily = '"筑紫A丸ゴシック","游ゴシック体",system-ui';
 const textColor = "rgba(255, 255, 255, 1.0)";
 // for key inputs
 let keyInput = [];
@@ -97,14 +107,15 @@ let keyPressedPrevious = [];
 const counterMax = 100; // timeCounter counts 0 - counterMax-1
 let timeCounter = 0; // time counter in game loop
 const combatMenu = ["なぐる", "まほう", "どうぐ"];
-let combatCursor = 0;
+const shopMenu = ["かう", "はなす", "たちさる"];
+let menuCursor = 0;
 let animeCount = 0; // animation counter
 let enemyStrategyParam = 0; // a parameter for strategy of enemy
 let enemyStrategyCategory = "attack";
 // for magic
-let fighterMagic = ["flame", "heal"]; // magic can be cast
+let fighterMagic = ["flame", "heal", "thunder"]; // magic can be cast
 let magicCursor = 0;
-let fighterMp = 15;
+let fighterMp = 6;
 let castMagic;
 let fighterLv = 1;
 let dungeonFloor = 0;
@@ -136,6 +147,7 @@ class CharacterObject {
     this.maxhp = hp;
     this.image1 = image1;
     this.image2 = image2;
+    this.status = [];
   };
   drawAnime(posX, posY, ctx) {
     let image = timeCounter < counterMax / 2 ? this.image1 : this.image2;
@@ -146,37 +158,53 @@ class CharacterObject {
     if (this.hp > this.maxhp) this.hp = this.maxhp;
     if (this.hp < 0) this.hp = 0;
   };
+  addStatus(name, amount) {
+    let indexOfStatus = this.status.findIndex((elem) => elem.name === name);
+    if (indexOfStatus != -1) {
+      this.status[indexOfStatus].amount += amount;
+      // remove if amount is 0
+      if (this.status[indexOfStatus].amount === 0) {
+        this.status.splice(indexOfStatus, 1);
+      }
+    }
+    else {
+      this.status.push({name: name, amount: amount});
+    }
+  };
+  isStatusExist(name) {
+    return (this.status.findIndex((elem) => elem.name === name) != -1);
+  };
 }
 
 
-let fighter = new CharacterObject("player", "闘士", 20, fighterImage1, fighterImage2);
+let fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
 let enemy = new CharacterObject("enemy", "スライム", 15, slimeImage1, slimeImage2);
 
 // enemy data
 let enemyData = {
   "slime":{
     name: "スライム",
-    hp: 9,
+    hp: 20,
     image1: slimeImage1,
     image2: slimeImage2,
     strategy: () => {
-      fighter.addHp(-2);
+      fighter.addHp(-7);
       mainWindowText[0] = enemy.name + "の攻撃！"
     },
   },
   "gob":{
     name: "ちびゴブ",
-    hp: 15,
+    hp: 25,
     image1: gobImage1,
     image2: gobImage2,
     strategy: () => {
       if (enemy.hp * 4 >= enemy.maxhp) {
-        fighter.addHp(-2);
+        fighter.addHp(-5);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！"
       }
       else {
-        fighter.addHp(-8);
+        fighter.addHp(-15);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の怒りの一撃！"
       }
@@ -184,30 +212,30 @@ let enemyData = {
   },
   "tree":{
     name: "モクモク",
-    hp: 20,
+    hp: 50,
     image1: treeImage1,
     image2: treeImage2,
     strategy: () => {
       enemyStrategyParam += 1;
-      fighter.addHp(-Math.ceil(enemyStrategyParam / 2));
+      fighter.addHp(-Math.ceil(enemyStrategyParam));
       enemyStrategyCategory = "attack";
       mainWindowText[0] = enemy.name + "の攻撃！"
     }
   },
   "fairy":{
     name: "ようせい",
-    hp: 10,
+    hp: 25,
     image1: fairyImage1,
     image2: fairyImage2,
     strategy: () => {
       if (enemy.hp < enemy.maxhp / 2 && enemyStrategyParam < 3) {
         enemyStrategyParam += 1;
-        enemy.addHp(5);
+        enemy.addHp(18);
         enemyStrategyCategory = "magic";
         mainWindowText[0] = enemy.name + "は回復した！";
       }
       else {
-        fighter.addHp(-randInt(2, 5));
+        fighter.addHp(-randInt(4, 8));
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！"
       }
@@ -225,7 +253,7 @@ let magicData = {
     image: magicFlameImage,
     description: "炎で攻撃。自分のLvに応じてダメージ量が上昇。",
     effect: () => {
-      enemy.addHp(-(7 + fighterLv));
+      enemy.addHp(-(15 + fighterLv));
     }
   },
   "heal": {
@@ -236,9 +264,39 @@ let magicData = {
     effect: () => {
       fighter.addHp(Math.floor(fighter.maxhp / 2));
     }
+  },
+  "thunder": {
+    name: "ビリビリ",
+    mp: 3,
+    image: magicThunderImage,
+    description: "雷で攻撃。敵にシビレ2を与える。",
+    effect: () => {
+      enemy.addHp(-8);
+      enemy.addStatus("stun", 2);
+    }
   }
 };
 
+
+
+// status image
+let statusImageData = {
+  "stun": statusStunImage
+};
+
+
+
+// oyakudachi info
+let oyakudachiInfo = [
+  ["ちびゴブはHPがピンチになると", "強い攻撃をしてくるよ。怖いねー」"],
+  ["ようせいの回復行動は3回までだよー」", ""],
+  ["モクモクはターン数がかかるほど", "攻撃が強くなっていくよー」"],
+  ["スライム？かわいいよねー」", ""],
+  ["フレイムはLvに応じて強くなるよー」", ""],
+  ["敵に勝つとレベルアップ！", "最大HPとMPが増えるよー」"],
+  ["シビレ状態になると動けなくなるよー」", ""],
+  ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"]
+];
 
 
 // level up
@@ -246,8 +304,8 @@ let levelUp = function () {
   // level up
   fighterLv++;
   // increase maxhp
-  fighter.maxhp += 3;
-  fighter.addHp(3);
+  fighter.maxhp += 4;
+  fighter.addHp(4);
   // recover mp
   fighterMp += 2;
 };
@@ -259,7 +317,7 @@ let drawTextInWindow = function (textArray, x, y, width, ctx) {
   // window
   drawWindow(x, y, width, (textArray.length + 2) * gridSize, ctx);
   // text in window
-  ctx.font = textSize + 'px "游ゴシック体"'
+  ctx.font = textSize + "px " + fontFamily;
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
   ctx.fillStyle = textColor;
@@ -278,7 +336,7 @@ let drawTextInWindowWithCursor = function (textArray, x, y, width, cursorRow, ct
     ctx.fillRect(x + windowFrameSize, y + (cursorRow + 1) * gridSize, width - 2 * windowFrameSize, gridSize);
   }
   // text in window
-  ctx.font = textSize + "px sans-serif"
+  ctx.font = textSize + "px " + fontFamily;
   ctx.textAlign = "left";
   ctx.textBaseline = "middle";
   ctx.fillStyle = textColor;
@@ -289,7 +347,7 @@ let drawTextInWindowWithCursor = function (textArray, x, y, width, cursorRow, ct
 };
 
 let drawTextOnGridAt = function(text, x, y, ctx) {
-  ctx.font = textSize + "px sans-serif"
+  ctx.font = textSize + "px " + fontFamily;
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
   ctx.fillStyle = setTextColorByHp();
@@ -383,42 +441,59 @@ let isKeyPressedNow = function(key) {
 
 
 
+// draw animation
+let drawAnimation = function (image1, image2, posX, posY, ctx) {
+  let image = timeCounter < counterMax / 2 ? image1 : image2;
+  ctx.drawImage(image, posX, posY);
+}
+
+
+
 // z key animation
 let zkeyAnime = function () {
   if (transScene != "none") return false; // トランジション中は表示しない
-  if (timeCounter < counterMax / 2) {
-    useriCtx.drawImage(zkeyImage1, 560, 400);
-  }
-  else {
-    useriCtx.drawImage(zkeyImage2, 560, 400);
-  }
+  drawAnimation(zkeyImage1, zkeyImage2, 560, 400, useriCtx);
 };
 
 // hp bar
-let drawHpBar = function (x, y, hp, maxhp, ctx) {
+let drawHpBar = function (characterObj, x, y, ctx) {
   // hp bar
-  ctx.fillStyle = "rgba(255, 255, 255, 1.0)";
+  ctx.fillStyle = "#fff9e4";
   ctx.fillRect(x, y, hpBarWidth, HpBarHeight);
-  ctx.fillStyle = "rgba(20, 20, 20, 1.0)";
+  ctx.fillStyle = "#2a2349";
   ctx.fillRect(x + 4, y + 4, hpBarWidth - 8, HpBarHeight - 8);
-  ctx.fillStyle = "rgba(60, 200, 80, 1.0)";
-  if (hp * 4 < maxhp) ctx.fillStyle = "rgba(255, 120, 80, 1.0)";
-  ctx.fillRect(x + 4, y + 4, (hpBarWidth - 8) * hp / maxhp, HpBarHeight - 8);
+  ctx.fillStyle = "#7bb24e";
+  if (characterObj.hp * 4 < characterObj.maxhp) ctx.fillStyle = "#c16c5b";
+  ctx.fillRect(x + 4, y + 4, (hpBarWidth - 8) * characterObj.hp / characterObj.maxhp, HpBarHeight - 8);
   // text
-  let hpText = hp + "/" + maxhp;
-  ctx.font = '20px "游ゴシック体"'
+  let hpText = characterObj.hp + "/" + characterObj.maxhp;
+  ctx.font = "bold 20px " + fontFamily;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.strokeStyle = "blue";
-  ctx.fillStyle = "white";
+  ctx.strokeStyle = "#2a2349";
+  ctx.fillStyle = "#fff9e4";
   ctx.lineWidth = 4;
   ctx.lineCap = "round";
   ctx.lineJoin = "round";
-  ctx.strokeText(hpText, x + (hpBarWidth / 2), y + (HpBarHeight));
-  ctx.fillText(hpText, x + (hpBarWidth / 2), y + (HpBarHeight));
+  ctx.strokeText(hpText, x + (hpBarWidth / 2), y + HpBarHeight);
+  ctx.fillText(hpText, x + (hpBarWidth / 2), y + HpBarHeight);
+  // status
+  ctx.font = "bold 16px " + fontFamily;
+  ctx.strokeStyle = "#7d3840";
+  for (let i = 0; i < characterObj.status.length; i++) {
+    ctx.drawImage(statusImageData[characterObj.status[i].name], x + i * 64, y + HpBarHeight + 4);
+    ctx.strokeText(characterObj.status[i].amount, x + i * 64 + 32,  y + HpBarHeight + 32);
+    ctx.fillText(characterObj.status[i].amount, x + i * 64 + 32,  y + HpBarHeight + 32);
+  }
 };
 
 
+
+// change scene
+let setScene = function(nextscene) {
+  scene = nextscene;
+  sceneInit = true;
+}
 
 // set transition animation
 let setTransition = function (nextscene) {
@@ -473,8 +548,7 @@ let gameLoop = function() {
     transCtx.fillRect(0, 0, 640, 480);
     if (--transAnimeCount <= 0) {
       // change scene
-      scene = sceneAfterTrans;
-      sceneInit = true;
+      setScene(sceneAfterTrans);
       // set transition animation
       transScene = "out";
       transAnimeCount = transAnimeCountInit;
@@ -517,6 +591,8 @@ let sceneList = {
       enemyStrategyParam = 0;
       // floor
       dungeonFloor++;
+      //cursor
+      menuCursor = 0;
       // text
       mainWindowText[0] = enemy.name + "が立ちはだかる！"
       mainWindowText[1] = "";
@@ -528,11 +604,10 @@ let sceneList = {
     let edx = 8 * animeCount;
     fighter.drawAnime(fighterX, characterY, charaCtx);
     enemy.drawAnime(enemyX + edx, characterY, charaCtx);
-    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+    drawHpBar(fighter, fighterX, hpBarY, useriCtx);
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0){
-      scene = "combat";
-      sceneInit = true;
+      setScene("combat");
     }
   },
 
@@ -547,23 +622,21 @@ let sceneList = {
     // character animation
     fighter.drawAnime(fighterX, characterY, charaCtx);
     enemy.drawAnime(enemyX, characterY, charaCtx);
-    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    drawHpBar(fighter, fighterX, hpBarY, useriCtx);
+    drawHpBar(enemy, enemyX, hpBarY, useriCtx);
     // combat menu
-    if (isKeyPressedNow("u")) combatCursor--;
-    if (isKeyPressedNow("d")) combatCursor++;
-    if (combatCursor < 0) combatCursor = 2;
-    if (combatCursor > 2) combatCursor = 0;
-    drawTextInWindowWithCursor(combatMenu, 480, 480 - gridSize * 5, 160, combatCursor, useriCtx);
+    if (isKeyPressedNow("u")) menuCursor--;
+    if (isKeyPressedNow("d")) menuCursor++;
+    if (menuCursor < 0) menuCursor = 2;
+    if (menuCursor > 2) menuCursor = 0;
+    drawTextInWindowWithCursor(combatMenu, 480, 480 - gridSize * 5, 160, menuCursor, useriCtx);
     // press z key and change scene
     if (isKeyPressedNow("z")) {
-      if (combatCursor === 0) { // cursor0 → なぐる
-        scene = "wallop";
-        sceneInit = true;
+      if (menuCursor === 0) { // cursor0 → なぐる
+        setScene("wallop");
       }
-      else if (combatCursor === 1) { // cursor1 → まほう
-        scene = "magicmenu";
-        sceneInit = true;
+      else if (menuCursor === 1) { // cursor1 → まほう
+        setScene("magicmenu");
       }
     }
   },
@@ -575,7 +648,7 @@ let sceneList = {
       // init flag
       sceneInit = false;
       // deal damage
-      enemy.addHp(-(2 + fighterLv));
+      enemy.addHp(-(6 + fighterLv));
       // text
       mainWindowText[0] = fighter.name + "の攻撃！"
       mainWindowText[1] = "";
@@ -602,17 +675,15 @@ let sceneList = {
     }
     fighter.drawAnime(fighterX + fdx, characterY, charaCtx);
     enemy.drawAnime(enemyX + edx, characterY + edy, charaCtx);
-    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    drawHpBar(fighter, fighterX, hpBarY, useriCtx);
+    drawHpBar(enemy, enemyX, hpBarY, useriCtx);
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0){
       if (enemy.hp <= 0) {
-        scene = "victory";
-        sceneInit = true;
+        setScene("victory");
       }
       else {
-        scene = "enemyturn";
-        sceneInit = true;
+        setScene("enemyturn");
       }
     } 
   },
@@ -637,29 +708,28 @@ let sceneList = {
     charaCtx.drawImage(magicData[fighterMagic[magicCursor]].image, 288, 150);
     fighter.drawAnime(fighterX, characterY, charaCtx);
     enemy.drawAnime(enemyX, characterY, charaCtx);
-    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    drawHpBar(fighter, fighterX, hpBarY, useriCtx);
+    drawHpBar(enemy, enemyX, hpBarY, useriCtx);
     // magic information
     castMagic = magicData[fighterMagic[magicCursor]];
     mainWindowText[0] = castMagic.name + "    MP：" + castMagic.mp;
     mainWindowText[1] = castMagic.description;
-    mainWindowText[2] = "MPが足りない！";
-    if (fighterMp >= castMagic.mp) {
-      mainWindowText[2] = "";
+    mainWindowText[2] = "";
+    if (fighterMp < castMagic.mp) {
+      mainWindowText[2] = "MPが足りない！";
+      charaCtx.drawImage(cannotCastImage, 288, 150);
     }
     // cast magic
     if (isKeyPressedNow("z") && fighterMp >= castMagic.mp) {
       // consume mp
       fighterMp -= castMagic.mp;
       // change scene
-      scene = "magiccast";
-      sceneInit = true;
+      setScene("magiccast");
     }
     // cancel
     if (isKeyPressedNow("x")) {
       // back to combat menu
-      scene = "combat";
-      sceneInit = true;
+      setScene("combat");
     }
   },
 
@@ -696,17 +766,15 @@ let sceneList = {
     }
     fighter.drawAnime(fighterX, characterY + fdy, charaCtx);
     enemy.drawAnime(enemyX + edx, characterY + edy, charaCtx);
-    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    drawHpBar(fighter, fighterX, hpBarY, useriCtx);
+    drawHpBar(enemy, enemyX, hpBarY, useriCtx);
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       if (enemy.hp <= 0) {
-        scene = "victory";
-        sceneInit = true;
+        setScene("victory");
       }
       else {
-        scene = "enemyturn";
-        sceneInit = true;
+        setScene("enemyturn");
       }
     }
   },
@@ -722,7 +790,14 @@ let sceneList = {
       mainWindowText[1] = "";
       mainWindowText[2] = "";
       // enemy move
-      enemyData[enemy.type].strategy();
+      if (enemy.isStatusExist("stun")) {
+        mainWindowText[0] = enemy.name + "はシビレて動けない！";
+        enemy.addStatus("stun", -1);
+        enemyStrategyCategory = "stun";
+      } 
+      else {
+        enemyData[enemy.type].strategy();
+      }
       // anime count
       animeCount = 32;
     }
@@ -747,17 +822,15 @@ let sceneList = {
     }
     fighter.drawAnime(fighterX, characterY, charaCtx);
     enemy.drawAnime(enemyX + edx, characterY + edy, charaCtx);
-    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    drawHpBar(fighter, fighterX, hpBarY, useriCtx);
+    drawHpBar(enemy, enemyX, hpBarY, useriCtx);
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       if (fighter.hp <= 0) {
-        scene = "defeated";
-        sceneInit = true;
+        setScene("defeated");
       }
       else {
-        scene = "combat";
-        sceneInit = true;
+        setScene("combat");
       }
     }
   },
@@ -776,7 +849,7 @@ let sceneList = {
       mainWindowText[2] = "";
     }
     fighter.drawAnime(fighterX, characterY, charaCtx);
-    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
+    drawHpBar(fighter, fighterX, hpBarY, useriCtx);
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       setTransition("encount");
@@ -799,15 +872,15 @@ let sceneList = {
     // update
     charaCtx.drawImage(ohakaImage, fighterX, characterY); // ohaka
     enemy.drawAnime(enemyX, characterY, charaCtx);
-    drawHpBar(fighterX, hpBarY, fighter.hp, fighter.maxhp, useriCtx);
-    drawHpBar(enemyX, hpBarY, enemy.hp, enemy.maxhp, useriCtx);
+    drawHpBar(fighter, fighterX, hpBarY, useriCtx);
+    drawHpBar(enemy, enemyX, hpBarY, useriCtx);
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       mainWindowText[0] = "";
       mainWindowText[1] = "";
       // rebirth
-      fighter = new CharacterObject("player", "闘士", 20, fighterImage1, fighterImage2);
-      fighterMp = 15;
+      fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
+      fighterMp = 6;
       setTransition("encount");
     }
   },
@@ -820,27 +893,91 @@ let sceneList = {
       sceneInit = false;
       // counter (buffer)
       animeCount = 8;
+      // cursor
+      menuCursor = 0;
       // text 
-      mainWindowText[0] = "商人「いってらっしゃー」";
+      mainWindowText[0] = "商人「いらっしゃー」";
       mainWindowText[1] = "";
-      mainWindowText[2] = "（Zキーで進む）"; 
+      mainWindowText[2] = ""; 
     }
     // update
     // fighter animation
     fighter.drawAnime(fighterX, characterY, charaCtx);
     // merchant animation
-    if (timeCounter < counterMax / 2) {
-      charaCtx.drawImage(merchantImage1, 400, 64);
+    drawAnimation(merchantImage1, merchantImage2, 400, 64, charaCtx);
+    // menu
+    if (isKeyPressedNow("u")) menuCursor--;
+    if (isKeyPressedNow("d")) menuCursor++;
+    if (menuCursor < 0) menuCursor = 2;
+    if (menuCursor > 2) menuCursor = 0;
+    drawTextInWindowWithCursor(shopMenu, 480, 480 - gridSize * 5, 160, menuCursor, useriCtx);
+    // scene change
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      if (menuCursor === 0) {
+        setScene("buy");
+      }
+      else if (menuCursor === 1) {
+        setScene("dialog");
+      }
+      else if (menuCursor === 2) {
+        setTransition("encount");
+      }
     }
-    else {
-      charaCtx.drawImage(merchantImage2, 400, 64);
+  },
+
+  // scene: buy（ショップ購入）-------------------------------------------------------
+  "buy": () => {
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // counter (buffer)
+      animeCount = 8;
+      // cursor
+      menuCursor = 0;
+      // text 
+      mainWindowText[0] = "商人「ごめんねー、まだ実装されてないの」";
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
     }
-    // z key 
+    // update
+    // fighter animation
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    // merchant animation
+    drawAnimation(merchantImage1, merchantImage2, 400, 64, charaCtx);
+    // change scene
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
-      setTransition("encount");
+      setScene("shop");
+    }
+  },
+
+  // scene: dialog（ショップ会話）-------------------------------------------------------
+  "dialog": () => {
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // counter (buffer)
+      animeCount = 8;
+      // cursor
+      menuCursor = 0;
+      // text 
+      let oyakudachiIndex = randInt(0, oyakudachiInfo.length - 1)
+      mainWindowText[0] = "商人「" + oyakudachiInfo[oyakudachiIndex][0];
+      mainWindowText[1] = "　　　" + oyakudachiInfo[oyakudachiIndex][1];
+      mainWindowText[2] = "";
+    }
+    // update
+    // fighter animation
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    // merchant animation
+    drawAnimation(merchantImage1, merchantImage2, 400, 64, charaCtx);
+    // change scene
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      setScene("shop");
     }
   }
+
 };
 
 // scene list ここまで ==============================================================
