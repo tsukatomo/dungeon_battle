@@ -48,6 +48,11 @@ let fairyImage1 = new Image();
 let fairyImage2 = new Image();
 fairyImage1.src = "./img/fairy1.png";
 fairyImage2.src = "./img/fairy2.png";
+// image - yadokarinamekuji
+let yadoTsumuImage1 = new Image();
+let yadoTsumuImage2 = new Image();
+yadoTsumuImage1.src = "./img/yadotsumu1.png";
+yadoTsumuImage2.src = "./img/yadotsumu2.png";
 // image - grave
 let ohakaImage = new Image();
 ohakaImage.src = "./img/ohaka.png";
@@ -77,6 +82,9 @@ statusStunImage.src = "./img/status_stun.png";
 // image - status:stun
 let statusPowerImage = new Image();
 statusPowerImage.src = "./img/status_power.png";
+// image - status:stun
+let statusWeakImage = new Image();
+statusWeakImage.src = "./img/status_weak.png";
 // image - z key animation
 let zkeyImage1 = new Image();
 let zkeyImage2 = new Image();
@@ -93,6 +101,7 @@ merchantFaceImage.src = "./img/merchant_face.png";
 // image - merchant sad
 let merchantSadImage = new Image();
 merchantSadImage.src = "./img/merchant_face_sad.png";
+
 
 
 // some variables 
@@ -187,6 +196,10 @@ class CharacterObject {
   isStatusExist(name) {
     return (this.status.findIndex((elem) => elem.name === name) != -1);
   };
+  turnEnd() {
+    if (this.isStatusExist("weak")) this.addStatus("weak", -1);
+    if (this.isStatusExist("stun")) this.addStatus("stun", -1);
+  };
 }
 
 
@@ -254,6 +267,27 @@ let enemyData = {
         mainWindowText[0] = enemy.name + "の攻撃！"
       }
     }
+  },
+  "yadotsumu":{
+    name: "やどクジ",
+    hp: 60,
+    image1: yadoTsumuImage1,
+    image2: yadoTsumuImage2,
+    strategy: () => {
+      if (enemyStrategyParam % 3 === 1) {
+        enemyStrategyParam += 1;
+        fighter.addStatus("weak", 2);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "のネトネト攻撃！";
+        mainWindowText[1] = "なぐるの威力が弱くなった！";
+      }
+      else {
+        enemyStrategyParam += 1;
+        fighter.addHp(-8);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！"
+      }
+    }
   }
 };
 
@@ -305,7 +339,8 @@ let magicData = {
 // status image
 let statusImageData = {
   "stun": statusStunImage,
-  "power": statusPowerImage
+  "power": statusPowerImage,
+  "weak": statusWeakImage
 };
 
 
@@ -321,6 +356,7 @@ let oyakudachiInfo = [
   ["シビレ状態になると動けなくなるよー」", ""],
   ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"]
 ];
+
 
 
 // level up
@@ -491,6 +527,20 @@ let zkeyAnime = function () {
 
 // hp bar
 let drawHpBar = function (characterObj, x, y, ctx) {
+  // status
+  ctx.font = "bold 16px " + fontFamily;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillStyle = "#fff9e4";
+  ctx.lineWidth = 4;
+  ctx.lineCap = "round";
+  ctx.lineJoin = "round";
+  ctx.strokeStyle = "#7d3840";
+  for (let i = 0; i < characterObj.status.length; i++) {
+    ctx.drawImage(statusImageData[characterObj.status[i].name], x + i * 40, y + HpBarHeight + 4);
+    ctx.strokeText(characterObj.status[i].amount, x + i * 40 + 32,  y + HpBarHeight + 32);
+    ctx.fillText(characterObj.status[i].amount, x + i * 40 + 32,  y + HpBarHeight + 32);
+  }
   // hp bar
   ctx.fillStyle = "#fff9e4";
   ctx.fillRect(x, y, hpBarWidth, HpBarHeight);
@@ -502,23 +552,10 @@ let drawHpBar = function (characterObj, x, y, ctx) {
   // text
   let hpText = characterObj.hp + "/" + characterObj.maxhp;
   ctx.font = "bold 20px " + fontFamily;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.strokeStyle = "#2a2349";
   ctx.fillStyle = "#fff9e4";
-  ctx.lineWidth = 4;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+  ctx.strokeStyle = "#2a2349";
   ctx.strokeText(hpText, x + (hpBarWidth / 2), y + HpBarHeight);
   ctx.fillText(hpText, x + (hpBarWidth / 2), y + HpBarHeight);
-  // status
-  ctx.font = "bold 16px " + fontFamily;
-  ctx.strokeStyle = "#7d3840";
-  for (let i = 0; i < characterObj.status.length; i++) {
-    ctx.drawImage(statusImageData[characterObj.status[i].name], x + i * 40, y + HpBarHeight + 4);
-    ctx.strokeText(characterObj.status[i].amount, x + i * 40 + 32,  y + HpBarHeight + 32);
-    ctx.fillText(characterObj.status[i].amount, x + i * 40 + 32,  y + HpBarHeight + 32);
-  }
 };
 
 
@@ -614,7 +651,7 @@ let sceneList = {
       sceneInit = false;
       // create new enemy
       let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
-      //let eKey = enemyDatakeys[0]; // テスト用（敵がスライムだけになる）
+      //let eKey = "yadotsumu"; // テスト用（敵指定）
       let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
@@ -664,7 +701,7 @@ let sceneList = {
     // next scene
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0){
-      if (fighter.isStatusExist("stun")) fighter.addStatus("stun", -1);
+      fighter.turnEnd();
       setScene("enemyturn");
     }
   },
@@ -712,6 +749,9 @@ let sceneList = {
         damage *= 2;
         fighter.addStatus("power", -1);
       }
+      if (fighter.isStatusExist("weak")) {
+        damage = Math.floor(damage / 2);
+      }
       enemy.addHp(-damage);
       // text
       windowImage = null;
@@ -744,6 +784,7 @@ let sceneList = {
     drawHpBar(enemy, enemyX, hpBarY, useriCtx);
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0){
+      fighter.turnEnd();
       if (enemy.hp <= 0) {
         setScene("victory");
       }
@@ -837,6 +878,7 @@ let sceneList = {
     drawHpBar(enemy, enemyX, hpBarY, useriCtx);
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
+      fighter.turnEnd();
       if (enemy.hp <= 0) {
         setScene("victory");
       }
@@ -894,9 +936,7 @@ let sceneList = {
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       // effect at end of turn
-      if (enemy.isStatusExist("stun")){
-        enemy.addStatus("stun", -1);
-      }
+      enemy.turnEnd();
       // change scene
       if (fighter.hp <= 0) {
         setScene("defeated");
