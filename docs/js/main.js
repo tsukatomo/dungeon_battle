@@ -53,6 +53,11 @@ let yadoTsumuImage1 = new Image();
 let yadoTsumuImage2 = new Image();
 yadoTsumuImage1.src = "./img/yadotsumu1.png";
 yadoTsumuImage2.src = "./img/yadotsumu2.png";
+// image - renchin
+let renchinImage1 = new Image();
+let renchinImage2 = new Image();
+renchinImage1.src = "./img/renchin1.png";
+renchinImage2.src = "./img/renchin2.png";
 // image - grave
 let ohakaImage = new Image();
 ohakaImage.src = "./img/ohaka.png";
@@ -284,6 +289,33 @@ let enemyData = {
       else {
         enemyStrategyParam += 1;
         fighter.addHp(-8);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！"
+      }
+    }
+  },
+  "renchin":{
+    name: "レンチン",
+    hp: 90,
+    image1: renchinImage1,
+    image2: renchinImage2,
+    strategy: () => {
+      if (enemyStrategyParam % 6 === 5) {
+        enemyStrategyParam += 1;
+        fighter.addHp(-6);
+        fighter.addStatus("stun", 2);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "は放電した！";
+      }
+      else if (enemyStrategyParam % 2 === 1) {
+        enemyStrategyParam += 1;
+        fighter.addHp(-8);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "のヒートアタック！"
+      }
+      else {
+        enemyStrategyParam += 1;
+        fighter.addHp(-4);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！"
       }
