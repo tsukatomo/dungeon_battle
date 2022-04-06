@@ -202,8 +202,25 @@ class CharacterObject {
     return (this.status.findIndex((elem) => elem.name === name) != -1);
   };
   turnEnd() {
-    if (this.isStatusExist("weak")) this.addStatus("weak", -1);
     if (this.isStatusExist("stun")) this.addStatus("stun", -1);
+  };
+  dealAttackDamage(opponent, amount) {
+    // buff: power
+    if (this.isStatusExist("power")) {
+      amount *= 2;
+      this.addStatus("power", -1);
+    }
+    // debuff: weak
+    if (this.isStatusExist("weak")) {
+      amount = Math.floor(amount / 2);
+      this.addStatus("weak", -1);
+    }
+    opponent.addHp(-amount);
+    return amount;
+  };
+  dealMagicDamage(opponent, amount) {
+    opponent.addHp(-amount);
+    return amount;
   };
 }
 
@@ -219,7 +236,7 @@ let enemyData = {
     image1: slimeImage1,
     image2: slimeImage2,
     strategy: () => {
-      fighter.addHp(-7);
+      enemy.dealAttackDamage(fighter, 7);
       enemyStrategyCategory = "attack";
       mainWindowText[0] = enemy.name + "の攻撃！"
     },
@@ -231,12 +248,12 @@ let enemyData = {
     image2: gobImage2,
     strategy: () => {
       if (enemy.hp * 4 >= enemy.maxhp) {
-        fighter.addHp(-5);
+        enemy.dealAttackDamage(fighter, 5);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！"
       }
       else {
-        fighter.addHp(-15);
+        enemy.dealAttackDamage(fighter, 15);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の怒りの一撃！"
       }
@@ -249,7 +266,7 @@ let enemyData = {
     image2: treeImage2,
     strategy: () => {
       enemyStrategyParam += 1;
-      fighter.addHp(-Math.ceil(enemyStrategyParam));
+      enemy.dealAttackDamage(fighter, enemyStrategyParam);
       enemyStrategyCategory = "attack";
       mainWindowText[0] = enemy.name + "の攻撃！"
     }
@@ -267,7 +284,7 @@ let enemyData = {
         mainWindowText[0] = enemy.name + "は回復した！";
       }
       else {
-        fighter.addHp(-randInt(4, 8));
+        enemy.dealAttackDamage(fighter, randInt(4, 8));
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！"
       }
@@ -288,7 +305,7 @@ let enemyData = {
       }
       else {
         enemyStrategyParam += 1;
-        fighter.addHp(-8);
+        enemy.dealAttackDamage(fighter, 8);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！"
       }
@@ -302,20 +319,20 @@ let enemyData = {
     strategy: () => {
       if (enemyStrategyParam % 6 === 5) {
         enemyStrategyParam += 1;
-        fighter.addHp(-6);
+        enemy.dealAttackDamage(fighter, 6);
         fighter.addStatus("stun", 2);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "は放電した！";
       }
       else if (enemyStrategyParam % 2 === 1) {
         enemyStrategyParam += 1;
-        fighter.addHp(-8);
+        enemy.dealAttackDamage(fighter, 8);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "のヒートアタック！"
       }
       else {
         enemyStrategyParam += 1;
-        fighter.addHp(-4);
+        enemy.dealAttackDamage(fighter, 4);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！"
       }
@@ -333,7 +350,7 @@ let magicData = {
     image: magicFlameImage,
     description: "炎で攻撃。自分のLvに応じてダメージ量が上昇。",
     effect: () => {
-      enemy.addHp(-(15 + fighterLv));
+      fighter.dealMagicDamage(enemy, 15 + fighterLv);
     }
   },
   "heal": {
@@ -351,7 +368,7 @@ let magicData = {
     image: magicThunderImage,
     description: "雷で攻撃。敵にシビレ2を与える。",
     effect: () => {
-      enemy.addHp(-8);
+      fighter.dealMagicDamage(enemy, 6);
       enemy.addStatus("stun", 2);
     }
   },
@@ -378,6 +395,7 @@ let statusImageData = {
 
 
 // oyakudachi info
+// 記法：適切な位置で改行、終わりに”」”を付ける
 let oyakudachiInfo = [
   ["ちびゴブはHPがピンチになると", "強い攻撃をしてくるよ。怖いねー」"],
   ["ようせいの回復行動は3回までだよー」", ""],
@@ -386,7 +404,9 @@ let oyakudachiInfo = [
   ["フレイムはLvに応じて強くなるよー」", ""],
   ["敵に勝つとレベルアップ！", "最大HPとMPが増えるよー」"],
   ["シビレ状態になると動けなくなるよー」", ""],
-  ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"]
+  ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"],
+  ["やどクジは攻撃力を下げてくるよー", "でもまほうの威力は下がらないよー」"],
+  ["レンチンは6ターンごとに", "放電攻撃をしてくるよー」"],
 ];
 
 
@@ -776,15 +796,7 @@ let sceneList = {
       // init flag
       sceneInit = false;
       // deal damage
-      let damage = 6 + fighterLv;
-      if (fighter.isStatusExist("power")) {
-        damage *= 2;
-        fighter.addStatus("power", -1);
-      }
-      if (fighter.isStatusExist("weak")) {
-        damage = Math.floor(damage / 2);
-      }
-      enemy.addHp(-damage);
+      fighter.dealAttackDamage(enemy, 6 + fighterLv);
       // text
       windowImage = null;
       mainWindowText[0] = fighter.name + "の攻撃！"
