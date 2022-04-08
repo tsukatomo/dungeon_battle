@@ -154,11 +154,12 @@ let enemyX = 432;
 let hpBarY = 256;
 let hpBarWidth = 128;
 let HpBarHeight = 16;
-// for game scene
+// for game scene (main/sub)
 let scene = "encount";
+let subScene = "none";
 let sceneInit = false; // Whenever scene changes, Don't forget set this true!!
+let subSceneInit = false;
 // for transition animation
-let transScene = "none";
 const transAnimeCountInit = 50;
 let transAnimeCount = 0;
 let sceneAfterTrans;
@@ -406,7 +407,7 @@ let oyakudachiInfo = [
   ["シビレ状態になると動けなくなるよー」", ""],
   ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"],
   ["やどクジは攻撃力を下げてくるよー", "でもまほうの威力は下がらないよー」"],
-  ["レンチンは6ターンごとに", "放電攻撃をしてくるよー」"],
+  ["レンチンの行動に気をつけてねー", "6ターンに1回放電してくるよー」"],
 ];
 
 
@@ -557,7 +558,7 @@ window.onkeyup = function (e) {
 
 // check if the key pressed in this loop
 let isKeyPressedNow = function(key) {
-  if (transScene != "none") return false; // トランジション中はキー入力を受け付けない
+  if (subScene != "none") return false; // サブシーン中はキー入力を受け付けない
   return (keyPressed.indexOf(key) != -1 && keyPressedPrevious.indexOf(key) === -1);
 };
 
@@ -573,7 +574,7 @@ let drawAnimation = function (image1, image2, posX, posY, ctx) {
 
 // z key animation
 let zkeyAnime = function () {
-  if (transScene != "none") return false; // トランジション中は表示しない
+  if (subScene != "none") return false; // トランジション中は表示しない
   drawAnimation(zkeyImage1, zkeyImage2, 560, 400, useriCtx);
 };
 
@@ -616,11 +617,17 @@ let drawHpBar = function (characterObj, x, y, ctx) {
 let setScene = function(nextscene) {
   scene = nextscene;
   sceneInit = true;
-}
+};
+
+// change sub scene
+let setSubScene = function(nextscene) {
+  subScene = nextscene;
+  subSceneInit = true;
+};
 
 // set transition animation
 let setTransition = function (nextscene) {
-  transScene = "in";
+  subScene = "transin";
   transAnimeCount = transAnimeCountInit;
   sceneAfterTrans = nextscene;
 };
@@ -652,42 +659,13 @@ let gameLoop = function() {
   keyPressed = keyInput.slice();
   // text window
   drawTextInWindow(windowImage, mainWindowText, 0, 480 - gridSize * 5, 640, useriCtx);
+  // info window
   statusWindowText[0] = fighter.name + " Lv." + fighterLv + "    HP " + fighter.hp + "/" + fighter.maxhp + "    MP " + fighterMp + "    " + dungeonFloor + "階    " + money + "円";
   drawTextInWindow(null, statusWindowText, 0, 0, 640, useriCtx);
-  // scene transition
-  transCtx.fillStyle = "rgba(0, 0, 0, 1.0)"; // black
-  if (transScene === "in") {
-    //transCtx.globalAlpha = 1.0;
-    transCtx.fillRect(640 * (transAnimeCount / transAnimeCountInit), 0, 640, 480);
-    transCtx.globalAlpha = 1.0 - (transAnimeCount / transAnimeCountInit);
-    //transCtx.fillRect(0, 0, 640, 480);
-    if (--transAnimeCount <= 0) {
-      // set transition animation
-      transScene = "wait";
-      transAnimeCount = transAnimeCountInit;
-    }
-  }
-  else if (transScene === "wait") {
-    transCtx.fillRect(0, 0, 640, 480);
-    if (--transAnimeCount <= 0) {
-      // change scene
-      setScene(sceneAfterTrans);
-      // set transition animation
-      transScene = "out";
-      transAnimeCount = transAnimeCountInit;
-    }
-  }
-  else if (transScene === "out") {
-    transCtx.globalAlpha = transAnimeCount / transAnimeCountInit;
-    //transCtx.fillRect(0, 0, 640, 480);
-    transCtx.fillRect(0, 0, 640 * (transAnimeCount / transAnimeCountInit), 480);
-    if (--transAnimeCount <= 0) {
-      // finish transition
-      transScene = "none";
-    }
-  }
   // scene
   sceneList[scene]();
+  // sub scene
+  subSceneList[subScene]();
 };
 
 
@@ -1146,9 +1124,73 @@ let sceneList = {
 
 // scene list ここまで ==============================================================
 
+// sub scene =======================================================================
+
+let subSceneList = {
+  // sub scene: transin（トランジション開始）
+  "transin": () => {
+    // init
+    if (subSceneInit){
+      subSceneInit = false;
+      transAnimeCount = transAnimeCountInit;
+    }
+    // update
+    //transCtx.globalAlpha = 1.0;
+    transCtx.fillStyle = "rgba(0, 0, 0, 1.0)"; // black
+    transCtx.fillRect(640 * (transAnimeCount / transAnimeCountInit), 0, 640, 480);
+    transCtx.globalAlpha = 1.0 - (transAnimeCount / transAnimeCountInit);
+    //transCtx.fillRect(0, 0, 640, 480);
+    if (--transAnimeCount <= 0) {
+      // set transition animation
+      setSubScene("transwait");
+    }
+  },
+  // sub scene: transwait（トランジション中間）
+  "transwait": () => {
+    // init
+    if (subSceneInit) {
+      subSceneInit = false;
+      transAnimeCount = transAnimeCountInit;
+    }
+    // update
+    transCtx.fillStyle = "rgba(0, 0, 0, 1.0)"; // black
+    transCtx.fillRect(0, 0, 640, 480);
+    if (--transAnimeCount <= 0) {
+      // change scene
+      setScene(sceneAfterTrans);
+      // set transition animation
+      setSubScene("transout");
+    }
+  },
+  // sub scene: transout（トランジション終了）
+  "transout": () => {
+    // init
+    if (subSceneInit) {
+      subSceneInit = false;
+      transAnimeCount = transAnimeCountInit;
+    }
+    // update
+    transCtx.fillStyle = "rgba(0, 0, 0, 1.0)"; // black
+    transCtx.globalAlpha = transAnimeCount / transAnimeCountInit;
+    //transCtx.fillRect(0, 0, 640, 480);
+    transCtx.fillRect(0, 0, 640 * (transAnimeCount / transAnimeCountInit), 480);
+    if (--transAnimeCount <= 0) {
+      // finish transition
+      setSubScene("none");
+    }
+  },
+  // sub scene: none（何もしない）
+  "none": () => {
+    // 何もしない
+  }
+};
+
+// sub scene ここまで ===============================================================
+
 
 window.onload = function() {
   backgCtx.drawImage(backImage, 0, 0);
+
   //console.log("a");
   scene = "shop";
   sceneInit = true;
