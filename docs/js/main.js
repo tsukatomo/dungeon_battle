@@ -397,6 +397,8 @@ let statusImageData = {
 
 // oyakudachi info
 // 記法：適切な位置で改行、終わりに”」”を付ける
+// 商人「いらっしゃー。ここはソースコードだよー」
+// 商人「私に話しかけるのが面倒なら、ここを見るといいよー」
 let oyakudachiInfo = [
   ["ちびゴブはHPがピンチになると", "強い攻撃をしてくるよ。怖いねー」"],
   ["ようせいの回復行動は3回までだよー」", ""],
@@ -634,7 +636,7 @@ let setTransition = function (nextscene) {
 
 
 
-// get random integer (min ~ max)
+// get random integer (min ≤ n ≤ max)
 let randInt = function(min, max) {
   let minInt = Math.ceil(min);
   let maxInt = Math.floor(max);
