@@ -351,7 +351,7 @@ let magicData = {
     image: magicFlameImage,
     description: "炎で攻撃。自分のLvに応じてダメージ量が上昇。",
     effect: () => {
-      fighter.dealMagicDamage(enemy, 15 + fighterLv);
+      fighter.dealMagicDamage(enemy, 8 + (fighterLv * 3));
     }
   },
   "heal": {
@@ -1022,6 +1022,7 @@ let sceneList = {
       // rebirth
       fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
       fighterMp = 6;
+      fighterLv = 1;
       setTransition("encount");
     }
   },
