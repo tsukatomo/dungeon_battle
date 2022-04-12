@@ -23,6 +23,9 @@ const transCtx = transLay.getContext("2d");
 // image - background
 let backImage = new Image();
 backImage.src = "./img/background.png";
+// image - background(shop)
+let shopBackImage = new Image();
+shopBackImage.src = "./img/background_shop.png";
 // image - fighter
 let fighterImage1 = new Image();
 let fighterImage2 = new Image();
@@ -95,6 +98,9 @@ let zkeyImage1 = new Image();
 let zkeyImage2 = new Image();
 zkeyImage1.src = "./img/pressZkey1.png";
 zkeyImage2.src = "./img/pressZkey2.png";
+// image - cursor
+let cursorImage = new Image();
+cursorImage.src = "./img/cursor.png";
 // image - merchant
 let merchantImage1 = new Image();
 let merchantImage2 = new Image();
@@ -140,13 +146,15 @@ let animeCount = 0; // animation counter
 let enemyStrategyParam = 0; // a parameter for strategy of enemy
 let enemyStrategyCategory = "attack";
 // for magic
-let fighterMagic = ["flame", "heal", "thunder", "power"]; // magic can be cast
+let fighterMagic = ["flame"]; // magic can be cast
 let magicCursor = 0;
 let fighterMp = 6;
 let castMagic;
 let fighterLv = 1;
 let dungeonFloor = 0;
-let money = 10;
+let money = 99;
+// for shop
+let shopItem = [];
 // for showing character
 let characterY = 128;
 let fighterX = 80;
@@ -564,6 +572,11 @@ let isKeyPressedNow = function(key) {
   return (keyPressed.indexOf(key) != -1 && keyPressedPrevious.indexOf(key) === -1);
 };
 
+// check if the key pressed in this loop (in sub scene)
+let isKeyPressedNowSub = function(key) {
+  return (keyPressed.indexOf(key) != -1 && keyPressedPrevious.indexOf(key) === -1);
+};
+
 
 
 // draw animation
@@ -576,9 +589,16 @@ let drawAnimation = function (image1, image2, posX, posY, ctx) {
 
 // z key animation
 let zkeyAnime = function () {
-  if (subScene != "none") return false; // トランジション中は表示しない
+  if (subScene != "none") return false; // サブシーン中は表示しない
   drawAnimation(zkeyImage1, zkeyImage2, 560, 400, useriCtx);
 };
+
+// z key animation (in sub scene)
+let zkeyAnimeSub = function () {
+  drawAnimation(zkeyImage1, zkeyImage2, 560, 400, useriCtx);
+};
+
+
 
 // hp bar
 let drawHpBar = function (characterObj, x, y, ctx) {
@@ -843,7 +863,7 @@ let sceneList = {
     // magic information
     castMagic = magicData[fighterMagic[magicCursor]];
     windowImage = null;
-    mainWindowText[0] = castMagic.name + "    MP：" + castMagic.mp;
+    mainWindowText[0] = castMagic.name + "    MP " + castMagic.mp;
     mainWindowText[1] = castMagic.description;
     mainWindowText[2] = "";
     if (fighterMp < castMagic.mp) {
@@ -1033,6 +1053,14 @@ let sceneList = {
     if (sceneInit) {
       // init flag
       sceneInit = false;
+      // draw background
+      backgCtx.drawImage(backImage, 0, 0);
+      // add shop items
+      let magicDataKeys = Object.keys(magicData);
+      for (let i = 0; i < 4; i++) {
+        let item = magicDataKeys[randInt(0, magicDataKeys.length - 1)];
+        shopItem[i] = {item: item, category: "magic", price: randInt(3, 10)};
+      }
       // counter (buffer)
       animeCount = 8;
       // cursor
@@ -1057,7 +1085,7 @@ let sceneList = {
     // scene change
     if (isKeyPressedNow("z") && animeCount === 0) {
       if (menuCursor === 0) {
-        setScene("buy");
+        setTransition("buy");
       }
       else if (menuCursor === 1) {
         setScene("dialog");
@@ -1073,25 +1101,77 @@ let sceneList = {
     if (sceneInit) {
       // init flag
       sceneInit = false;
-      // counter (buffer)
-      animeCount = 8;
+      // draw background
+      backgCtx.drawImage(shopBackImage, 0, 0);
       // cursor
       menuCursor = 0;
       // text 
-      windowImage = merchantSadImage;
-      mainWindowText[0] = "「ごめんねー、まだ実装されてないの」";
+      windowImage = null;
+      mainWindowText[0] = "";
       mainWindowText[1] = "";
       mainWindowText[2] = "";
     }
     // update
-    // fighter animation
-    fighter.drawAnime(fighterX, characterY, charaCtx);
-    // merchant animation
-    drawAnimation(merchantImage1, merchantImage2, 400, 64, charaCtx);
+    // move cursor
+    if (isKeyPressedNow("l") && menuCursor > 0) menuCursor--;
+    if (isKeyPressedNow("r") && menuCursor < 3) menuCursor++;
+    // show items
+    for (let i = 0; i < 4; i++) {
+      if (shopItem[i].category === "magic") {
+        charaCtx.drawImage(magicData[shopItem[i].item].image, 48 + 160 * i, 180);
+      }
+    }
+    // show price
+    charaCtx.font = "bold 24px " + fontFamily;
+    charaCtx.textAlign = "center";
+    charaCtx.textBaseline = "middle";
+    charaCtx.fillStyle = "#fff9e4";
+    charaCtx.lineWidth = 4;
+    charaCtx.lineCap = "round";
+    charaCtx.lineJoin = "round";
+    charaCtx.strokeStyle = "#2a2349";
+    for (let i = 0; i < 4; i++) {
+      if (shopItem[i].category != "none") {
+        charaCtx.strokeText(shopItem[i].price + "円", 80 + 160 * i, 256);
+        charaCtx.fillText(shopItem[i].price + "円", 80 + 160 * i, 256);
+      }
+    }
+    // show cursor
+    let cursorY = (timeCounter < 50) ? 120 : 124;
+    charaCtx.drawImage(cursorImage, 48 + 160 * menuCursor, cursorY);
+    // show item info
+    let itemOnCursor = shopItem[menuCursor];
+    windowImage = null;
+    if (itemOnCursor.category === "magic") {
+      mainWindowText[0] = magicData[itemOnCursor.item].name + "    MP " + magicData[itemOnCursor.item].mp;
+      mainWindowText[1] = magicData[itemOnCursor.item].description;
+      mainWindowText[2] = "[z]購入";
+    }
+    else if (itemOnCursor.category === "none") {
+      mainWindowText[0] = "売り切れ！"
+      mainWindowText[1] = ""
+      mainWindowText[2] = "";
+    }
+    // buying
+    if (isKeyPressedNow("z") && itemOnCursor.category != "none") {
+      if (itemOnCursor.price <= money) { // afford
+        // pay
+        money -= itemOnCursor.price;
+        // add to magic list
+        fighterMagic.push(itemOnCursor.item);
+        // remove from shop item list
+        shopItem[menuCursor] = {item: null, category: "none", price: null};
+        // sub scene
+        setSubScene("afford");
+      }
+      else { // not afford
+        // sub scene
+        setSubScene("notafford");
+      }
+    }
     // change scene
-    if (animeCount === 0) zkeyAnime();
-    if (isKeyPressedNow("z") && animeCount === 0) {
-      setScene("shop");
+    if (isKeyPressedNow("x") && animeCount === 0) {
+      setTransition("shop");
     }
   },
 
@@ -1179,6 +1259,42 @@ let subSceneList = {
     transCtx.fillRect(0, 0, 640 * (transAnimeCount / transAnimeCountInit), 480);
     if (--transAnimeCount <= 0) {
       // finish transition
+      setSubScene("none");
+    }
+  },
+  // sub scene: afford（店で品物を購入）
+  "afford": () => {
+    // init
+    if (subSceneInit) {
+      subSceneInit = false;
+      transAnimeCount = 8;  
+    }
+    // text 
+    windowImage = merchantFaceImage;
+    mainWindowText[0] = "「まいどー」";
+    mainWindowText[1] = "";
+    mainWindowText[2] = "";
+    // update
+    if (transAnimeCount-- < 0) zkeyAnimeSub();
+    if (isKeyPressedNowSub("z") && transAnimeCount < 0) {
+      setSubScene("none");
+    }
+  },
+  // sub scene: notafford（お金が足りない）
+  "notafford": () => {
+    // init
+    if (subSceneInit) {
+      subSceneInit = false;
+      transAnimeCount = 8;
+    }
+    // update
+    // text 
+    windowImage = merchantSadImage;
+    mainWindowText[0] = "「お金が足りないよー」";
+    mainWindowText[1] = "";
+    mainWindowText[2] = "";
+    if (transAnimeCount-- < 0) zkeyAnimeSub();
+    if (isKeyPressedNowSub("z") && transAnimeCount < 0) {
       setSubScene("none");
     }
   },
