@@ -152,7 +152,7 @@ let fighterMp = 6;
 let castMagic;
 let fighterLv = 1;
 let dungeonFloor = 0;
-let money = 99;
+let money = 20;
 // for shop
 let shopItem = [];
 // for showing character
@@ -1132,6 +1132,11 @@ let sceneList = {
     charaCtx.strokeStyle = "#2a2349";
     for (let i = 0; i < 4; i++) {
       if (shopItem[i].category != "none") {
+        if (shopItem[i].price <= money) {
+          charaCtx.fillStyle = "#fff9e4";
+        } else {
+          charaCtx.fillStyle = "#e89973";
+        }
         charaCtx.strokeText(shopItem[i].price + "円", 80 + 160 * i, 256);
         charaCtx.fillText(shopItem[i].price + "円", 80 + 160 * i, 256);
       }
