@@ -86,6 +86,9 @@ magicThunderImage.src = "./img/magic_thunder.png";
 // image - magic:power
 let magicPowerImage = new Image();
 magicPowerImage.src = "./img/magic_power.png";
+// image - magic:jinx
+let magicJinxImage = new Image();
+magicJinxImage.src = "./img/magic_jinx.png";
 // image - cannot cast magic
 let cannotCastImage = new Image();
 cannotCastImage.src = "./img/cannotcast.png";
@@ -160,7 +163,7 @@ let enemyStrategyCategory = "attack";
 // for magic
 let fighterMagic = ["flame"]; // magic can be cast
 let magicCursor = 0;
-let fighterMp = 6;
+let fighterMp = 99;
 let castMagic;
 // for combat
 let isStartTurn = false; // start of turn
@@ -457,6 +460,24 @@ let magicData = {
     description: "次の2回の「なぐる」の威力を2倍にする。",
     effect: () => {
       fighter.addStatus("power", 2);
+    }
+  },
+  "jinx": {
+    name: "ジンクス",
+    mp: 5,
+    image: magicJinxImage,
+    description: "敵にデバフがかかっているなら大ダメージ。",
+    effect: () => {
+      let isDebuffExist = false;
+      for (let i = 0; i < enemy.status.length; i++) {
+        isDebuffExist |= !statusData[enemy.status[i].name].isBuff;
+      }
+      if (isDebuffExist) {
+        fighter.dealMagicDamage(enemy, 40 + (fighterLv * 2));
+      }
+      else {
+        fighter.dealMagicDamage(enemy, fighterLv * 2);
+      }
     }
   }
 };
