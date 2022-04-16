@@ -61,6 +61,11 @@ let renchinImage1 = new Image();
 let renchinImage2 = new Image();
 renchinImage1.src = "./img/renchin1.png";
 renchinImage2.src = "./img/renchin2.png";
+// image - shieldkusa
+let shieldkusaImage1 = new Image();
+let shieldkusaImage2 = new Image();
+shieldkusaImage1.src = "./img/shieldkusa1.png";
+shieldkusaImage2.src = "./img/shieldkusa2.png";
 // image - grave
 let ohakaImage = new Image();
 ohakaImage.src = "./img/ohaka.png";
@@ -93,6 +98,12 @@ statusPowerImage.src = "./img/status_power.png";
 // image - status:stun
 let statusWeakImage = new Image();
 statusWeakImage.src = "./img/status_weak.png";
+// image - status:shield
+let statusShieldImage = new Image();
+statusShieldImage.src = "./img/status_shield.png";
+// image - status:m_shield
+let statusMShieldImage = new Image();
+statusMShieldImage.src = "./img/status_magicshield.png";
 // image - z key animation
 let zkeyImage1 = new Image();
 let zkeyImage2 = new Image();
@@ -143,6 +154,7 @@ const combatMenu = ["なぐる", "まほう", "どうぐ"];
 const shopMenu = ["かう", "はなす", "たちさる"];
 let menuCursor = 0;
 let animeCount = 0; // animation counter
+// for enemy
 let enemyStrategyParam = 0; // a parameter for strategy of enemy
 let enemyStrategyCategory = "attack";
 // for magic
@@ -150,6 +162,9 @@ let fighterMagic = ["flame"]; // magic can be cast
 let magicCursor = 0;
 let fighterMp = 6;
 let castMagic;
+// for combat
+let isStartTurn = false; // start of turn
+// for info
 let fighterLv = 1;
 let dungeonFloor = 0;
 let money = 20;
@@ -185,15 +200,18 @@ class CharacterObject {
     this.image2 = image2;
     this.status = [];
   };
+
   drawAnime(posX, posY, ctx) {
     let image = timeCounter < counterMax / 2 ? this.image1 : this.image2;
     ctx.drawImage(image, posX, posY);
   };
+
   addHp(amount) {
     this.hp += amount;
     if (this.hp > this.maxhp) this.hp = this.maxhp;
     if (this.hp < 0) this.hp = 0;
   };
+
   addStatus(name, amount) {
     let indexOfStatus = this.status.findIndex((elem) => elem.name === name);
     if (indexOfStatus != -1) {
@@ -207,12 +225,29 @@ class CharacterObject {
       this.status.push({name: name, amount: amount});
     }
   };
+
   isStatusExist(name) {
     return (this.status.findIndex((elem) => elem.name === name) != -1);
   };
-  turnEnd() {
-    if (this.isStatusExist("stun")) this.addStatus("stun", -1);
+
+  turnStart() {
+    // reduce buff/debuff which is categorised as a "turn_start"
+    for (let i = 0; i < this.status.length; i++) {
+      if (statusData[this.status[i].name].type === "turn_start") {
+        this.addStatus(this.status[i].name, -1);
+      }
+    }
   };
+
+  turnEnd() {
+    // reduce buff/debuff which is categorised as a "turn_end"
+    for (let i = 0; i < this.status.length; i++) {
+      if (statusData[this.status[i].name].type === "turn_end") {
+        this.addStatus(this.status[i].name, -1);
+      }
+    }
+  };
+
   dealAttackDamage(opponent, amount) {
     // buff: power
     if (this.isStatusExist("power")) {
@@ -221,17 +256,28 @@ class CharacterObject {
     }
     // debuff: weak
     if (this.isStatusExist("weak")) {
-      amount = Math.floor(amount / 2);
+      amount /= 2;
       this.addStatus("weak", -1);
     }
-    opponent.addHp(-amount);
+    // opponent buff: shield
+    if (opponent.isStatusExist("shield")) {
+      amount /= 2;
+    }
+    opponent.addHp(-Math.floor(amount));
     return amount;
   };
+
   dealMagicDamage(opponent, amount) {
-    opponent.addHp(-amount);
+    // opponent buff: m_shield
+    if (opponent.isStatusExist("m_shield")) {
+      amount /= 2;
+    }
+    opponent.addHp(-Math.floor(amount));
     return amount;
   };
+
 }
+
 
 
 let fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
@@ -247,7 +293,7 @@ let enemyData = {
     strategy: () => {
       enemy.dealAttackDamage(fighter, 7);
       enemyStrategyCategory = "attack";
-      mainWindowText[0] = enemy.name + "の攻撃！"
+      mainWindowText[0] = enemy.name + "の攻撃！";
     },
   },
   "gob":{
@@ -259,12 +305,12 @@ let enemyData = {
       if (enemy.hp * 4 >= enemy.maxhp) {
         enemy.dealAttackDamage(fighter, 5);
         enemyStrategyCategory = "attack";
-        mainWindowText[0] = enemy.name + "の攻撃！"
+        mainWindowText[0] = enemy.name + "の攻撃！";
       }
       else {
         enemy.dealAttackDamage(fighter, 15);
         enemyStrategyCategory = "attack";
-        mainWindowText[0] = enemy.name + "の怒りの一撃！"
+        mainWindowText[0] = enemy.name + "の怒りの一撃！";
       }
     }
   },
@@ -277,7 +323,7 @@ let enemyData = {
       enemyStrategyParam += 1;
       enemy.dealAttackDamage(fighter, enemyStrategyParam);
       enemyStrategyCategory = "attack";
-      mainWindowText[0] = enemy.name + "の攻撃！"
+      mainWindowText[0] = enemy.name + "の攻撃！";
     }
   },
   "fairy":{
@@ -295,7 +341,7 @@ let enemyData = {
       else {
         enemy.dealAttackDamage(fighter, randInt(4, 8));
         enemyStrategyCategory = "attack";
-        mainWindowText[0] = enemy.name + "の攻撃！"
+        mainWindowText[0] = enemy.name + "の攻撃！";
       }
     }
   },
@@ -316,7 +362,7 @@ let enemyData = {
         enemyStrategyParam += 1;
         enemy.dealAttackDamage(fighter, 8);
         enemyStrategyCategory = "attack";
-        mainWindowText[0] = enemy.name + "の攻撃！"
+        mainWindowText[0] = enemy.name + "の攻撃！";
       }
     }
   },
@@ -337,13 +383,36 @@ let enemyData = {
         enemyStrategyParam += 1;
         enemy.dealAttackDamage(fighter, 8);
         enemyStrategyCategory = "attack";
-        mainWindowText[0] = enemy.name + "のヒートアタック！"
+        mainWindowText[0] = enemy.name + "のヒートアタック！";
       }
       else {
         enemyStrategyParam += 1;
         enemy.dealAttackDamage(fighter, 4);
         enemyStrategyCategory = "attack";
-        mainWindowText[0] = enemy.name + "の攻撃！"
+        mainWindowText[0] = enemy.name + "の攻撃！";
+      }
+    }
+  },
+  "shieldkusa":{
+    name: "タテグサ",
+    hp: 60,
+    image1: shieldkusaImage1,
+    image2: shieldkusaImage2,
+    strategy: () => {
+      if (enemyStrategyParam++ % 2 === 0) {
+        if (randInt(0, 1) === 1) {
+          enemy.addStatus("shield", 2);
+        }
+        else {
+          enemy.addStatus("m_shield", 2);
+        }
+        enemyStrategyCategory = "none";
+        mainWindowText[0] = enemy.name + "は守りを固めている";
+      }
+      else {
+        enemy.dealAttackDamage(fighter, 8);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！";
       }
     }
   }
@@ -395,10 +464,37 @@ let magicData = {
 
 
 // status image
-let statusImageData = {
-  "stun": statusStunImage,
-  "power": statusPowerImage,
-  "weak": statusWeakImage
+let statusData = {
+  "stun": {
+    name: "シビレ",
+    image: statusStunImage,
+    isBuff: false,
+    type: "turn_end"
+  },
+  "power": {
+    name: "パワー",
+    image: statusPowerImage,
+    isBuff: true,
+    type: "stack"
+  },
+  "weak": {
+    name: "ヘナヘナ",
+    image: statusWeakImage,
+    isBuff: false,
+    type: "stack"
+  },
+  "shield": {
+    name: "ボウギョ",
+    image: statusShieldImage,
+    isBuff: true,
+    type: "turn_start"
+  },
+  "m_shield": {
+    name: "マホウボウギョ",
+    image: statusMShieldImage,
+    isBuff: true,
+    type: "turn_start"
+  }
 };
 
 
@@ -612,7 +708,7 @@ let drawHpBar = function (characterObj, x, y, ctx) {
   ctx.lineJoin = "round";
   ctx.strokeStyle = "#7d3840";
   for (let i = 0; i < characterObj.status.length; i++) {
-    ctx.drawImage(statusImageData[characterObj.status[i].name], x + i * 40, y + HpBarHeight + 4);
+    ctx.drawImage(statusData[characterObj.status[i].name].image, x + i * 40, y + HpBarHeight + 4);
     ctx.strokeText(characterObj.status[i].amount, x + i * 40 + 32,  y + HpBarHeight + 32);
     ctx.fillText(characterObj.status[i].amount, x + i * 40 + 32,  y + HpBarHeight + 32);
   }
@@ -703,8 +799,8 @@ let sceneList = {
       sceneInit = false;
       // create new enemy
       let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
-      //let eKey = "yadotsumu"; // テスト用（敵指定）
-      let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
+      let eKey = "shieldkusa"; // テスト用（敵指定）
+      //let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
         enemyData[eKey].name,
@@ -722,6 +818,8 @@ let sceneList = {
       mainWindowText[0] = enemy.name + "が立ちはだかる！"
       mainWindowText[1] = "";
       mainWindowText[2] = "";
+      // start turn flag
+      isStartTurn = true;
       // anime count
       animeCount = 32;
     }
@@ -740,6 +838,10 @@ let sceneList = {
   "stunned": () => {
     if (sceneInit) {
       sceneInit = false;
+      if (isStartTurn) {
+        fighter.turnStart();
+        isStartTurn = false;
+      }
       windowImage = null;
       mainWindowText[0] = fighter.name + "はシビレて動けない！";
       mainWindowText[1] = "";
@@ -762,6 +864,10 @@ let sceneList = {
   "combat": () => {
     if (sceneInit) {
       sceneInit = false;
+      if (isStartTurn) {
+        fighter.turnStart();
+        isStartTurn = false;
+      }
       windowImage = null;
       mainWindowText[0] = fighter.name + "のターン";
       mainWindowText[1] = "";
@@ -938,6 +1044,8 @@ let sceneList = {
     if (sceneInit) {
       // init flag
       sceneInit = false;
+      // effect at start of turn
+      enemy.turnStart();
       // reset main window
       windowImage = null;
       mainWindowText[0] = "";
@@ -989,6 +1097,8 @@ let sceneList = {
         setScene("stunned");
       }
       else {
+        // start turn flag
+        isStartTurn = true;
         setScene("combat");
       }
     }
