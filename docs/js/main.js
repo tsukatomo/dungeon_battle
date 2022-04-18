@@ -66,6 +66,11 @@ let shieldkusaImage1 = new Image();
 let shieldkusaImage2 = new Image();
 shieldkusaImage1.src = "./img/shieldkusa1.png";
 shieldkusaImage2.src = "./img/shieldkusa2.png";
+// image - merchant(boss)
+let merchantBossImage1 = new Image();
+let merchantBossImage2 = new Image();
+merchantBossImage1.src = "./img/merchant_boss1.png";
+merchantBossImage2.src = "./img/merchant_boss2.png";
 // image - grave
 let ohakaImage = new Image();
 ohakaImage.src = "./img/ohaka.png";
@@ -126,6 +131,9 @@ merchantFaceImage.src = "./img/merchant_face.png";
 // image - merchant sad
 let merchantSadImage = new Image();
 merchantSadImage.src = "./img/merchant_face_sad.png";
+// image - merchant fury
+let merchantFuryImage = new Image();
+merchantFuryImage.src = "./img/merchant_face_fury.png";
 
 
 
@@ -417,6 +425,17 @@ let enemyData = {
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
+    }
+  },
+  "merchant":{
+    name:"商人",
+    hp: 65535,
+    image1: merchantBossImage1,
+    image2: merchantBossImage2,
+    strategy: () => {
+      enemy.dealAttackDamage(fighter, 255);
+      enemyStrategyCategory = "attack";
+      mainWindowText[0] = enemy.name + "の攻撃！";
     }
   }
 };
@@ -820,7 +839,7 @@ let sceneList = {
       sceneInit = false;
       // create new enemy
       let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
-      let eKey = "shieldkusa"; // テスト用（敵指定）
+      let eKey = "merchant"; // テスト用（敵指定）
       //let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
@@ -1321,7 +1340,7 @@ let sceneList = {
       // cursor
       menuCursor = 0;
       // text 
-      windowImage = merchantFaceImage;
+      windowImage = merchantFuryImage;
       let oyakudachiIndex = randInt(0, oyakudachiInfo.length - 1)
       mainWindowText[0] = "「" + oyakudachiInfo[oyakudachiIndex][0];
       mainWindowText[1] = "　" + oyakudachiInfo[oyakudachiIndex][1];
