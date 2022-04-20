@@ -430,6 +430,7 @@ let enemyData = {
       }
     }
   },
+  /* 「あー、見ちゃったねー？　みんなには内緒だよー？」
   "merchant":{
     name:"商人",
     hp: 200,
@@ -441,6 +442,7 @@ let enemyData = {
       mainWindowText[0] = enemy.name + "の攻撃！";
     }
   }
+  */
 };
 
 
@@ -574,6 +576,7 @@ let oyakudachiInfo = [
 let initParam = function () {
   fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
   fighterMp = 6;
+  fighterMagic = ["flame"];
   fighterLv = 1;
   dungeonFloor = 0;
   money = 20;
@@ -1214,10 +1217,8 @@ let sceneList = {
       mainWindowText[0] = "";
       mainWindowText[1] = "";
       // rebirth
-      fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
-      fighterMp = 6;
-      fighterLv = 1;
-      setTransition("encount");
+      initParam();
+      setTransition("shop");
     }
   },
 
@@ -1492,5 +1493,6 @@ window.onload = function() {
   //console.log("a");
   scene = "shop";
   sceneInit = true;
+  initParam();
   setInterval(gameLoop, 10);
 };
