@@ -91,6 +91,9 @@ magicThunderImage.src = "./img/magic_thunder.png";
 // image - magic:power
 let magicPowerImage = new Image();
 magicPowerImage.src = "./img/magic_power.png";
+// image - magic:shield
+let magicShieldImage = new Image();
+magicShieldImage.src = "./img/magic_shield.png";
 // image - magic:jinx
 let magicJinxImage = new Image();
 magicJinxImage.src = "./img/magic_jinx.png";
@@ -429,11 +432,11 @@ let enemyData = {
   },
   "merchant":{
     name:"商人",
-    hp: 65535,
+    hp: 200,
     image1: merchantBossImage1,
     image2: merchantBossImage2,
     strategy: () => {
-      enemy.dealAttackDamage(fighter, 255);
+      enemy.dealAttackDamage(fighter, 20);
       enemyStrategyCategory = "attack";
       mainWindowText[0] = enemy.name + "の攻撃！";
     }
@@ -466,7 +469,7 @@ let magicData = {
     name: "ビリビリ",
     mp: 3,
     image: magicThunderImage,
-    description: "雷で攻撃。敵にシビレ2を与える。",
+    description: "雷で攻撃。敵を2ターン行動不能にする。",
     effect: () => {
       fighter.dealMagicDamage(enemy, 6);
       enemy.addStatus("stun", 2);
@@ -479,6 +482,15 @@ let magicData = {
     description: "次の2回の「なぐる」の威力を2倍にする。",
     effect: () => {
       fighter.addStatus("power", 2);
+    }
+  },
+  "shield": {
+    name: "シールド",
+    mp: 2,
+    image: magicShieldImage,
+    description: "3ターンの間、受けるダメージを半分にする。",
+    effect: () => {
+      fighter.addStatus("shield", 3);
     }
   },
   "jinx": {
@@ -548,14 +560,24 @@ let oyakudachiInfo = [
   ["ようせいの回復行動は3回までだよー」", ""],
   ["モクモクはターン数がかかるほど", "攻撃が強くなっていくよー」"],
   ["スライム？かわいいよねー」", ""],
-  ["フレイムはLvに応じて強くなるよー」", ""],
+  ["フレイムはキミのLvに応じて", "どんどん強くなるよー」"],
   ["敵に勝つとレベルアップ！", "最大HPとMPが増えるよー」"],
   ["シビレ状態になると動けなくなるよー」", ""],
   ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"],
   ["やどクジは攻撃力を下げてくるよー", "でもまほうの威力は下がらないよー」"],
   ["レンチンの行動に気をつけてねー", "6ターンに1回放電してくるよー」"],
+  ["敵をなぐるとMPがちょっと増えるよー」",""]
 ];
 
+
+// initialize param
+let initParam = function () {
+  fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
+  fighterMp = 6;
+  fighterLv = 1;
+  dungeonFloor = 0;
+  money = 20;
+}
 
 
 // level up
@@ -839,8 +861,8 @@ let sceneList = {
       sceneInit = false;
       // create new enemy
       let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
-      let eKey = "merchant"; // テスト用（敵指定）
-      //let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
+      //let eKey = "merchant"; // テスト用（敵指定）
+      let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
         enemyData[eKey].name,
@@ -943,6 +965,8 @@ let sceneList = {
       sceneInit = false;
       // deal damage
       fighter.dealAttackDamage(enemy, 6 + fighterLv);
+      // increase mp
+      fighterMp += 1;
       // text
       windowImage = null;
       mainWindowText[0] = fighter.name + "の攻撃！"
@@ -1340,7 +1364,7 @@ let sceneList = {
       // cursor
       menuCursor = 0;
       // text 
-      windowImage = merchantFuryImage;
+      windowImage = merchantFaceImage;
       let oyakudachiIndex = randInt(0, oyakudachiInfo.length - 1)
       mainWindowText[0] = "「" + oyakudachiInfo[oyakudachiIndex][0];
       mainWindowText[1] = "　" + oyakudachiInfo[oyakudachiIndex][1];
