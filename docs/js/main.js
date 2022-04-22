@@ -97,6 +97,9 @@ magicShieldImage.src = "./img/magic_shield.png";
 // image - magic:jinx
 let magicJinxImage = new Image();
 magicJinxImage.src = "./img/magic_jinx.png";
+// image - magic:three
+let magicThreeImage = new Image();
+magicThreeImage.src = "./img/magic_sansan.png";
 // image - cannot cast magic
 let cannotCastImage = new Image();
 cannotCastImage.src = "./img/cannotcast.png";
@@ -120,6 +123,12 @@ let zkeyImage1 = new Image();
 let zkeyImage2 = new Image();
 zkeyImage1.src = "./img/pressZkey1.png";
 zkeyImage2.src = "./img/pressZkey2.png";
+// image - arrow (up)
+let arrowUpImage = new Image();
+arrowUpImage.src = "./img/arrow_up.png";
+// image - arrow (down)
+let arrowDownImage = new Image();
+arrowDownImage.src = "./img/arrow_down.png";
 // image - cursor
 let cursorImage = new Image();
 cursorImage.src = "./img/cursor.png";
@@ -154,13 +163,14 @@ let mainWindowText = ["", "", ""];
 let statusWindowText = [""];
 // for text in canvas
 const textSize = 24;
-const textPaddingLeft = 8;
+const textPaddingLeft = 12;
 const fontFamily = '"筑紫A丸ゴシック","游ゴシック体",system-ui';
 const textColor = "rgba(255, 255, 255, 1.0)";
 // for key inputs
 let keyInput = [];
 let keyPressed = [];
 let keyPressedPrevious = [];
+let keyInterval = 0;
 // for some uses
 const counterMax = 100; // timeCounter counts 0 - counterMax-1
 let timeCounter = 0; // time counter in game loop
@@ -171,17 +181,20 @@ let animeCount = 0; // animation counter
 // for enemy
 let enemyStrategyParam = 0; // a parameter for strategy of enemy
 let enemyStrategyCategory = "attack";
-// for magic
+// for magic & magic list
 let fighterMagic = ["flame"]; // magic can be cast
 let magicCursor = 0;
 let fighterMp = 99;
 let castMagic;
 // for combat
 let isStartTurn = false; // start of turn
+let isSansanFatal = false; // killed by "sansan"
 // for info
 let fighterLv = 1;
 let dungeonFloor = 0;
 let money = 20;
+let listTop = 0;
+let listCursor = 0;
 // for shop
 let shopItem = [];
 // for showing character
@@ -512,7 +525,19 @@ let magicData = {
         fighter.dealMagicDamage(enemy, fighterLv * 2);
       }
     }
-  }
+  },
+  "sansan": {
+    name: "サンサン",
+    mp: 3,
+    image: magicThreeImage,
+    description: "固定3ダメージ。コレで敵を倒すとLvが3増える。",
+    effect: () => {
+      enemy.addHp(-3);
+      if (enemy.hp <= 0) {
+        isSansanFatal = true;
+      }
+    }
+  },
 };
 
 
@@ -579,7 +604,7 @@ let initParam = function () {
   fighterMagic = ["flame"];
   fighterLv = 1;
   dungeonFloor = 0;
-  money = 20;
+  money = 200;
 }
 
 
@@ -685,6 +710,9 @@ window.onkeydown = function (e) {
   if (e.code === "KeyX") {
     if (keyInput.indexOf("x") == -1) keyInput.push("x");
   }
+  if (e.code === "KeyA") {
+    if (keyInput.indexOf("a") == -1) keyInput.push("a");
+  }
   // prevent default key input
   if (!e.metaKey && !e.shiftKey && !e.ctrlKey){
     e.preventDefault();
@@ -721,6 +749,10 @@ window.onkeyup = function (e) {
     idx = keyInput.indexOf("x");
     if (idx != -1) keyInput.splice(idx, 1);
   }
+  if (e.code === "KeyA") {
+    idx = keyInput.indexOf("a");
+    if (idx != -1) keyInput.splice(idx, 1);
+  }
   // prevent default key input
   if (!e.metaKey && !e.shiftKey && !e.ctrlKey){
     e.preventDefault();
@@ -736,6 +768,17 @@ let isKeyPressedNow = function(key) {
 // check if the key pressed in this loop (in sub scene)
 let isKeyPressedNowSub = function(key) {
   return (keyPressed.indexOf(key) != -1 && keyPressedPrevious.indexOf(key) === -1);
+};
+
+// get key function (with interval)
+let isKeyPressedInterval = function(key) {
+  if (keyInterval > 0) return false;
+  if (keyPressed.indexOf(key) != -1) {
+    // reset key interval
+    keyInterval = 15;
+    return true;
+  };
+  return false;
 };
 
 
@@ -840,11 +883,16 @@ let gameLoop = function() {
   // get key input
   keyPressedPrevious = keyPressed.slice(); // storage previous key input
   keyPressed = keyInput.slice();
+  keyInterval--;
   // text window
   drawTextInWindow(windowImage, mainWindowText, 0, 480 - gridSize * 5, 640, useriCtx);
   // info window
   statusWindowText[0] = fighter.name + " Lv." + fighterLv + "    HP " + fighter.hp + "/" + fighter.maxhp + "    MP " + fighterMp + "    " + dungeonFloor + "階    " + money + "円";
   drawTextInWindow(null, statusWindowText, 0, 0, 640, useriCtx);
+  // a key: show magic list
+  if (isKeyPressedNow("a") && subScene === "none") {
+    setSubScene("magiclist");
+  }
   // scene
   sceneList[scene]();
   // sub scene
@@ -1179,6 +1227,11 @@ let sceneList = {
       sceneInit = false;
       // level up
       levelUp();
+      if (isSansanFatal) { // まほう「サンサン」で致命を取ったとき
+        isSansanFatal = false;
+        levelUp();
+        levelUp();
+      }
       // text 
       windowImage = null;
       mainWindowText[0] = enemy.name + "に勝利した！"
@@ -1440,6 +1493,65 @@ let subSceneList = {
     if (--transAnimeCount <= 0) {
       // finish transition
       setSubScene("none");
+    }
+  },
+  // sub scene: magiclist（所持まほうリスト）
+  "magiclist": () => {
+    // init
+    if (subSceneInit) {
+      // init flag
+      subSceneInit = false;
+      // init list variable
+      listTop = 0;
+      listCursor = 0;
+      // buffer
+      transAnimeCount = 1;
+    }
+    // update
+    // move cursor
+    let listItems = 4;
+    if (isKeyPressedInterval("u") && listCursor > 0) {
+      listCursor--;
+      if (listCursor < listTop) {
+        listTop--;
+      }
+    }
+    if (isKeyPressedInterval("d") && listCursor < fighterMagic.length - 1) {
+      listCursor++;
+      if (listCursor >= listTop + listItems) {
+        listTop++;
+      }
+    }
+    // make magic list
+    let magicList = [];
+    for (let i = 0; (i < listItems) && (i < fighterMagic.length); i++) {
+      magicList[i] = magicData[fighterMagic[i + listTop]].name;
+    }
+    // fill list
+    for (let i = magicList.length; i < listItems; i++) {
+      magicList[i] = " ";
+    }
+    // draw list window
+    drawTextInWindowWithCursor(magicList, 0, 3 * gridSize, 640, listCursor - listTop, useriCtx);
+    if (listTop > 0) {
+      useriCtx.drawImage(arrowUpImage, 304, 3 * gridSize);
+    }
+    if (listTop + listItems < fighterMagic.length) {
+      useriCtx.drawImage(arrowDownImage, 304, (3 + listItems + 1) * gridSize);
+    }
+    // description window
+    let descriptionWindowText = [];
+    descriptionWindowText[0] = "MP " + magicData[fighterMagic[listCursor]].mp;
+    descriptionWindowText[1] = magicData[fighterMagic[listCursor]].description;
+    descriptionWindowText[2] = "";
+    descriptionWindowText[3] = "";
+    drawTextInWindow(null, descriptionWindowText, 0, 480 - 6 * gridSize, 640, useriCtx);
+    useriCtx.drawImage(magicData[fighterMagic[listCursor]].image, 532, 392);
+    // quit list
+    if (transAnimeCount-- < 0) {
+      if (isKeyPressedNowSub("x") || isKeyPressedNowSub("a") ) {
+        setSubScene("none");
+      }
     }
   },
   // sub scene: afford（店で品物を購入）
