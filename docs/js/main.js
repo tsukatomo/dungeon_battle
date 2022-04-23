@@ -26,6 +26,7 @@ backImage.src = "./img/background.png";
 // image - background(shop)
 let shopBackImage = new Image();
 shopBackImage.src = "./img/background_shop.png";
+
 // image - fighter
 let fighterImage1 = new Image();
 let fighterImage2 = new Image();
@@ -74,6 +75,7 @@ merchantBossImage2.src = "./img/merchant_boss2.png";
 // image - grave
 let ohakaImage = new Image();
 ohakaImage.src = "./img/ohaka.png";
+
 // image - itemselect
 let itemSelectImage1 = new Image();
 itemSelectImage1.src = "./img/itemselect1.png";
@@ -103,6 +105,17 @@ magicThreeImage.src = "./img/magic_sansan.png";
 // image - cannot cast magic
 let cannotCastImage = new Image();
 cannotCastImage.src = "./img/cannotcast.png";
+
+// image - tool:mirror
+let toolMirrorImage = new Image();
+toolMirrorImage.src = "./img/tool_mirror.png";
+// image - tool:apple
+let toolAppleImage = new Image();
+toolAppleImage.src = "./img/tool_apple.png";
+// image - tool:bomb
+let toolBombImage = new Image();
+toolBombImage.src = "./img/tool_bomb.png";
+
 // image - status:stun
 let statusStunImage = new Image();
 statusStunImage.src = "./img/status_stun.png";
@@ -118,6 +131,7 @@ statusShieldImage.src = "./img/status_shield.png";
 // image - status:m_shield
 let statusMShieldImage = new Image();
 statusMShieldImage.src = "./img/status_magicshield.png";
+
 // image - z key animation
 let zkeyImage1 = new Image();
 let zkeyImage2 = new Image();
@@ -132,6 +146,7 @@ arrowDownImage.src = "./img/arrow_down.png";
 // image - cursor
 let cursorImage = new Image();
 cursorImage.src = "./img/cursor.png";
+
 // image - merchant
 let merchantImage1 = new Image();
 let merchantImage2 = new Image();
@@ -186,9 +201,13 @@ let fighterMagic = ["flame"]; // magic can be cast
 let magicCursor = 0;
 let fighterMp = 99;
 let castMagic;
+// for tool
+let fighterTool = [];
+let toolCursor = 0;
+let useTool;
 // for combat
 let isStartTurn = false; // start of turn
-let isSansanFatal = false; // killed by "sansan"
+let isSansanFatal = false; // fatal with "sansan"
 // for info
 let fighterLv = 1;
 let dungeonFloor = 0;
@@ -218,6 +237,7 @@ let sceneAfterTrans;
 
 // object
 class CharacterObject {
+
   constructor(type, name, hp, image1, image2) {
     this.type = type;
     this.name = name;
@@ -239,8 +259,8 @@ class CharacterObject {
     if (this.hp < 0) this.hp = 0;
   };
 
-  addStatus(name, amount) {
-    let indexOfStatus = this.status.findIndex((elem) => elem.name === name);
+  addStatus(tag, amount) {
+    let indexOfStatus = this.status.findIndex((elem) => elem.tag === tag);
     if (indexOfStatus != -1) {
       this.status[indexOfStatus].amount += amount;
       // remove if amount is 0
@@ -249,19 +269,19 @@ class CharacterObject {
       }
     }
     else {
-      this.status.push({name: name, amount: amount});
+      this.status.push({tag: tag, amount: amount});
     }
   };
 
-  isStatusExist(name) {
-    return (this.status.findIndex((elem) => elem.name === name) != -1);
+  isStatusExist(tag) {
+    return (this.status.findIndex((elem) => elem.tag === tag) != -1);
   };
 
   turnStart() {
     // reduce buff/debuff which is categorised as a "turn_start"
     for (let i = 0; i < this.status.length; i++) {
-      if (statusData[this.status[i].name].type === "turn_start") {
-        this.addStatus(this.status[i].name, -1);
+      if (statusData[this.status[i].tag].type === "turn_start") {
+        this.addStatus(this.status[i].tag, -1);
       }
     }
   };
@@ -269,8 +289,8 @@ class CharacterObject {
   turnEnd() {
     // reduce buff/debuff which is categorised as a "turn_end"
     for (let i = 0; i < this.status.length; i++) {
-      if (statusData[this.status[i].name].type === "turn_end") {
-        this.addStatus(this.status[i].name, -1);
+      if (statusData[this.status[i].tag].type === "turn_end") {
+        this.addStatus(this.status[i].tag, -1);
       }
     }
   };
@@ -464,7 +484,7 @@ let enemyData = {
 let magicData = {
   "flame": {
     name: "フレイム",
-    mp: 2,
+    mp: 3,
     image: magicFlameImage,
     description: "炎で攻撃。自分のLvに応じてダメージ量が上昇。",
     effect: () => {
@@ -473,7 +493,7 @@ let magicData = {
   },
   "heal": {
     name: "カイフク",
-    mp: 4,
+    mp: 5,
     image: magicHealImage,
     description: "自分のHPを最大HPの50%だけ回復する。",
     effect: () => {
@@ -482,7 +502,7 @@ let magicData = {
   },
   "thunder": {
     name: "ビリビリ",
-    mp: 3,
+    mp: 4,
     image: magicThunderImage,
     description: "雷で攻撃。敵を2ターン行動不能にする。",
     effect: () => {
@@ -501,7 +521,7 @@ let magicData = {
   },
   "shield": {
     name: "シールド",
-    mp: 2,
+    mp: 3,
     image: magicShieldImage,
     description: "3ターンの間、受けるダメージを半分にする。",
     effect: () => {
@@ -510,7 +530,7 @@ let magicData = {
   },
   "jinx": {
     name: "ジンクス",
-    mp: 5,
+    mp: 6,
     image: magicJinxImage,
     description: "敵にデバフがかかっているなら大ダメージ。",
     effect: () => {
@@ -542,7 +562,37 @@ let magicData = {
 
 
 
-// status image
+// tool data
+let toolData = {
+  "mirror": {
+    name: "てかがみ",
+    image: toolMirrorImage,
+    description: "現在のMPを2倍にする。",
+    effect: () => {
+      fighterMp *= 2;
+    }
+  },
+  "fruit": {
+    name: "くだもの",
+    image: toolAppleImage,
+    description: "最大HPの50%を回復する。",
+    effect: () => {
+      fighter.addHp(Math.floor(fighter.maxhp / 2));
+    }
+  },
+  "bomb": {
+    name: "バクダン",
+    image: toolBombImage,
+    description: "敵に30の固定ダメージを与える。",
+    effect: () => {
+      enemy.addHp(-30);
+    }
+  }
+};
+
+
+
+// status data
 let statusData = {
   "stun": {
     name: "シビレ",
@@ -602,6 +652,7 @@ let initParam = function () {
   fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
   fighterMp = 6;
   fighterMagic = ["flame"];
+  fighterTool = [{tag: "bomb", amount: 99}, {tag: "mirror", amount: 1}];
   fighterLv = 1;
   dungeonFloor = 0;
   money = 200;
@@ -618,6 +669,28 @@ let levelUp = function () {
   // recover mp
   fighterMp += 2;
 };
+
+
+
+// add tool to fighter
+let addTool = function (tag, amount) {
+  let indexOfStatus = fighterTool.findIndex((elem) => elem.tag === tag);
+  if (indexOfStatus != -1) {
+    fighterTool[indexOfStatus].amount += amount;
+    // remove if amount is 0 or less
+    if (fighterTool[indexOfStatus].amount <= 0) {
+      fighterTool.splice(indexOfStatus, 1);
+    }
+  }
+  else {
+    fighterTool.push({tag: tag, amount: amount});
+  }
+};
+
+// check if tool is exist
+let isToolExist = function (tag) {
+  return fighterTool.findIndex((elem) => elem.tag === tag) != -1;
+}
 
 
 
@@ -692,16 +765,16 @@ window.onkeydown = function (e) {
   //if (isAcceptKeyInput === false) return;
   if (e.defaultPrevented) return false;
   // read pressed key
-  if (e.code === "ArrowUp" || e.code === "KeyW") {
+  if (e.code === "ArrowUp" || e.code === "KeyK") {
     if (keyInput.indexOf("u") == -1) keyInput.push("u");
   }
-  if (e.code === "ArrowDown" || e.code === "KeyS") {
+  if (e.code === "ArrowDown" || e.code === "KeyJ") {
     if (keyInput.indexOf("d") == -1) keyInput.push("d");
   }
-  if (e.code === "ArrowLeft" || e.code === "KeyA") {
+  if (e.code === "ArrowLeft" || e.code === "KeyH") {
     if (keyInput.indexOf("l") == -1) keyInput.push("l");
   }
-  if (e.code === "ArrowRight" || e.code === "KeyD") {
+  if (e.code === "ArrowRight" || e.code === "KeyL") {
     if (keyInput.indexOf("r") == -1) keyInput.push("r");
   }
   if (e.code === "KeyZ") {
@@ -725,19 +798,19 @@ window.onkeyup = function (e) {
   if (e.defaultPrevented) return false;
   // read released key
   let idx;
-  if (e.code === "ArrowUp" || e.code === "KeyW") {
+  if (e.code === "ArrowUp" || e.code === "KeyK") {
     idx = keyInput.indexOf("u");
     if (idx != -1) keyInput.splice(idx, 1);
   }
-  if (e.code === "ArrowDown" || e.code === "KeyS") {
+  if (e.code === "ArrowDown" || e.code === "KeyJ") {
     idx = keyInput.indexOf("d");
     if (idx != -1) keyInput.splice(idx, 1);
   }
-  if (e.code === "ArrowLeft" || e.code === "KeyA") {
+  if (e.code === "ArrowLeft" || e.code === "KeyH") {
     idx = keyInput.indexOf("l");
     if (idx != -1) keyInput.splice(idx, 1);
   }
-  if (e.code === "ArrowRight" || e.code === "KeyD") {
+  if (e.code === "ArrowRight" || e.code === "KeyL") {
     idx = keyInput.indexOf("r");
     if (idx != -1) keyInput.splice(idx, 1);
   }
@@ -816,7 +889,7 @@ let drawHpBar = function (characterObj, x, y, ctx) {
   ctx.lineJoin = "round";
   ctx.strokeStyle = "#7d3840";
   for (let i = 0; i < characterObj.status.length; i++) {
-    ctx.drawImage(statusData[characterObj.status[i].name].image, x + i * 40, y + HpBarHeight + 4);
+    ctx.drawImage(statusData[characterObj.status[i].tag].image, x + i * 40, y + HpBarHeight + 4);
     ctx.strokeText(characterObj.status[i].amount, x + i * 40 + 32,  y + HpBarHeight + 32);
     ctx.fillText(characterObj.status[i].amount, x + i * 40 + 32,  y + HpBarHeight + 32);
   }
@@ -1003,7 +1076,20 @@ let sceneList = {
         setScene("wallop");
       }
       else if (menuCursor === 1) { // cursor1 → まほう
-        setScene("magicmenu");
+        if (fighterMagic.length <= 0) {
+          mainWindowText[0] = "使えるまほうがない！";
+        }
+        else {
+          setScene("magicmenu");
+        }
+      }
+      else if (menuCursor === 2) { // cursor2 → どうぐ
+        if (fighterTool.length <= 0) {
+          mainWindowText[0] = "使えるどうぐがない！";
+        }
+        else {
+          setScene("toolmenu");
+        }
       }
     }
   },
@@ -1153,6 +1239,100 @@ let sceneList = {
     }
   },
 
+
+  // scene: toolmenu（どうぐー選択）--------------------------------------------------
+  "toolmenu": () => {
+    if (sceneInit) {
+      sceneInit = false;
+      if (toolCursor >= fighterTool.length) {
+        toolCursor = fighterTool.length - 1;
+      }
+    }
+    // cursor
+    if (isKeyPressedNow("l")) toolCursor--;
+    if (isKeyPressedNow("r")) toolCursor++;
+    if (toolCursor < 0) toolCursor = fighterTool.length - 1;
+    if (toolCursor >= fighterTool.length) toolCursor = 0;
+    // image
+    if (timeCounter < counterMax / 2) {
+      charaCtx.drawImage(itemSelectImage1, 192, 118);
+    }
+    else {
+      charaCtx.drawImage(itemSelectImage2, 192, 118);
+    }
+    charaCtx.drawImage(toolData[fighterTool[toolCursor].tag].image, 288, 150);
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    enemy.drawAnime(enemyX, characterY, charaCtx);
+    drawHpBar(fighter, fighterX, hpBarY, useriCtx);
+    drawHpBar(enemy, enemyX, hpBarY, useriCtx);
+    // tool information
+    useTool = toolData[fighterTool[toolCursor].tag];
+    windowImage = null;
+    mainWindowText[0] = useTool.name + "    所持数 " + fighterTool[toolCursor].amount;
+    mainWindowText[1] = useTool.description;
+    mainWindowText[2] = "";
+    // use tool
+    if (isKeyPressedNow("z")) {
+      // consume tool
+      addTool(fighterTool[toolCursor].tag, -1);
+      // change scene
+      setScene("tooluse");
+    }
+    // cancel
+    if (isKeyPressedNow("x")) {
+      // back to combat menu
+      setScene("combat");
+    }
+  },
+
+  // scene: tooluse（どうぐー使用）--------------------------------------------------
+  "tooluse": () => {
+    // initial
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // apply tool
+      useTool.effect();
+      // text
+      windowImage = null;
+      mainWindowText[0] = fighter.name + "は" + useTool.name + "を使った！"
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
+      // anime count
+      animeCount = 32;
+    }
+    // update
+    let fdy = 0;
+    let edx = 0;
+    let edy = 0;
+    // character animation
+    if (animeCount > 16) {
+      fdy = -4 * (- animeCount + 32);
+    }
+    else {
+      fdy = -4 * animeCount;
+    }
+    // if enemy is killed
+    if (enemy.hp <= 0) {
+      edx = 12 * (- animeCount + 32);
+      edy = -12 * (- animeCount + 32);
+    }
+    fighter.drawAnime(fighterX, characterY + fdy, charaCtx);
+    enemy.drawAnime(enemyX + edx, characterY + edy, charaCtx);
+    drawHpBar(fighter, fighterX, hpBarY, useriCtx);
+    drawHpBar(enemy, enemyX, hpBarY, useriCtx);
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      fighter.turnEnd();
+      if (enemy.hp <= 0) {
+        setScene("victory");
+      }
+      else {
+        setScene("enemyturn");
+      }
+    }
+  },
+  
   // scene: enemyturn（敵のターン）------------------------------------------------
   "enemyturn": () => {
     // initial
