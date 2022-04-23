@@ -131,6 +131,10 @@ statusShieldImage.src = "./img/status_shield.png";
 // image - status:m_shield
 let statusMShieldImage = new Image();
 statusMShieldImage.src = "./img/status_magicshield.png";
+// image - status:m_shield
+let statusMirrorImage = new Image();
+statusMirrorImage.src = "./img/status_mirror.png";
+
 
 // image - z key animation
 let zkeyImage1 = new Image();
@@ -315,6 +319,11 @@ class CharacterObject {
   };
 
   dealMagicDamage(opponent, amount) {
+    // buff: power
+    if (this.isStatusExist("mirror")) {
+      amount *= 2;
+      this.addStatus("mirror", -1);
+    }
     // opponent buff: m_shield
     if (opponent.isStatusExist("m_shield")) {
       amount /= 2;
@@ -536,7 +545,7 @@ let magicData = {
     effect: () => {
       let isDebuffExist = false;
       for (let i = 0; i < enemy.status.length; i++) {
-        isDebuffExist |= !statusData[enemy.status[i].name].isBuff;
+        isDebuffExist |= !statusData[enemy.status[i].tag].isBuff;
       }
       if (isDebuffExist) {
         fighter.dealMagicDamage(enemy, 40 + (fighterLv * 2));
@@ -567,9 +576,9 @@ let toolData = {
   "mirror": {
     name: "てかがみ",
     image: toolMirrorImage,
-    description: "現在のMPを2倍にする。",
+    description: "次の「まほう」の与ダメージを2倍にする。",
     effect: () => {
-      fighterMp *= 2;
+      fighter.addStatus("mirror", 1);
     }
   },
   "fruit": {
@@ -583,9 +592,9 @@ let toolData = {
   "bomb": {
     name: "バクダン",
     image: toolBombImage,
-    description: "敵に30の固定ダメージを与える。",
+    description: "敵に25の固定ダメージを与える。",
     effect: () => {
-      enemy.addHp(-30);
+      enemy.addHp(-25);
     }
   }
 };
@@ -623,6 +632,12 @@ let statusData = {
     image: statusMShieldImage,
     isBuff: true,
     type: "turn_start"
+  },
+  "mirror": {
+    name: "ミラー",
+    image: statusMirrorImage,
+    isBuff: true,
+    type: "stack"
   }
 };
 
@@ -1465,9 +1480,14 @@ let sceneList = {
       backgCtx.drawImage(backImage, 0, 0);
       // add shop items
       let magicDataKeys = Object.keys(magicData);
-      for (let i = 0; i < 4; i++) {
+      let toolDataKeys = Object.keys(toolData);
+      for (let i = 0; i < 2; i++) {
         let item = magicDataKeys[randInt(0, magicDataKeys.length - 1)];
         shopItem[i] = {item: item, category: "magic", price: randInt(3, 10)};
+      }
+      for (let i = 2; i < 4; i++) {
+        let item = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
+        shopItem[i] = {item: item, category: "tool", price: randInt(3, 10)};
       }
       // counter (buffer)
       animeCount = 8;
@@ -1528,6 +1548,9 @@ let sceneList = {
       if (shopItem[i].category === "magic") {
         charaCtx.drawImage(magicData[shopItem[i].item].image, 48 + 160 * i, 180);
       }
+      else if (shopItem[i].category === "tool") {
+        charaCtx.drawImage(toolData[shopItem[i].item].image, 48 + 160 * i, 180);
+      }
     }
     // show price
     charaCtx.font = "bold 24px " + fontFamily;
@@ -1554,10 +1577,22 @@ let sceneList = {
     charaCtx.drawImage(cursorImage, 48 + 160 * menuCursor, cursorY);
     // show item info
     let itemOnCursor = shopItem[menuCursor];
+    let toolAmount;
     windowImage = null;
     if (itemOnCursor.category === "magic") {
       mainWindowText[0] = magicData[itemOnCursor.item].name + "    MP " + magicData[itemOnCursor.item].mp;
       mainWindowText[1] = magicData[itemOnCursor.item].description;
+      mainWindowText[2] = "[z]購入";
+    }
+    else if (itemOnCursor.category === "tool") {
+      if (isToolExist(itemOnCursor.item)) {
+        toolAmount = fighterTool[fighterTool.findIndex((elem) => elem.tag === itemOnCursor.item)].amount;
+      }
+      else {
+        toolAmount = 0;
+      }
+      mainWindowText[0] = toolData[itemOnCursor.item].name + "    所持数 " + toolAmount;
+      mainWindowText[1] = toolData[itemOnCursor.item].description;
       mainWindowText[2] = "[z]購入";
     }
     else if (itemOnCursor.category === "none") {
@@ -1570,8 +1605,12 @@ let sceneList = {
       if (itemOnCursor.price <= money) { // afford
         // pay
         money -= itemOnCursor.price;
-        // add to magic list
-        fighterMagic.push(itemOnCursor.item);
+        if (itemOnCursor.category === "magic") {// add to magic list
+          fighterMagic.push(itemOnCursor.item);
+        }
+        else if (itemOnCursor.category === "tool") {
+          addTool(itemOnCursor.item, 1);
+        }
         // remove from shop item list
         shopItem[menuCursor] = {item: null, category: "none", price: null};
         // sub scene
