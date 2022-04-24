@@ -23,9 +23,22 @@ const transCtx = transLay.getContext("2d");
 // image - background
 let backImage = new Image();
 backImage.src = "./img/background.png";
+// image - background(chooseroom)
+let bunkiBackImage = new Image();
+bunkiBackImage.src = "./img/background_bunki.png";
 // image - background(shop)
 let shopBackImage = new Image();
 shopBackImage.src = "./img/background_shop.png";
+
+// image - gate
+let gateImage = new Image();
+gateImage.src = "./img/gate.png";
+// image - icon:enemy
+let iconEnemyImage = new Image();
+iconEnemyImage.src = "./img/icon_enemy.png";
+// image - icon:shop
+let iconShopImage = new Image();
+iconShopImage.src = "./img/icon_shop.png";
 
 // image - fighter
 let fighterImage1 = new Image();
@@ -219,6 +232,7 @@ let money = 20;
 let listTop = 0;
 let listCursor = 0;
 // for shop
+let shopInit = false;
 let shopItem = [];
 // for showing character
 let characterY = 128;
@@ -227,6 +241,7 @@ let enemyX = 432;
 let hpBarY = 256;
 let hpBarWidth = 128;
 let HpBarHeight = 16;
+let bigCharacterY = characterY - 64;
 // for game scene (main/sub)
 let scene = "encount";
 let subScene = "none";
@@ -576,7 +591,7 @@ let toolData = {
   "mirror": {
     name: "てかがみ",
     image: toolMirrorImage,
-    description: "次の「まほう」の与ダメージを2倍にする。",
+    description: "次の「まほう」が与えるダメージを2倍にする。",
     effect: () => {
       fighter.addStatus("mirror", 1);
     }
@@ -993,6 +1008,47 @@ let gameLoop = function() {
 // scene list ======================================================================
 
 let sceneList = {
+  // scene: chooseroom（部屋選択）-----------------------------------
+  "chooseroom": () => {
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // floor
+      dungeonFloor++;
+      // reset cursor
+      menuCursor = 0;
+      // text
+      windowImage = null;
+      mainWindowText[0] = "行き先を選ぼう";
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
+      // draw background
+      backgCtx.drawImage(bunkiBackImage, 0, 0);
+    }
+    if (isKeyPressedNow("l")) menuCursor--;
+    if (isKeyPressedNow("r")) menuCursor++;
+    if (menuCursor < 0) menuCursor = 1
+    if (menuCursor > 1) menuCursor = 0;
+    // show cursor
+    let cursorX = (menuCursor === 0) ? 256 + 64 : 448 + 64;
+    let cursorY = (timeCounter < 50) ? 104 : 108;
+    // show character
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    charaCtx.drawImage(gateImage, 256, bigCharacterY);
+    charaCtx.drawImage(gateImage, 448, bigCharacterY);
+    charaCtx.drawImage(iconEnemyImage, 256 + 64, bigCharacterY + 128);
+    charaCtx.drawImage(iconShopImage, 448 + 64, bigCharacterY + 128);
+    charaCtx.drawImage(cursorImage, cursorX, cursorY);
+    if (isKeyPressedNow("z")) {
+      if (menuCursor === 0) { // enemy
+        setTransition("encount");
+      }
+      else if (menuCursor === 1) { // shop
+        setTransition("shop");
+      }
+      
+    }
+  },
 
   // scene: encount（エンカウント）-----------------------------------
   "encount": () => {
@@ -1011,8 +1067,6 @@ let sceneList = {
         enemyData[eKey].image2
       );
       enemyStrategyParam = 0;
-      // floor
-      dungeonFloor++;
       //cursor
       menuCursor = 0;
       // text
@@ -1024,6 +1078,8 @@ let sceneList = {
       isStartTurn = true;
       // anime count
       animeCount = 32;
+      // draw background
+      backgCtx.drawImage(backImage, 0, 0);
     }
     // update
     let edx = 8 * animeCount;
@@ -1438,7 +1494,7 @@ let sceneList = {
     drawHpBar(fighter, fighterX, hpBarY, useriCtx);
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
-      setTransition("encount");
+      setTransition("chooseroom");
       //scene = "encount";
       //sceneInit = true;
     }
@@ -1478,17 +1534,20 @@ let sceneList = {
       // init flag
       sceneInit = false;
       // draw background
-      backgCtx.drawImage(backImage, 0, 0);
+      backgCtx.drawImage(bunkiBackImage, 0, 0);
       // add shop items
-      let magicDataKeys = Object.keys(magicData);
-      let toolDataKeys = Object.keys(toolData);
-      for (let i = 0; i < 2; i++) {
-        let item = magicDataKeys[randInt(0, magicDataKeys.length - 1)];
-        shopItem[i] = {item: item, category: "magic", price: randInt(3, 10)};
-      }
-      for (let i = 2; i < 4; i++) {
-        let item = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
-        shopItem[i] = {item: item, category: "tool", price: randInt(3, 10)};
+      if (shopInit) {
+        shopInit = false;
+        let magicDataKeys = Object.keys(magicData);
+        let toolDataKeys = Object.keys(toolData);
+        for (let i = 0; i < 2; i++) {
+          let item = magicDataKeys[randInt(0, magicDataKeys.length - 1)];
+          shopItem[i] = {item: item, category: "magic", price: randInt(3, 10)};
+        }
+        for (let i = 2; i < 4; i++) {
+          let item = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
+          shopItem[i] = {item: item, category: "tool", price: randInt(3, 10)};
+        }
       }
       // counter (buffer)
       animeCount = 8;
@@ -1520,7 +1579,8 @@ let sceneList = {
         setScene("dialog");
       }
       else if (menuCursor === 2) {
-        setTransition("encount");
+        shopInit = true; // 品揃え更新フラグ
+        setTransition("chooseroom");
       }
     }
   },
@@ -1825,6 +1885,7 @@ window.onload = function() {
   //console.log("a");
   scene = "shop";
   sceneInit = true;
+  shopInit = true;
   initParam();
   setInterval(gameLoop, 10);
 };
