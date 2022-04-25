@@ -592,6 +592,7 @@ let toolData = {
     name: "てかがみ",
     image: toolMirrorImage,
     description: "次の「まほう」が与えるダメージを2倍にする。",
+    isAvailableFromList: false,
     effect: () => {
       fighter.addStatus("mirror", 1);
     }
@@ -600,6 +601,7 @@ let toolData = {
     name: "くだもの",
     image: toolAppleImage,
     description: "最大HPの50%を回復する。",
+    isAvailableFromList: true,
     effect: () => {
       fighter.addHp(Math.floor(fighter.maxhp / 2));
     }
@@ -607,6 +609,7 @@ let toolData = {
   "bomb": {
     name: "バクダン",
     image: toolBombImage,
+    isAvailableFromList: false,
     description: "敵に25の固定ダメージを与える。",
     effect: () => {
       enemy.addHp(-25);
@@ -674,7 +677,8 @@ let oyakudachiInfo = [
   ["やどクジは攻撃力を下げてくるよー", "でもまほうの威力は下がらないよー」"],
   ["レンチンの行動に気をつけてねー", "6ターンに1回放電してくるよー」"],
   ["敵をなぐるとMPがちょっと増えるよー」",""],
-  ["固定ダメージはバフやデバフの", "影響を受けないよー」"]
+  ["固定ダメージはバフやデバフの", "影響を受けないよー」"],
+  ["一部のアイテムは戦闘中以外でも", "Sキーのメニューから使えるよー」"]
 ];
 
 
@@ -683,11 +687,11 @@ let initParam = function () {
   fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
   fighterMp = 6;
   fighterMagic = ["flame"];
-  fighterTool = [{tag: "bomb", amount: 99}, {tag: "mirror", amount: 1}];
+  fighterTool = [{tag: "fruit", amount: 1}];
   fighterLv = 1;
   dungeonFloor = 0;
   money = 200;
-}
+};
 
 
 // level up
@@ -769,7 +773,7 @@ let drawTextInWindowWithCursor = function (textArray, x, y, width, cursorRow, ct
   }
 };
 
-let drawTextOnGridAt = function(text, x, y, ctx) {
+let drawTextOnGridAt = function (text, x, y, ctx) {
   ctx.font = textSize + "px " + fontFamily;
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
@@ -817,6 +821,9 @@ window.onkeydown = function (e) {
   if (e.code === "KeyA") {
     if (keyInput.indexOf("a") == -1) keyInput.push("a");
   }
+  if (e.code === "KeyS") {
+    if (keyInput.indexOf("s") == -1) keyInput.push("s");
+  }
   // prevent default key input
   if (!e.metaKey && !e.shiftKey && !e.ctrlKey){
     e.preventDefault();
@@ -855,6 +862,10 @@ window.onkeyup = function (e) {
   }
   if (e.code === "KeyA") {
     idx = keyInput.indexOf("a");
+    if (idx != -1) keyInput.splice(idx, 1);
+  }
+  if (e.code === "KeyS") {
+    idx = keyInput.indexOf("s");
     if (idx != -1) keyInput.splice(idx, 1);
   }
   // prevent default key input
@@ -997,6 +1008,10 @@ let gameLoop = function() {
   if (isKeyPressedNow("a") && subScene === "none") {
     setSubScene("magiclist");
   }
+  // s key: show magic list
+  if (isKeyPressedNow("s") && subScene === "none") {
+    setSubScene("toollist");
+  }
   // scene
   sceneList[scene]();
   // sub scene
@@ -1031,7 +1046,7 @@ let sceneList = {
     if (menuCursor > 1) menuCursor = 0;
     // show cursor
     let cursorX = (menuCursor === 0) ? 256 + 64 : 448 + 64;
-    let cursorY = (timeCounter < 50) ? 104 : 108;
+    let cursorY = (timeCounter < 50) ? 108 : 104;
     // show character
     fighter.drawAnime(fighterX, characterY, charaCtx);
     charaCtx.drawImage(gateImage, 256, bigCharacterY);
@@ -1723,6 +1738,7 @@ let sceneList = {
 // sub scene =======================================================================
 
 let subSceneList = {
+
   // sub scene: transin（トランジション開始）
   "transin": () => {
     // init
@@ -1741,6 +1757,7 @@ let subSceneList = {
       setSubScene("transwait");
     }
   },
+
   // sub scene: transwait（トランジション中間）
   "transwait": () => {
     // init
@@ -1758,6 +1775,7 @@ let subSceneList = {
       setSubScene("transout");
     }
   },
+
   // sub scene: transout（トランジション終了）
   "transout": () => {
     // init
@@ -1775,6 +1793,7 @@ let subSceneList = {
       setSubScene("none");
     }
   },
+
   // sub scene: magiclist（所持まほうリスト）
   "magiclist": () => {
     // init
@@ -1788,8 +1807,36 @@ let subSceneList = {
       transAnimeCount = 1;
     }
     // update
-    // move cursor
     let listItems = 4;
+    let magicList = [];
+    let descriptionWindowText = ["", "", "", ""];
+    // ---- empty ----
+    if (fighterMagic.length === 0) { // empty!
+      // fill list
+      magicList[0] = "（からっぽ！）";
+      for (let i = 1; i < listItems; i++) {
+        magicList[i] = "";
+      }
+      // list window
+      drawTextInWindowWithCursor(magicList, 0, 3 * gridSize, 640, listCursor - listTop, useriCtx);
+      // description window
+      descriptionWindowText[0] = "使えるまほうがない！";
+      drawTextInWindow(null, descriptionWindowText, 0, 480 - 6 * gridSize, 640, useriCtx);
+      // key input
+      if (transAnimeCount-- < 0) {
+        // S: move to tool list
+        if (isKeyPressedNowSub("s") ){
+          setSubScene("toollist");
+        }
+        // X or S: quit list
+        else if (isKeyPressedNowSub("x") || isKeyPressedNowSub("a") ) {
+          setSubScene("none");
+        }
+      }
+      return;
+    }
+    // ---- not empty ----
+    // move cursor
     if (isKeyPressedInterval("u") && listCursor > 0) {
       listCursor--;
       if (listCursor < listTop) {
@@ -1802,14 +1849,20 @@ let subSceneList = {
         listTop++;
       }
     }
+    // modify listTop and cursor
+    while (listTop + listItems > fighterMagic.length && listTop > 0) {
+      listTop--;
+    }
+    if (listCursor >= fighterMagic.length) {
+      listCursor = (fighterMagic.length > 0) ? fighterMagic.length - 1 : 0;
+    }
     // make magic list
-    let magicList = [];
     for (let i = 0; (i < listItems) && (i < fighterMagic.length); i++) {
       magicList[i] = magicData[fighterMagic[i + listTop]].name;
     }
     // fill list
     for (let i = magicList.length; i < listItems; i++) {
-      magicList[i] = " ";
+      magicList[i] = "";
     }
     // draw list window
     drawTextInWindowWithCursor(magicList, 0, 3 * gridSize, 640, listCursor - listTop, useriCtx);
@@ -1820,20 +1873,127 @@ let subSceneList = {
       useriCtx.drawImage(arrowDownImage, 304, (3 + listItems + 1) * gridSize);
     }
     // description window
-    let descriptionWindowText = [];
     descriptionWindowText[0] = "MP " + magicData[fighterMagic[listCursor]].mp;
     descriptionWindowText[1] = magicData[fighterMagic[listCursor]].description;
     descriptionWindowText[2] = "";
     descriptionWindowText[3] = "";
     drawTextInWindow(null, descriptionWindowText, 0, 480 - 6 * gridSize, 640, useriCtx);
     useriCtx.drawImage(magicData[fighterMagic[listCursor]].image, 532, 392);
-    // quit list
+    // key input
     if (transAnimeCount-- < 0) {
-      if (isKeyPressedNowSub("x") || isKeyPressedNowSub("a") ) {
+      // S: move to tool list
+      if (isKeyPressedNowSub("s") ){
+        setSubScene("toollist");
+      }
+      // X or A: quit list
+      else if (isKeyPressedNowSub("x") || isKeyPressedNowSub("a") ) {
         setSubScene("none");
       }
     }
   },
+
+  // sub scene: toollist（所持どうぐリスト）
+  "toollist": () => {
+    // init
+    if (subSceneInit) {
+      // init flag
+      subSceneInit = false;
+      // init list variable
+      listTop = 0;
+      listCursor = 0;
+      // buffer
+      transAnimeCount = 1;
+    }
+    // update
+    let listItems = 4;
+    let toolList = [];
+    let descriptionWindowText = ["", "", "", ""];
+    // ---- empty ----
+    if (fighterTool.length === 0) { // empty!
+      // fill list
+      toolList[0] = "（からっぽ！）";
+      for (let i = 1; i < listItems; i++) {
+        toolList[i] = "";
+      }
+      // list window
+      drawTextInWindowWithCursor(toolList, 0, 3 * gridSize, 640, listCursor - listTop, useriCtx);
+      // description window
+      descriptionWindowText[0] = "使えるどうぐがない！";
+      drawTextInWindow(null, descriptionWindowText, 0, 480 - 6 * gridSize, 640, useriCtx);
+      // key input
+      if (transAnimeCount-- < 0) {
+        // A: move to magic list
+        if (isKeyPressedNowSub("a") ){
+          setSubScene("magiclist");
+        }
+        // X or S: quit list
+        else if (isKeyPressedNowSub("x") || isKeyPressedNowSub("s") ) {
+          setSubScene("none");
+        }
+      }
+      return;
+    }
+    // ---- not empty ----
+    // move cursor
+    if (isKeyPressedInterval("u") && listCursor > 0) {
+      listCursor--;
+      if (listCursor < listTop) {
+        listTop--;
+      }
+    }
+    if (isKeyPressedInterval("d") && listCursor < fighterTool.length - 1) {
+      listCursor++;
+      if (listCursor >= listTop + listItems) {
+        listTop++;
+      }
+    }
+    // modify listTop and cursor
+    while (listTop + listItems > fighterTool.length && listTop > 0) {
+      listTop--;
+    }
+    if (listCursor >= fighterTool.length) {
+      listCursor = fighterTool.length - 1;
+    }
+    // make tool list
+    for (let i = 0; (i < listItems) && (i < fighterTool.length); i++) {
+      toolList[i] = toolData[fighterTool[i + listTop].tag].name + "　×" + fighterTool[i + listTop].amount;
+    }
+    // fill list
+    for (let i = toolList.length; i < listItems; i++) {
+      toolList[i] = " ";
+    }
+    // list window
+    drawTextInWindowWithCursor(toolList, 0, 3 * gridSize, 640, listCursor - listTop, useriCtx);
+    if (listTop > 0) {
+      useriCtx.drawImage(arrowUpImage, 304, 3 * gridSize);
+    }
+    if (listTop + listItems < fighterTool.length) {
+      useriCtx.drawImage(arrowDownImage, 304, (3 + listItems + 1) * gridSize);
+    }
+    // description window
+    descriptionWindowText[0] = "所持数 " + fighterTool[listCursor].amount;
+    descriptionWindowText[1] = toolData[fighterTool[listCursor].tag].description;
+    descriptionWindowText[2] = (scene != "combat" && toolData[fighterTool[listCursor].tag].isAvailableFromList) ? "[z]使う" : "";
+    descriptionWindowText[3] = "";
+    drawTextInWindow(null, descriptionWindowText, 0, 480 - 6 * gridSize, 640, useriCtx);
+    useriCtx.drawImage(toolData[fighterTool[listCursor].tag].image, 532, 392);
+    if (transAnimeCount-- < 0) {
+      // Z: use tool（戦闘中でない、かつ isAvailableFromList === true のアイテムのみ）
+      if (isKeyPressedNowSub("z") && scene != "combat" && toolData[fighterTool[listCursor].tag].isAvailableFromList) {
+        toolData[fighterTool[listCursor].tag].effect();
+        addTool(fighterTool[listCursor].tag, -1);
+      }
+      // A: move to magic list
+      else if (isKeyPressedNowSub("a") ){
+        setSubScene("magiclist");
+      }
+      // X or S: quit list
+      else if (isKeyPressedNowSub("x") || isKeyPressedNowSub("s") ) {
+        setSubScene("none");
+      }
+    }
+  },
+
   // sub scene: afford（店で品物を購入）
   "afford": () => {
     // init
@@ -1852,6 +2012,7 @@ let subSceneList = {
       setSubScene("none");
     }
   },
+
   // sub scene: notafford（お金が足りない）
   "notafford": () => {
     // init
@@ -1870,6 +2031,7 @@ let subSceneList = {
       setSubScene("none");
     }
   },
+
   // sub scene: none（何もしない）
   "none": () => {
     // 何もしない
