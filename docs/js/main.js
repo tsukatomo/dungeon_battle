@@ -128,6 +128,9 @@ toolAppleImage.src = "./img/tool_apple.png";
 // image - tool:bomb
 let toolBombImage = new Image();
 toolBombImage.src = "./img/tool_bomb.png";
+// image - tool:potion
+let toolPotionImage = new Image();
+toolPotionImage.src = "./img/tool_potion.png";
 
 // image - status:stun
 let statusStunImage = new Image();
@@ -223,6 +226,7 @@ let fighterTool = [];
 let toolCursor = 0;
 let useTool;
 // for combat
+let isFighting = false;
 let isStartTurn = false; // start of turn
 let isSansanFatal = false; // fatal with "sansan"
 // for info
@@ -234,6 +238,7 @@ let listCursor = 0;
 // for shop
 let shopInit = false;
 let shopItem = [];
+let shopCursor = 0;
 // for showing character
 let characterY = 128;
 let fighterX = 80;
@@ -607,12 +612,21 @@ let toolData = {
     }
   },
   "bomb": {
-    name: "バクダン",
+    name: "ばくだん",
     image: toolBombImage,
     isAvailableFromList: false,
     description: "敵に25の固定ダメージを与える。",
     effect: () => {
       enemy.addHp(-25);
+    }
+  },
+  "potion": {
+    name: "あおじる",
+    image: toolPotionImage,
+    isAvailableFromList: true,
+    description: "現在のMPを1.5倍にする。",
+    effect: () => {
+      fighterMp = Math.floor(fighterMp * 1.5);
     }
   }
 };
@@ -678,7 +692,8 @@ let oyakudachiInfo = [
   ["レンチンの行動に気をつけてねー", "6ターンに1回放電してくるよー」"],
   ["敵をなぐるとMPがちょっと増えるよー」",""],
   ["固定ダメージはバフやデバフの", "影響を受けないよー」"],
-  ["一部のアイテムは戦闘中以外でも", "Sキーのメニューから使えるよー」"]
+  ["一部のどうぐは戦闘中以外でも", "Sキーのメニューから使えるよー」"],
+  ["Aキーを押すと覚えているまほうを", "確認できるよー」"]
 ];
 
 
@@ -1082,8 +1097,10 @@ let sceneList = {
         enemyData[eKey].image2
       );
       enemyStrategyParam = 0;
-      //cursor
+      // cursor
       menuCursor = 0;
+      // fighting flag
+      isFighting = true;
       // text
       windowImage = null;
       mainWindowText[0] = enemy.name + "が立ちはだかる！"
@@ -1509,6 +1526,7 @@ let sceneList = {
     drawHpBar(fighter, fighterX, hpBarY, useriCtx);
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
+      isFighting = false;
       setTransition("chooseroom");
       //scene = "encount";
       //sceneInit = true;
@@ -1534,6 +1552,7 @@ let sceneList = {
     drawHpBar(enemy, enemyX, hpBarY, useriCtx);
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
+      isFighting = false;
       mainWindowText[0] = "";
       mainWindowText[1] = "";
       // rebirth
@@ -1550,9 +1569,10 @@ let sceneList = {
       sceneInit = false;
       // draw background
       backgCtx.drawImage(bunkiBackImage, 0, 0);
-      // add shop items
+      // shop initialize
       if (shopInit) {
         shopInit = false;
+        // add shop items
         let magicDataKeys = Object.keys(magicData);
         let toolDataKeys = Object.keys(toolData);
         for (let i = 0; i < 2; i++) {
@@ -1563,11 +1583,11 @@ let sceneList = {
           let item = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
           shopItem[i] = {item: item, category: "tool", price: randInt(3, 10)};
         }
+        // reset cursor
+        menuCursor = 0;
       }
       // counter (buffer)
       animeCount = 8;
-      // cursor
-      menuCursor = 0;
       // text 
       windowImage = merchantFaceImage;
       mainWindowText[0] = "「いらっしゃー」";
@@ -1608,7 +1628,7 @@ let sceneList = {
       // draw background
       backgCtx.drawImage(shopBackImage, 0, 0);
       // cursor
-      menuCursor = 0;
+      shopCursor = 0;
       // text 
       windowImage = null;
       mainWindowText[0] = "";
@@ -1617,8 +1637,8 @@ let sceneList = {
     }
     // update
     // move cursor
-    if (isKeyPressedNow("l") && menuCursor > 0) menuCursor--;
-    if (isKeyPressedNow("r") && menuCursor < 3) menuCursor++;
+    if (isKeyPressedNow("l") && shopCursor > 0) shopCursor--;
+    if (isKeyPressedNow("r") && shopCursor < 3) shopCursor++;
     // show items
     for (let i = 0; i < 4; i++) {
       if (shopItem[i].category === "magic") {
@@ -1644,15 +1664,15 @@ let sceneList = {
         } else {
           charaCtx.fillStyle = "#e89973";
         }
-        charaCtx.strokeText(shopItem[i].price + "円", 80 + 160 * i, 256);
-        charaCtx.fillText(shopItem[i].price + "円", 80 + 160 * i, 256);
+        charaCtx.strokeText(shopItem[i].price + "円", 80 + 160 * i, 260);
+        charaCtx.fillText(shopItem[i].price + "円", 80 + 160 * i, 260);
       }
     }
     // show cursor
-    let cursorY = (timeCounter < 50) ? 120 : 124;
-    charaCtx.drawImage(cursorImage, 48 + 160 * menuCursor, cursorY);
+    let cursorY = (timeCounter < 50) ? 108 : 104;
+    charaCtx.drawImage(cursorImage, 48 + 160 * shopCursor, cursorY);
     // show item info
-    let itemOnCursor = shopItem[menuCursor];
+    let itemOnCursor = shopItem[shopCursor];
     let toolAmount;
     windowImage = null;
     if (itemOnCursor.category === "magic") {
@@ -1688,7 +1708,7 @@ let sceneList = {
           addTool(itemOnCursor.item, 1);
         }
         // remove from shop item list
-        shopItem[menuCursor] = {item: null, category: "none", price: null};
+        shopItem[shopCursor] = {item: null, category: "none", price: null};
         // sub scene
         setSubScene("afford");
       }
@@ -1710,8 +1730,6 @@ let sceneList = {
       sceneInit = false;
       // counter (buffer)
       animeCount = 8;
-      // cursor
-      menuCursor = 0;
       // text 
       windowImage = merchantFaceImage;
       let oyakudachiIndex = randInt(0, oyakudachiInfo.length - 1)
@@ -1973,13 +1991,13 @@ let subSceneList = {
     // description window
     descriptionWindowText[0] = "所持数 " + fighterTool[listCursor].amount;
     descriptionWindowText[1] = toolData[fighterTool[listCursor].tag].description;
-    descriptionWindowText[2] = (scene != "combat" && toolData[fighterTool[listCursor].tag].isAvailableFromList) ? "[z]使う" : "";
+    descriptionWindowText[2] = (!isFighting && toolData[fighterTool[listCursor].tag].isAvailableFromList) ? "[z]使う" : "";
     descriptionWindowText[3] = "";
     drawTextInWindow(null, descriptionWindowText, 0, 480 - 6 * gridSize, 640, useriCtx);
     useriCtx.drawImage(toolData[fighterTool[listCursor].tag].image, 532, 392);
     if (transAnimeCount-- < 0) {
       // Z: use tool（戦闘中でない、かつ isAvailableFromList === true のアイテムのみ）
-      if (isKeyPressedNowSub("z") && scene != "combat" && toolData[fighterTool[listCursor].tag].isAvailableFromList) {
+      if (isKeyPressedNowSub("z") && !isFighting && toolData[fighterTool[listCursor].tag].isAvailableFromList) {
         toolData[fighterTool[listCursor].tag].effect();
         addTool(fighterTool[listCursor].tag, -1);
       }
