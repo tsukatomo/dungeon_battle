@@ -120,6 +120,9 @@ magicJinxImage.src = "./img/magic_jinx.png";
 // image - magic:three
 let magicThreeImage = new Image();
 magicThreeImage.src = "./img/magic_sansan.png";
+// image - magic:burst
+let magicBurstImage = new Image();
+magicBurstImage.src = "./img/magic_burst.png";
 // image - cannot cast magic
 let cannotCastImage = new Image();
 cannotCastImage.src = "./img/cannotcast.png";
@@ -514,16 +517,16 @@ let enemyData = {
         mainWindowText[0] = enemy.name + "は怒っている……！";
       }
       else {
-        enemyStrategyParam++;
-        if (enemyStrategyParam >= 2) {
-          enemyStrategyParam = 0;
-          enemy.dealAttackDamage(fighter, 24);
+        enemyStrategyParam--;
+        if (enemyStrategyParam <= 0) {
+          enemyStrategyParam = 2;
+          enemy.dealAttackDamage(fighter, 20);
           enemyStrategyCategory = "attack";
           mainWindowText[0] = enemy.name + "のファイアブレス！";
         }
         else {
           enemyStrategyCategory = "none";
-          mainWindowText[0] = enemy.name + "はパワーを貯めている……";
+          mainWindowText[0] = enemy.name + "は反動で動けない！";
         }
       }
     }
@@ -623,6 +626,15 @@ let magicData = {
       }
     }
   },
+  "burst": {
+    name: "バースト",
+    mp: "ALL",
+    image: magicBurstImage,
+    description: "MP消費量に応じてダメージアップ。",
+    effect: () => {
+      fighter.dealMagicDamage(enemy, fighterMp * 6);
+    }
+  }
 };
 
 
@@ -1328,16 +1340,21 @@ let sceneList = {
     mainWindowText[0] = castMagic.name + "    消費MP " + castMagic.mp;
     mainWindowText[1] = castMagic.description;
     mainWindowText[2] = "";
-    if (fighterMp < castMagic.mp) {
-      mainWindowText[2] = "MPが足りない！";
-      charaCtx.drawImage(cannotCastImage, 288, 150);
+    if (castMagic.mp != "ALL") {
+      if (fighterMp < castMagic.mp) {
+        mainWindowText[2] = "MPが足りない！";
+        charaCtx.drawImage(cannotCastImage, 288, 150);
+      }
     }
     // cast magic
-    if (isKeyPressedNow("z") && fighterMp >= castMagic.mp) {
-      // consume mp
-      fighterMp -= castMagic.mp;
+    if (isKeyPressedNow("z")) {
       // change scene
-      setScene("magiccast");
+      if (castMagic.mp === "ALL") {
+        setScene("magiccast");
+      }
+      else if (fighterMp >= castMagic.mp) {
+        setScene("magiccast");
+      }
     }
     // cancel
     if (isKeyPressedNow("x")) {
@@ -1354,6 +1371,13 @@ let sceneList = {
       sceneInit = false;
       // apply magic
       castMagic.effect();
+      // consume mp
+      if (castMagic.mp === "ALL") {
+        fighterMp = 0; // consume ALL MP
+      }
+      else {
+        fighterMp -= castMagic.mp;
+      }
       // text
       windowImage = null;
       mainWindowText[0] = fighter.name + "は" + castMagic.name + "を使った！"
