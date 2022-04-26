@@ -1325,7 +1325,7 @@ let sceneList = {
     // magic information
     castMagic = magicData[fighterMagic[magicCursor]];
     windowImage = null;
-    mainWindowText[0] = castMagic.name + "    MP " + castMagic.mp;
+    mainWindowText[0] = castMagic.name + "    消費MP " + castMagic.mp;
     mainWindowText[1] = castMagic.description;
     mainWindowText[2] = "";
     if (fighterMp < castMagic.mp) {
@@ -1727,7 +1727,7 @@ let sceneList = {
     let toolAmount;
     windowImage = null;
     if (itemOnCursor.category === "magic") {
-      mainWindowText[0] = magicData[itemOnCursor.item].name + "    MP " + magicData[itemOnCursor.item].mp;
+      mainWindowText[0] = magicData[itemOnCursor.item].name + "    消費MP " + magicData[itemOnCursor.item].mp;
       mainWindowText[1] = magicData[itemOnCursor.item].description;
       mainWindowText[2] = "[z]購入";
     }
@@ -1942,7 +1942,7 @@ let subSceneList = {
       useriCtx.drawImage(arrowDownImage, 304, (3 + listItems + 1) * gridSize);
     }
     // description window
-    descriptionWindowText[0] = "MP " + magicData[fighterMagic[listCursor]].mp;
+    descriptionWindowText[0] = "消費MP " + magicData[fighterMagic[listCursor]].mp;
     descriptionWindowText[1] = magicData[fighterMagic[listCursor]].description;
     descriptionWindowText[2] = "";
     descriptionWindowText[3] = "";
