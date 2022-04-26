@@ -80,6 +80,11 @@ let shieldkusaImage1 = new Image();
 let shieldkusaImage2 = new Image();
 shieldkusaImage1.src = "./img/shieldkusa1.png";
 shieldkusaImage2.src = "./img/shieldkusa2.png";
+// image - dragon
+let dragonImage1 = new Image();
+let dragonImage2 = new Image();
+dragonImage1.src = "./img/dragon1.png";
+dragonImage2.src = "./img/dragon2.png";
 // image - merchant(boss)
 let merchantBossImage1 = new Image();
 let merchantBossImage2 = new Image();
@@ -131,6 +136,10 @@ toolBombImage.src = "./img/tool_bomb.png";
 // image - tool:potion
 let toolPotionImage = new Image();
 toolPotionImage.src = "./img/tool_potion.png";
+// image - tool:dice
+let toolDiceImage = new Image();
+toolDiceImage.src = "./img/tool_dice.png";
+
 
 // image - status:stun
 let statusStunImage = new Image();
@@ -492,6 +501,33 @@ let enemyData = {
       }
     }
   },
+  "dragon":{
+    name: "ドラゴン",
+    hp: 120,
+    image1: dragonImage1,
+    image2: dragonImage2,
+    strategy: () => {
+      if (enemy.hp * 2 <= enemy.maxhp && (!enemy.isStatusExist("power"))) {
+        enemyStrategyParam = 0;
+        enemy.addStatus("power", 999);
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "は怒っている……！";
+      }
+      else {
+        enemyStrategyParam++;
+        if (enemyStrategyParam >= 2) {
+          enemyStrategyParam = 0;
+          enemy.dealAttackDamage(fighter, 24);
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "のファイアブレス！";
+        }
+        else {
+          enemyStrategyCategory = "none";
+          mainWindowText[0] = enemy.name + "はパワーを貯めている……";
+        }
+      }
+    }
+  },
   /* 「あー、見ちゃったねー？　みんなには内緒だよー？」
   "merchant":{
     name:"商人",
@@ -624,9 +660,24 @@ let toolData = {
     name: "あおじる",
     image: toolPotionImage,
     isAvailableFromList: true,
-    description: "現在のMPを1.5倍にする。",
+    description: "自分のLvに等しいMPを得る。",
     effect: () => {
-      fighterMp = Math.floor(fighterMp * 1.5);
+      fighterMp += fighterLv;
+    }
+  },
+  "dice": {
+    name: "さいころ",
+    image: toolDiceImage,
+    isAvailableFromList: false,
+    description: "覚えているまほうをランダムに発動。MPは消費しない。",
+    effect: () => {
+      if (fighterMagic.length === 0) {
+        mainWindowText[1] = "しかし何も起きなかった……";
+        return;
+      }
+      let randomMagic = fighterMagic[randInt(0, fighterMagic.length - 1)];
+      magicData[randomMagic].effect();
+      mainWindowText[1] = magicData[randomMagic].name + "が発動した！";
     }
   }
 };
@@ -1087,8 +1138,8 @@ let sceneList = {
       sceneInit = false;
       // create new enemy
       let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
-      //let eKey = "merchant"; // テスト用（敵指定）
-      let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
+      let eKey = "dragon"; // テスト用（敵指定）
+      //let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
         enemyData[eKey].name,
@@ -1395,13 +1446,13 @@ let sceneList = {
     if (sceneInit) {
       // init flag
       sceneInit = false;
-      // apply tool
-      useTool.effect();
       // text
       windowImage = null;
       mainWindowText[0] = fighter.name + "は" + useTool.name + "を使った！"
       mainWindowText[1] = "";
       mainWindowText[2] = "";
+      // apply tool
+      useTool.effect();
       // anime count
       animeCount = 32;
     }
