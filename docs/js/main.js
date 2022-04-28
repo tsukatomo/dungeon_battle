@@ -252,6 +252,8 @@ let listTop = 0;
 let listCursor = 0;
 // for shop
 let shopInit = false;
+let numOfItem = 5;
+let numOfMagic = 3;
 let shopItem = [];
 let shopCursor = 0;
 // for showing character
@@ -603,9 +605,9 @@ let magicData = {
     name: "シールド",
     mp: 3,
     image: magicShieldImage,
-    description: "3ターンの間、受けるダメージを半分にする。",
+    description: "5ターンの間、受けるダメージを半分にする。",
     effect: () => {
-      fighter.addStatus("shield", 3);
+      fighter.addStatus("shield", 5);
     }
   },
   "jinx": {
@@ -1662,11 +1664,11 @@ let sceneList = {
         // add shop items
         let magicDataKeys = Object.keys(magicData);
         let toolDataKeys = Object.keys(toolData);
-        for (let i = 0; i < 2; i++) {
+        for (let i = 0; i < numOfMagic; i++) {
           let item = magicDataKeys[randInt(0, magicDataKeys.length - 1)];
           shopItem[i] = {item: item, category: "magic", price: randInt(3, 10)};
         }
-        for (let i = 2; i < 4; i++) {
+        for (let i = numOfMagic; i < numOfItem; i++) {
           let item = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
           shopItem[i] = {item: item, category: "tool", price: randInt(3, 10)};
         }
@@ -1724,15 +1726,16 @@ let sceneList = {
     }
     // update
     // move cursor
-    if (isKeyPressedNow("l") && shopCursor > 0) shopCursor--;
-    if (isKeyPressedNow("r") && shopCursor < 3) shopCursor++;
+    if (isKeyPressedInterval("l") && shopCursor > 0) shopCursor--;
+    if (isKeyPressedInterval("r") && shopCursor < numOfItem - 1) shopCursor++;
     // show items
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < numOfItem; i++) {
+      let itemX = 320 / numOfItem + (640 / numOfItem) * i - 32;
       if (shopItem[i].category === "magic") {
-        charaCtx.drawImage(magicData[shopItem[i].item].image, 48 + 160 * i, 180);
+        charaCtx.drawImage(magicData[shopItem[i].item].image, itemX, 180);
       }
       else if (shopItem[i].category === "tool") {
-        charaCtx.drawImage(toolData[shopItem[i].item].image, 48 + 160 * i, 180);
+        charaCtx.drawImage(toolData[shopItem[i].item].image, itemX, 180);
       }
     }
     // show price
@@ -1744,20 +1747,22 @@ let sceneList = {
     charaCtx.lineCap = "round";
     charaCtx.lineJoin = "round";
     charaCtx.strokeStyle = "#2a2349";
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < numOfItem; i++) {
       if (shopItem[i].category != "none") {
         if (shopItem[i].price <= money) {
           charaCtx.fillStyle = "#fff9e4";
         } else {
           charaCtx.fillStyle = "#e89973";
         }
-        charaCtx.strokeText(shopItem[i].price + "円", 80 + 160 * i, 260);
-        charaCtx.fillText(shopItem[i].price + "円", 80 + 160 * i, 260);
+        let itemX = 320 / numOfItem + (640 / numOfItem) * i;
+        charaCtx.strokeText(shopItem[i].price + "円", itemX, 260);
+        charaCtx.fillText(shopItem[i].price + "円", itemX, 260);
       }
     }
     // show cursor
+    let cursorX = 320 / numOfItem + (640 / numOfItem) * shopCursor - 32;
     let cursorY = (timeCounter < 50) ? 108 : 104;
-    charaCtx.drawImage(cursorImage, 48 + 160 * shopCursor, cursorY);
+    charaCtx.drawImage(cursorImage, cursorX, cursorY);
     // show item info
     let itemOnCursor = shopItem[shopCursor];
     let toolAmount;
