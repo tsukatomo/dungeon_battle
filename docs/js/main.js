@@ -1743,8 +1743,10 @@ let sceneList = {
     }
     // update
     // move cursor
-    if (isKeyPressedInterval("l") && shopCursor > 0) shopCursor--;
-    if (isKeyPressedInterval("r") && shopCursor < numOfItem - 1) shopCursor++;
+    if (subScene === "none") {
+      if (isKeyPressedInterval("l") && shopCursor > 0) shopCursor--;
+      if (isKeyPressedInterval("r") && shopCursor < numOfItem - 1) shopCursor++;
+    }
     // show items
     for (let i = 0; i < numOfItem; i++) {
       let itemX = 320 / numOfItem + (640 / numOfItem) * i - 32;
