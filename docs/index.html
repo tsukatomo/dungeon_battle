@@ -23,8 +23,33 @@
   <br>
   <p style="text-align:center;font-family:'筑紫a丸ゴシック',system-ui">
     ダンジョンでバトルするゲームです。※PC専用。ただいま製作中
-    <br>方向キーで選択、Zキーで決定、Xキーでキャンセル。
   </p>
+  <div id="howto">
+    <table style="font-family:'筑紫a丸ゴシック',system-ui">
+      <caption>● 操作方法 ●</caption>
+      <tr>
+        <td>矢印キー・HJKL</td>
+        <td>カーソル移動</td>
+      </tr>
+      <tr>
+        <td>Z</td>
+        <td>決定</td>
+      </tr>
+      <tr>
+        <td>X</td>
+        <td>キャンセル</td>
+      </tr>
+      <tr>
+        <td>A</td>
+        <td>まほう一覧</td>
+      </tr>
+      <tr>
+        <td>S</td>
+        <td>どうぐ一覧</td>
+      </tr>
+    </table>
+  </div>
+
   <style>
     #canv {
       width: 640px;
@@ -39,6 +64,24 @@
     #chara_lay { z-index: 2; }
     #useri_lay { z-index: 3; }
     #trans_lay { z-index: 4; }
+    #howto {
+      position: relative;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    table {
+      border-collapse: collapse;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    table, caption {
+      padding: 0.5em;
+    }
+    table, td {
+      padding: 0.5em;
+      border: 1px solid black;
+    }
+    
   </style>
   <script type="text/javascript" src="js/main.js"> </script>
 </body>
