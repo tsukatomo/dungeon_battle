@@ -145,6 +145,9 @@ toolPotionImage.src = "./img/tool_potion.png";
 // image - tool:dice
 let toolDiceImage = new Image();
 toolDiceImage.src = "./img/tool_dice.png";
+// image - tool:battery
+let toolBatteryImage = new Image();
+toolBatteryImage.src = "./img/tool_battery.png";
 
 
 // image - status:stun
@@ -516,23 +519,28 @@ let enemyData = {
     image2: dragonImage2,
     strategy: () => {
       if (enemy.hp * 2 <= enemy.maxhp && (!enemy.isStatusExist("power"))) {
-        enemyStrategyParam = 0;
-        enemy.addStatus("power", 999);
+        enemyStrategyParam = 1;
+        enemy.addStatus("power", 99);
         enemyStrategyCategory = "magic";
         mainWindowText[0] = enemy.name + "は怒っている……！";
       }
       else {
-        enemyStrategyParam--;
-        if (enemyStrategyParam <= 0) {
-          enemyStrategyParam = 2;
-          enemy.dealAttackDamage(fighter, 20);
+        if (enemyStrategyParam % 3 === 0) {
+          enemy.dealAttackDamage(fighter, 7);
           enemyStrategyCategory = "attack";
-          mainWindowText[0] = enemy.name + "のファイアブレス！";
+          mainWindowText[0] = enemy.name + "のひっかき攻撃！";
+        }
+        else if (enemyStrategyParam % 3 === 1) {
+          enemyStrategyCategory = "none";
+          mainWindowText[0] = enemy.name + "は大きく息を吸っている……";
+          
         }
         else {
-          enemyStrategyCategory = "none";
-          mainWindowText[0] = enemy.name + "は反動で動けない！";
+          enemy.dealAttackDamage(fighter, 20);
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "のファイアブレス！！";
         }
+        enemyStrategyParam++;
       }
     }
   },
@@ -704,6 +712,15 @@ let toolData = {
       let randomMagic = fighterMagic[randInt(0, fighterMagic.length - 1)];
       magicData[randomMagic].effect();
       mainWindowText[1] = magicData[randomMagic].name + "が発動した！";
+    }
+  },
+  "battery": {
+    name: "でんげん",
+    image: toolBatteryImage,
+    isAvailableFromList: false,
+    description: "敵を3ターン行動不能にする。",
+    effect: () => {
+      enemy.addStatus("stun", 3);
     }
   }
 };
