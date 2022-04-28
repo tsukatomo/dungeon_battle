@@ -111,6 +111,9 @@ magicThunderImage.src = "./img/magic_thunder.png";
 // image - magic:power
 let magicPowerImage = new Image();
 magicPowerImage.src = "./img/magic_power.png";
+// image - magic:hena
+let magicHenaImage = new Image();
+magicHenaImage.src = "./img/magic_hena.png";
 // image - magic:shield
 let magicShieldImage = new Image();
 magicShieldImage.src = "./img/magic_shield.png";
@@ -587,6 +590,15 @@ let magicData = {
       fighter.addStatus("power", 2);
     }
   },
+  "hena": {
+    name: "ヘナヘナ",
+    mp: 3,
+    image: magicHenaImage,
+    description: "敵の攻撃の威力を半減する。3回まで有効。",
+    effect: () => {
+      enemy.addStatus("weak", 3);
+    }
+  },
   "shield": {
     name: "シールド",
     mp: 3,
@@ -630,7 +642,7 @@ let magicData = {
     name: "バースト",
     mp: "ALL",
     image: magicBurstImage,
-    description: "MP消費量に応じてダメージアップ。",
+    description: "所持MP量に応じてダメージアップ。",
     effect: () => {
       fighter.dealMagicDamage(enemy, fighterMp * 6);
     }
