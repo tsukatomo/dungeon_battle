@@ -576,7 +576,7 @@ let magicData = {
     name: "カイフク",
     mp: 5,
     image: magicHealImage,
-    description: "自分のHPを最大HPの50%だけ回復する。",
+    description: "最大HPの50%を回復する。",
     effect: () => {
       fighter.addHp(Math.floor(fighter.maxhp / 2));
     }
@@ -604,7 +604,7 @@ let magicData = {
     name: "ヘナヘナ",
     mp: 3,
     image: magicHenaImage,
-    description: "敵の攻撃の威力を半減する。3回まで有効。",
+    description: "敵の攻撃力を半減させる。攻撃3回まで有効。",
     effect: () => {
       enemy.addStatus("weak", 3);
     }
@@ -652,7 +652,7 @@ let magicData = {
     name: "バースト",
     mp: "ALL",
     image: magicBurstImage,
-    description: "所持MP量に応じてダメージアップ。",
+    description: "最終兵器。MPに応じてダメージ量が上昇。",
     effect: () => {
       fighter.dealMagicDamage(enemy, fighterMp * 6);
     }
@@ -678,6 +678,11 @@ let toolData = {
     description: "最大HPの50%を回復する。",
     isAvailableFromList: true,
     effect: () => {
+      if (fighter.hp === fighter.maxhp) {
+        // increase maxhp
+        fighter.maxhp += 6;
+        fighter.addHp(6);
+      }
       fighter.addHp(Math.floor(fighter.maxhp / 2));
     }
   },
@@ -694,9 +699,9 @@ let toolData = {
     name: "あおじる",
     image: toolPotionImage,
     isAvailableFromList: true,
-    description: "自分のLvに等しいMPを得る。",
+    description: "自分のLv+1に等しいMPを得る。",
     effect: () => {
-      fighterMp += fighterLv;
+      fighterMp += fighterLv + 1;
     }
   },
   "dice": {
@@ -786,7 +791,8 @@ let oyakudachiInfo = [
   ["敵をなぐるとMPがちょっと増えるよー」",""],
   ["固定ダメージはバフやデバフの", "影響を受けないよー」"],
   ["一部のどうぐは戦闘中以外でも", "Sキーのメニューから使えるよー」"],
-  ["Aキーを押すと覚えているまほうを", "確認できるよー」"]
+  ["Aキーを押すと覚えているまほうを", "確認できるよー」"],
+  ["HPが満タンの時にくだものを使うと", "最大HPが増えるよー」"]
 ];
 
 
@@ -798,7 +804,7 @@ let initParam = function () {
   fighterTool = [{tag: "fruit", amount: 1}];
   fighterLv = 1;
   dungeonFloor = 0;
-  money = 200;
+  money = 100;
   shopInit = true;
 };
 
@@ -1303,7 +1309,7 @@ let sceneList = {
       // init flag
       sceneInit = false;
       // deal damage
-      fighter.dealAttackDamage(enemy, 6 + fighterLv);
+      fighter.dealAttackDamage(enemy, 5 + fighterLv);
       // increase mp
       fighterMp += 1;
       // text
@@ -1626,11 +1632,14 @@ let sceneList = {
         levelUp();
         levelUp();
       }
+      // gain money
+      let gainMoney = randInt(20, 30);
+      money += gainMoney;
       // text 
       windowImage = null;
       mainWindowText[0] = enemy.name + "に勝利した！"
-      mainWindowText[1] = fighter.name + "はレベルが上がった！";
-      mainWindowText[2] = "";
+      mainWindowText[1] = fighter.name + "はレベルアップ！";
+      mainWindowText[2] = gainMoney + "円を獲得！";
     }
     fighter.drawAnime(fighterX, characterY, charaCtx);
     drawHpBar(fighter, fighterX, hpBarY, useriCtx);
@@ -1679,9 +1688,17 @@ let sceneList = {
       sceneInit = false;
       // draw background
       backgCtx.drawImage(bunkiBackImage, 0, 0);
+      // counter (buffer)
+      animeCount = 8;
+      // text 
+      windowImage = merchantFaceImage;
+      mainWindowText[0] = "「ごゆっくりー」";
+      mainWindowText[1] = "";
+      mainWindowText[2] = ""; 
       // shop initialize
       if (shopInit) {
         shopInit = false;
+        mainWindowText[0] = "「いらっしゃー」";
         // add shop items
         // - make key list
         let magicDataKeys = Object.keys(magicData);
@@ -1699,22 +1716,15 @@ let sceneList = {
         let numOfMagic = (magicDataKeys.length > 3) ? 3 : magicDataKeys.length;
         for (let i = 0; i < numOfMagic; i++) {
           let item = magicDataKeys.pop();
-          shopItem[i] = {item: item, category: "magic", price: randInt(3, 10)};
+          shopItem[i] = {item: item, category: "magic", price: randInt(40, 50)};
         }
         for (let i = numOfMagic; i < numOfItem; i++) {
           let item = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
-          shopItem[i] = {item: item, category: "tool", price: randInt(3, 10)};
+          shopItem[i] = {item: item, category: "tool", price: randInt(20, 30)};
         }
         // reset cursor
         menuCursor = 0;
       }
-      // counter (buffer)
-      animeCount = 8;
-      // text 
-      windowImage = merchantFaceImage;
-      mainWindowText[0] = "「いらっしゃー」";
-      mainWindowText[1] = "";
-      mainWindowText[2] = ""; 
     }
     // update
     // fighter animation
