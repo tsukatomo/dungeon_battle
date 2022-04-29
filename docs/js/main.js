@@ -255,8 +255,7 @@ let listTop = 0;
 let listCursor = 0;
 // for shop
 let shopInit = false;
-let numOfItem = 5;
-let numOfMagic = 3;
+const numOfItem = 5;
 let shopItem = [];
 let shopCursor = 0;
 // for showing character
@@ -267,6 +266,7 @@ let hpBarY = 256;
 let hpBarWidth = 128;
 let HpBarHeight = 16;
 let bigCharacterY = characterY - 64;
+const dotSize = 4;
 // for game scene (main/sub)
 let scene = "encount";
 let subScene = "none";
@@ -359,7 +359,7 @@ class CharacterObject {
   };
 
   dealMagicDamage(opponent, amount) {
-    // buff: power
+    // buff: mirror
     if (this.isStatusExist("mirror")) {
       amount *= 2;
       this.addStatus("mirror", -1);
@@ -780,7 +780,6 @@ let oyakudachiInfo = [
   ["スライム？かわいいよねー」", ""],
   ["フレイムはキミのLvに応じて", "どんどん強くなるよー」"],
   ["敵に勝つとレベルアップ！", "最大HPとMPが増えるよー」"],
-  ["シビレ状態になると動けなくなるよー」", ""],
   ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"],
   ["やどクジは攻撃力を下げてくるよー", "でもまほうの威力は下がらないよー」"],
   ["レンチンの行動に気をつけてねー", "6ターンに1回放電してくるよー」"],
@@ -800,6 +799,7 @@ let initParam = function () {
   fighterLv = 1;
   dungeonFloor = 0;
   money = 200;
+  shopInit = true;
 };
 
 
@@ -1013,6 +1013,10 @@ let drawAnimation = function (image1, image2, posX, posY, ctx) {
   ctx.drawImage(image, posX, posY);
 }
 
+// fix coordinate into dot size
+let fixCoordinate = function (num) {
+  return dotSize * Math.floor(num / dotSize);
+}
 
 
 // z key animation
@@ -1181,8 +1185,8 @@ let sceneList = {
       sceneInit = false;
       // create new enemy
       let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
-      let eKey = "dragon"; // テスト用（敵指定）
-      //let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
+      //let eKey = "dragon"; // テスト用（敵指定）
+      let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
         enemyData[eKey].name,
@@ -1679,10 +1683,22 @@ let sceneList = {
       if (shopInit) {
         shopInit = false;
         // add shop items
+        // - make key list
         let magicDataKeys = Object.keys(magicData);
         let toolDataKeys = Object.keys(toolData);
+        // - remove magics that the fighter can use
+        for (let i = 0; i < fighterMagic.length; i++) {
+          magicDataKeys.splice(magicDataKeys.indexOf(fighterMagic[i]), 1);
+        }
+        // - shuffle magic key list
+        for (let i = 0; i < magicDataKeys.length; i++) {
+          let j = randInt(i, magicDataKeys.length - 1);
+          [magicDataKeys[i], magicDataKeys[j]] = [magicDataKeys[j], magicDataKeys[i]]; 
+        }
+        // - tinretsu
+        let numOfMagic = (magicDataKeys.length > 3) ? 3 : magicDataKeys.length;
         for (let i = 0; i < numOfMagic; i++) {
-          let item = magicDataKeys[randInt(0, magicDataKeys.length - 1)];
+          let item = magicDataKeys.pop();
           shopItem[i] = {item: item, category: "magic", price: randInt(3, 10)};
         }
         for (let i = numOfMagic; i < numOfItem; i++) {
@@ -1749,7 +1765,7 @@ let sceneList = {
     }
     // show items
     for (let i = 0; i < numOfItem; i++) {
-      let itemX = 320 / numOfItem + (640 / numOfItem) * i - 32;
+      let itemX = fixCoordinate(320 / numOfItem + (640 / numOfItem) * i - 32);
       if (shopItem[i].category === "magic") {
         charaCtx.drawImage(magicData[shopItem[i].item].image, itemX, 180);
       }
@@ -1779,7 +1795,7 @@ let sceneList = {
       }
     }
     // show cursor
-    let cursorX = 320 / numOfItem + (640 / numOfItem) * shopCursor - 32;
+    let cursorX = fixCoordinate(320 / numOfItem + (640 / numOfItem) * shopCursor - 32);
     let cursorY = (timeCounter < 50) ? 108 : 104;
     charaCtx.drawImage(cursorImage, cursorX, cursorY);
     // show item info
