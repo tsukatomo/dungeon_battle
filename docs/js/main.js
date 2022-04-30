@@ -39,6 +39,9 @@ iconEnemyImage.src = "./img/icon_enemy.png";
 // image - icon:shop
 let iconShopImage = new Image();
 iconShopImage.src = "./img/icon_shop.png";
+// image - icon:gem
+let iconGemImage = new Image();
+iconGemImage.src = "./img/icon_gem.png";
 
 // image - fighter
 let fighterImage1 = new Image();
@@ -245,6 +248,9 @@ const shopMenu = ["かう", "はなす", "たちさる"];
 const gemMenu = ["かいふく", "ほきゅう", "くらふと"];
 let menuCursor = 0;
 let goodLuck = false;
+// for room
+let roomList = [];
+let room1, room2;
 // for enemy
 let enemyStrategyParam = 0; // a parameter for strategy of enemy
 let enemyStrategyCategory = "attack";
@@ -274,13 +280,13 @@ const numOfItem = 5;
 let shopItem = [];
 let shopCursor = 0;
 // for showing character
-let characterY = 128;
-let fighterX = 80;
-let enemyX = 432;
-let hpBarY = 256;
-let hpBarWidth = 128;
-let HpBarHeight = 16;
-let bigCharacterY = characterY - 64;
+const characterY = 128;
+const fighterX = 80;
+const enemyX = 432;
+const hpBarY = 256;
+const hpBarWidth = 128;
+const HpBarHeight = 16;
+const bigCharacterY = characterY - 64;
 const dotSize = 4;
 // for game scene (main/sub)
 let scene = "encount";
@@ -812,6 +818,16 @@ let oyakudachiInfo = [
 ];
 
 
+
+// room icon data
+let roomIconData = {
+  "encount": iconEnemyImage,
+  "shop": iconShopImage,
+  "gemspotin" : iconGemImage
+};
+
+
+
 // initialize param
 let initParam = function () {
   fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
@@ -1168,6 +1184,28 @@ let sceneList = {
       dungeonFloor++;
       // reset cursor
       menuCursor = 0;
+      // set next room
+      // - reset room list 
+      if (roomList.length < 2) {
+        roomList = [
+          "encount",
+          "encount",
+          "encount",
+          "encount",
+          "encount",
+          "shop",
+          "gemspotin",
+          "gemspotin"
+        ];
+      }
+      // - shuffle room list
+      for (let i = 0; i < roomList.length; i++) {
+        let j = randInt(i, roomList.length - 1);
+        [roomList[i], roomList[j]] = [roomList[j], roomList[i]];
+      }
+      // - set two rooms
+      room1 = roomList.pop();
+      room2 = roomList.pop();
       // text
       windowImage = null;
       mainWindowText[0] = "行き先を選ぼう";
@@ -1187,15 +1225,15 @@ let sceneList = {
     fighter.drawAnime(fighterX, characterY, charaCtx);
     charaCtx.drawImage(gateImage, 256, bigCharacterY);
     charaCtx.drawImage(gateImage, 448, bigCharacterY);
-    charaCtx.drawImage(iconEnemyImage, 256 + 64, bigCharacterY + 128);
-    charaCtx.drawImage(iconShopImage, 448 + 64, bigCharacterY + 128);
+    charaCtx.drawImage(roomIconData[room1], 256 + 64, bigCharacterY + 128);
+    charaCtx.drawImage(roomIconData[room2], 448 + 64, bigCharacterY + 128);
     charaCtx.drawImage(cursorImage, cursorX, cursorY);
     if (isKeyPressedNow("z")) {
-      if (menuCursor === 0) { // enemy
-        setTransition("encount");
+      if (menuCursor === 0) { // room 1
+        setTransition(room1);
       }
-      else if (menuCursor === 1) { // shop
-        setTransition("gemspotin");
+      else { // room 2
+        setTransition(room2);
       }
       
     }
