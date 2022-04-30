@@ -200,6 +200,18 @@ merchantSadImage.src = "./img/merchant_face_sad.png";
 let merchantFuryImage = new Image();
 merchantFuryImage.src = "./img/merchant_face_fury.png";
 
+// image - gemspot
+let gemSpotImage1 = new Image();
+gemSpotImage1.src = "./img/gemspot1.png";
+let gemSpotImage2 = new Image();
+gemSpotImage2.src = "./img/gemspot2.png";
+let gemSpotEmptyImage = new Image();
+gemSpotEmptyImage.src = "./img/gemempty.png";
+// image - whitebox
+let whiteBoxImage = new Image();
+whiteBoxImage.src = "./img/whitebox.png";
+let doubleLuckyImage = new Image();
+doubleLuckyImage.src = "./img/double_lucky.png";
 
 
 // some variables 
@@ -227,10 +239,12 @@ let keyInterval = 0;
 // for some uses
 const counterMax = 100; // timeCounter counts 0 - counterMax-1
 let timeCounter = 0; // time counter in game loop
+let animeCount = 0; // animation counter
 const combatMenu = ["なぐる", "まほう", "どうぐ"];
 const shopMenu = ["かう", "はなす", "たちさる"];
+const gemMenu = ["かいふく", "ほきゅう", "くらふと"];
 let menuCursor = 0;
-let animeCount = 0; // animation counter
+let goodLuck = false;
 // for enemy
 let enemyStrategyParam = 0; // a parameter for strategy of enemy
 let enemyStrategyCategory = "attack";
@@ -243,6 +257,7 @@ let castMagic;
 let fighterTool = [];
 let toolCursor = 0;
 let useTool;
+let craftedTool;
 // for combat
 let isFighting = false;
 let isStartTurn = false; // start of turn
@@ -383,7 +398,7 @@ let enemy = new CharacterObject("enemy", "スライム", 15, slimeImage1, slimeI
 let enemyData = {
   "slime":{
     name: "スライム",
-    hp: 20,
+    hp: 16,
     image1: slimeImage1,
     image2: slimeImage2,
     strategy: () => {
@@ -394,7 +409,7 @@ let enemyData = {
   },
   "gob":{
     name: "ちびゴブ",
-    hp: 25,
+    hp: 28,
     image1: gobImage1,
     image2: gobImage2,
     strategy: () => {
@@ -792,7 +807,8 @@ let oyakudachiInfo = [
   ["固定ダメージはバフやデバフの", "影響を受けないよー」"],
   ["一部のどうぐは戦闘中以外でも", "Sキーのメニューから使えるよー」"],
   ["Aキーを押すと覚えているまほうを", "確認できるよー」"],
-  ["HPが満タンの時にくだものを使うと", "最大HPが増えるよー」"]
+  ["HPが満タンの時にくだものを使うと", "最大HPが増えるよー」"],
+  ["ジェムを『くらふと』するとたまに", "2個のどうぐが手に入るよー」"]
 ];
 
 
@@ -809,6 +825,7 @@ let initParam = function () {
 };
 
 
+
 // level up
 let levelUp = function () {
   // level up
@@ -817,7 +834,7 @@ let levelUp = function () {
   fighter.maxhp += 4;
   fighter.addHp(4);
   // recover mp
-  fighterMp += 2;
+  fighterMp += 1;
 };
 
 
@@ -1178,7 +1195,7 @@ let sceneList = {
         setTransition("encount");
       }
       else if (menuCursor === 1) { // shop
-        setTransition("shop");
+        setTransition("gemspotin");
       }
       
     }
@@ -1883,6 +1900,160 @@ let sceneList = {
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       setScene("shop");
+    }
+  },
+
+  // scene: gemspotin（ジェムスポット - 侵入）-----------------------------------------
+  "gemspotin": () => {
+    if (sceneInit) {
+      sceneInit = false;
+      animeCount = 8;
+      mainWindowText[0] = "ジェムを見つけた！　何をしようかな？";
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
+      backgCtx.drawImage(backImage, 0, 0);
+    }
+    // update
+    // fighter animation
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    // gem animation
+    drawAnimation(gemSpotImage1, gemSpotImage2, 400, 64, charaCtx);
+    // next scene
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      setScene("gemspot");
+    }
+  },
+
+  // scene: gemspot（ジェムスポット - 行動選択）--------------------------------------------
+  "gemspot": () => {
+    if (sceneInit) {
+      sceneInit = false;
+      menuCursor = 0;
+      mainWindowText[0] = "";
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
+    }
+    // update
+    // gem menu
+    if (isKeyPressedNow("u")) menuCursor--;
+    if (isKeyPressedNow("d")) menuCursor++;
+    if (menuCursor < 0) menuCursor = 2;
+    if (menuCursor > 2) menuCursor = 0;
+    drawTextInWindowWithCursor(gemMenu, 480, 480 - gridSize * 5, 160, menuCursor, useriCtx);
+    // show description
+    if (menuCursor === 0) { // かいふく
+      mainWindowText[0] = "ジェムを生命力に変換する。";
+      mainWindowText[1] = "最大HPの50%を回復。";
+    }
+    else if (menuCursor === 1) { // ほきゅう
+      mainWindowText[0] = "ジェムを魔力に変換する。";
+      mainWindowText[1] = "MP +5。";
+    }
+    else { // くらふと
+      mainWindowText[0] = "ジェムを加工する。";
+      mainWindowText[1] = "ランダムなどうぐを獲得。";
+    }
+    // fighter animation
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    // gem animation
+    drawAnimation(gemSpotImage1, gemSpotImage2, 400, 64, charaCtx);
+    // next scene
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      if (menuCursor === 0) {
+        setScene("gemheal");
+      }
+      else if (menuCursor === 1) {
+        setScene("gemmagic");
+      }
+      else {
+        setScene("gemcraft");
+      }
+    }
+  },
+
+  // scene: gemheal（ジェムスポット - かいふく）----------------------------------------
+  "gemheal": () => {
+    if (sceneInit) {
+      sceneInit = false;
+      // heal hp
+      fighter.addHp(Math.floor(fighter.maxhp / 2));
+      // text
+      mainWindowText[0] = fighter.name + "はHPを回復した";
+      mainWindowText[1] = "先に進もう";
+      mainWindowText[2] = "";
+      // animation
+      animeCount = 8;
+    }
+    // update
+    // fighter animation
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    // gem animation
+    charaCtx.drawImage(gemSpotEmptyImage, 400, 64);
+    // next scene
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      setTransition("chooseroom");
+    }
+  },
+
+  // scene: gemmagic（ジェムスポット - ほきゅう）----------------------------------------
+  "gemmagic": () => {
+    if (sceneInit) {
+      sceneInit = false;
+      // add MP
+      fighterMp += 5;
+      // text
+      mainWindowText[0] = fighter.name + "のMPが増加した";
+      mainWindowText[1] = "先に進もう";
+      mainWindowText[2] = "";
+      // animation
+      animeCount = 8;
+    }
+    // update
+    // fighter animation
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    // gem animation
+    charaCtx.drawImage(gemSpotEmptyImage, 400, 64);
+    // next scene
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      setTransition("chooseroom");
+    }
+  },
+
+  // scene: gemheal（ジェムスポット - くらふと）----------------------------------------
+  "gemcraft": () => {
+    if (sceneInit) {
+      sceneInit = false;
+      // undameshi
+      goodLuck = (randInt(0, 4) === 0);
+      // get random tool
+      let toolDataKeys = Object.keys(toolData);
+      craftedTool = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
+      addTool(craftedTool, (goodLuck) ? 2 : 1);
+      // text
+      mainWindowText[0] = fighter.name + "は" + toolData[craftedTool].name + "を" + ((goodLuck) ? "2個" : "") + "手に入れた";
+      mainWindowText[1] = "先に進もう";
+      mainWindowText[2] = "";
+      // animation
+      animeCount = 8;
+    }
+    // update
+    // fighter animation
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    // gem animation
+    charaCtx.drawImage(gemSpotEmptyImage, 400, 64);
+    // show crafted tool on whitebox
+    charaCtx.drawImage(whiteBoxImage, 256, 120);
+    charaCtx.drawImage(toolData[craftedTool].image, 288, 152);
+    if (goodLuck) {
+      charaCtx.drawImage(doubleLuckyImage, 256, 120);
+    }
+    // next scene
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      setTransition("chooseroom");
     }
   }
 
