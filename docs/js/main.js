@@ -88,6 +88,11 @@ let dragonImage1 = new Image();
 let dragonImage2 = new Image();
 dragonImage1.src = "./img/dragon1.png";
 dragonImage2.src = "./img/dragon2.png";
+// image - death
+let deathImage1 = new Image();
+let deathImage2 = new Image();
+deathImage1.src = "./img/death1.png";
+deathImage2.src = "./img/death2.png";
 // image - merchant(boss)
 let merchantBossImage1 = new Image();
 let merchantBossImage2 = new Image();
@@ -202,6 +207,9 @@ merchantSadImage.src = "./img/merchant_face_sad.png";
 // image - merchant fury
 let merchantFuryImage = new Image();
 merchantFuryImage.src = "./img/merchant_face_fury.png";
+// image - death face
+let deathFaceImage = new Image();
+deathFaceImage.src = "./img/death_face.png";
 
 // image - gemspot
 let gemSpotImage1 = new Image();
@@ -565,6 +573,26 @@ let enemyData = {
       }
     }
   },
+  "death": {
+    name: "シニガミ",
+    hp: 200,
+    image1: deathImage1,
+    image2: deathImage2,
+    strategy: () => {
+      enemyStrategyParam++;
+      if (enemyStrategyParam >= 6) {
+        enemy.dealAttackDamage(fighter, 999999);
+        enemyStrategyCategory = "attack";
+        windowImage = deathFaceImage;
+        mainWindowText[0] = "「終わりだ」";
+      }
+      else {
+        enemyStrategyCategory = "none";
+        windowImage = deathFaceImage;
+        mainWindowText[0] = "「" + (6 - enemyStrategyParam) + "……」";
+      }
+    }
+  }
   /* 「あー、見ちゃったねー？　みんなには内緒だよー？」
   "merchant":{
     name:"商人",
@@ -720,9 +748,9 @@ let toolData = {
     name: "あおじる",
     image: toolPotionImage,
     isAvailableFromList: true,
-    description: "自分のLv+1に等しいMPを得る。",
+    description: "MP +5。",
     effect: () => {
-      fighterMp += fighterLv + 1;
+      fighterMp += 5;
     }
   },
   "dice": {
@@ -1246,8 +1274,8 @@ let sceneList = {
       sceneInit = false;
       // create new enemy
       let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
-      //let eKey = "dragon"; // テスト用（敵指定）
-      let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
+      let eKey = "death"; // テスト用（敵指定）
+      //let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
         enemyData[eKey].name,
