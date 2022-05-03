@@ -422,6 +422,8 @@ let enemyData = {
     hp: 16,
     image1: slimeImage1,
     image2: slimeImage2,
+    floor_min: 1,
+    floor_max: 3,
     strategy: () => {
       enemy.dealAttackDamage(fighter, 7);
       enemyStrategyCategory = "attack";
@@ -433,6 +435,8 @@ let enemyData = {
     hp: 28,
     image1: gobImage1,
     image2: gobImage2,
+    floor_min: 1,
+    floor_max: 5,
     strategy: () => {
       if (enemy.hp * 4 >= enemy.maxhp) {
         enemy.dealAttackDamage(fighter, 5);
@@ -451,6 +455,8 @@ let enemyData = {
     hp: 50,
     image1: treeImage1,
     image2: treeImage2,
+    floor_min: 1,
+    floor_max: 5,
     strategy: () => {
       enemyStrategyParam += 1;
       enemy.dealAttackDamage(fighter, enemyStrategyParam);
@@ -463,6 +469,8 @@ let enemyData = {
     hp: 25,
     image1: fairyImage1,
     image2: fairyImage2,
+    floor_min: 3,
+    floor_max: 5,
     strategy: () => {
       if (enemy.hp < enemy.maxhp / 2 && enemyStrategyParam < 3) {
         enemyStrategyParam += 1;
@@ -480,6 +488,8 @@ let enemyData = {
   "yadotsumu":{
     name: "やどクジ",
     hp: 60,
+    floor_min: 6,
+    floor_max: 10,
     image1: yadoTsumuImage1,
     image2: yadoTsumuImage2,
     strategy: () => {
@@ -503,6 +513,8 @@ let enemyData = {
     hp: 90,
     image1: renchinImage1,
     image2: renchinImage2,
+    floor_min: 6,
+    floor_max: 12,
     strategy: () => {
       if (enemyStrategyParam % 6 === 5) {
         enemyStrategyParam += 1;
@@ -530,6 +542,8 @@ let enemyData = {
     hp: 60,
     image1: shieldkusaImage1,
     image2: shieldkusaImage2,
+    floor_min: 6,
+    floor_max: 12,
     strategy: () => {
       if (enemyStrategyParam++ % 2 === 0) {
         if (randInt(0, 1) === 1) {
@@ -553,6 +567,8 @@ let enemyData = {
     hp: 120,
     image1: dragonImage1,
     image2: dragonImage2,
+    floor_min: 10,
+    floor_max: 16,
     strategy: () => {
       if (enemy.hp * 2 <= enemy.maxhp && (!enemy.isStatusExist("power"))) {
         enemyStrategyParam = 1;
@@ -585,6 +601,8 @@ let enemyData = {
     hp: 200,
     image1: deathImage1,
     image2: deathImage2,
+    floor_min: 12,
+    floor_max: 99,
     strategy: () => {
       enemyStrategyParam++;
       if (enemyStrategyParam >= 6) {
@@ -605,12 +623,14 @@ let enemyData = {
     hp: 80,
     image1: mahoSlimeImage1,
     image2: mahoSlimeImage2,
+    floor_min: 8,
+    floor_max: 12,
     strategy: () => {
       if (enemyStrategyParam === 0) {
         enemyStrategyParam++;
         fighter.addStatus("silence", 3);
         enemyStrategyCategory = "magic";
-        mainWindowText[0] = enemy.name + "はサイレンスを唱えた！";
+        mainWindowText[0] = enemy.name + "はチンモクを唱えた！";
         mainWindowText[1] = fighter.name + "はまほうを封じられた！";
       }
       else if (enemyStrategyParam === 1 && enemy.hp * 2 <= enemy.maxhp) {
@@ -638,6 +658,8 @@ let enemyData = {
     hp: 200,
     image1: merchantBossImage1,
     image2: merchantBossImage2,
+    floor_min: 16,
+    floor_max: 99,
     strategy: () => {
       enemy.dealAttackDamage(fighter, 20);
       enemyStrategyCategory = "attack";
@@ -1318,9 +1340,13 @@ let sceneList = {
       // init flag
       sceneInit = false;
       // create new enemy
-      let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
-      let eKey = "mahoslime"; // テスト用（敵指定）
-      //let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
+      const enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
+      const encountList = enemyDatakeys.filter( e => {
+        return (enemyData[e].floor_min <= dungeonFloor && dungeonFloor <= enemyData[e].floor_max)
+      });
+      console.log(encountList);
+      //const eKey = "mahoslime"; // テスト用（敵指定）
+      const eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
         enemyData[eKey].name,
