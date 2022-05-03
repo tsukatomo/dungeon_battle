@@ -93,6 +93,11 @@ let deathImage1 = new Image();
 let deathImage2 = new Image();
 deathImage1.src = "./img/death1.png";
 deathImage2.src = "./img/death2.png";
+// image - mahoslime
+let mahoSlimeImage1 = new Image();
+let mahoSlimeImage2 = new Image();
+mahoSlimeImage1.src = "./img/mahoslime1.png";
+mahoSlimeImage2.src = "./img/mahoslime2.png";
 // image - merchant(boss)
 let merchantBossImage1 = new Image();
 let merchantBossImage2 = new Image();
@@ -161,10 +166,10 @@ toolBatteryImage.src = "./img/tool_battery.png";
 // image - status:stun
 let statusStunImage = new Image();
 statusStunImage.src = "./img/status_stun.png";
-// image - status:stun
+// image - status:power
 let statusPowerImage = new Image();
 statusPowerImage.src = "./img/status_power.png";
-// image - status:stun
+// image - status:weak
 let statusWeakImage = new Image();
 statusWeakImage.src = "./img/status_weak.png";
 // image - status:shield
@@ -173,10 +178,12 @@ statusShieldImage.src = "./img/status_shield.png";
 // image - status:m_shield
 let statusMShieldImage = new Image();
 statusMShieldImage.src = "./img/status_magicshield.png";
-// image - status:m_shield
+// image - status:mirror
 let statusMirrorImage = new Image();
 statusMirrorImage.src = "./img/status_mirror.png";
-
+// image - status:silence
+let statusSilenceImage = new Image();
+statusSilenceImage.src = "./img/status_silence.png";
 
 // image - z key animation
 let zkeyImage1 = new Image();
@@ -592,6 +599,38 @@ let enemyData = {
         mainWindowText[0] = "「" + (6 - enemyStrategyParam) + "……」";
       }
     }
+  },
+  "mahoslime": {
+    name: "まほスラ",
+    hp: 80,
+    image1: mahoSlimeImage1,
+    image2: mahoSlimeImage2,
+    strategy: () => {
+      if (enemyStrategyParam === 0) {
+        enemyStrategyParam++;
+        fighter.addStatus("silence", 3);
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "はサイレンスを唱えた！";
+        mainWindowText[1] = fighter.name + "はまほうを封じられた！";
+      }
+      else if (enemyStrategyParam === 1 && enemy.hp * 2 <= enemy.maxhp) {
+        enemyStrategyParam++;
+        enemy.addHp(Math.floor(enemy.maxhp / 2));
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "はカイフクを唱えた！";
+      }
+      else if (enemyStrategyParam === 2 && enemy.hp * 2 <= enemy.maxhp) {
+        enemyStrategyParam++;
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "はカイフクを唱えた！";
+        mainWindowText[1] = "……が、どうやらMP切れのようだ";
+      }
+      else {
+        enemy.dealAttackDamage(fighter, 8);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "は" + fighter.name + "を杖で殴った！";
+      }
+    }
   }
   /* 「あー、見ちゃったねー？　みんなには内緒だよー？」
   "merchant":{
@@ -818,6 +857,12 @@ let statusData = {
     image: statusMirrorImage,
     isBuff: true,
     type: "stack"
+  },
+  "silence": {
+    name: "チンモク",
+    image: statusSilenceImage,
+    isBuff: false,
+    type: "turn_end"
   }
 };
 
@@ -1236,8 +1281,8 @@ let sceneList = {
       room2 = roomList.pop();
       // text
       windowImage = null;
-      mainWindowText[0] = "行き先を選ぼう";
-      mainWindowText[1] = "";
+      mainWindowText[0] = "〜 " + dungeonFloor + "階 〜";
+      mainWindowText[1] = "行き先を選ぼう";
       mainWindowText[2] = "";
       // draw background
       backgCtx.drawImage(bunkiBackImage, 0, 0);
@@ -1274,7 +1319,7 @@ let sceneList = {
       sceneInit = false;
       // create new enemy
       let enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
-      let eKey = "death"; // テスト用（敵指定）
+      let eKey = "mahoslime"; // テスト用（敵指定）
       //let eKey = enemyDatakeys[randInt(0, enemyDatakeys.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
@@ -1464,7 +1509,11 @@ let sceneList = {
     mainWindowText[0] = castMagic.name + "    消費MP " + castMagic.mp;
     mainWindowText[1] = castMagic.description;
     mainWindowText[2] = "";
-    if (castMagic.mp != "ALL") {
+    if (fighter.isStatusExist("silence")) {
+      mainWindowText[2] = "今はまほうを使えない！";
+      charaCtx.drawImage(cannotCastImage, 288, 150);
+    }
+    else if (castMagic.mp != "ALL") {
       if (fighterMp < castMagic.mp) {
         mainWindowText[2] = "MPが足りない！";
         charaCtx.drawImage(cannotCastImage, 288, 150);
@@ -1473,11 +1522,13 @@ let sceneList = {
     // cast magic
     if (isKeyPressedNow("z")) {
       // change scene
-      if (castMagic.mp === "ALL") {
-        setScene("magiccast");
-      }
-      else if (fighterMp >= castMagic.mp) {
-        setScene("magiccast");
+      if (!fighter.isStatusExist("silence")) {
+        if (castMagic.mp === "ALL") {
+          setScene("magiccast");
+        }
+        else if (fighterMp >= castMagic.mp) {
+          setScene("magiccast");
+        }
       }
     }
     // cancel
