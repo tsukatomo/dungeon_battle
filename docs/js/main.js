@@ -282,6 +282,7 @@ let craftedTool;
 // for combat
 let isFighting = false;
 let isStartTurn = false; // start of turn
+let damageAmount = 0;
 let isSansanFatal = false; // fatal with "sansan"
 // for info
 let fighterLv = 1;
@@ -390,6 +391,7 @@ class CharacterObject {
     if (opponent.isStatusExist("shield")) {
       amount /= 2;
     }
+    amount = Math.floor(amount)
     opponent.addHp(-Math.floor(amount));
     return amount;
   };
@@ -404,7 +406,8 @@ class CharacterObject {
     if (opponent.isStatusExist("m_shield")) {
       amount /= 2;
     }
-    opponent.addHp(-Math.floor(amount));
+    amount = Math.floor(amount)
+    opponent.addHp(-amount);
     return amount;
   };
 
@@ -425,7 +428,7 @@ let enemyData = {
     floor_min: 1,
     floor_max: 3,
     strategy: () => {
-      enemy.dealAttackDamage(fighter, 7);
+      damageAmount = enemy.dealAttackDamage(fighter, 7);
       enemyStrategyCategory = "attack";
       mainWindowText[0] = enemy.name + "の攻撃！";
     },
@@ -439,12 +442,12 @@ let enemyData = {
     floor_max: 5,
     strategy: () => {
       if (enemy.hp * 4 >= enemy.maxhp) {
-        enemy.dealAttackDamage(fighter, 5);
+        damageAmount = enemy.dealAttackDamage(fighter, 5);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
       else {
-        enemy.dealAttackDamage(fighter, 15);
+        damageAmount = enemy.dealAttackDamage(fighter, 15);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の怒りの一撃！";
       }
@@ -459,7 +462,7 @@ let enemyData = {
     floor_max: 5,
     strategy: () => {
       enemyStrategyParam += 1;
-      enemy.dealAttackDamage(fighter, enemyStrategyParam);
+      damageAmount = enemy.dealAttackDamage(fighter, enemyStrategyParam);
       enemyStrategyCategory = "attack";
       mainWindowText[0] = enemy.name + "の攻撃！";
     }
@@ -479,7 +482,7 @@ let enemyData = {
         mainWindowText[0] = enemy.name + "は回復した！";
       }
       else {
-        enemy.dealAttackDamage(fighter, randInt(4, 8));
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(4, 8));
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -502,7 +505,7 @@ let enemyData = {
       }
       else {
         enemyStrategyParam += 1;
-        enemy.dealAttackDamage(fighter, 8);
+        damageAmount = enemy.dealAttackDamage(fighter, 8);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -518,20 +521,20 @@ let enemyData = {
     strategy: () => {
       if (enemyStrategyParam % 6 === 5) {
         enemyStrategyParam += 1;
-        enemy.dealAttackDamage(fighter, 6);
+        damageAmount = enemy.dealAttackDamage(fighter, 6);
         fighter.addStatus("stun", 2);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "は放電した！";
       }
       else if (enemyStrategyParam % 2 === 1) {
         enemyStrategyParam += 1;
-        enemy.dealAttackDamage(fighter, 8);
+        damageAmount = enemy.dealAttackDamage(fighter, 8);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "のヒートアタック！";
       }
       else {
         enemyStrategyParam += 1;
-        enemy.dealAttackDamage(fighter, 4);
+        damageAmount = enemy.dealAttackDamage(fighter, 4);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -556,7 +559,7 @@ let enemyData = {
         mainWindowText[0] = enemy.name + "は守りを固めている";
       }
       else {
-        enemy.dealAttackDamage(fighter, 8);
+        damageAmount = enemy.dealAttackDamage(fighter, 8);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -578,17 +581,17 @@ let enemyData = {
       }
       else {
         if (enemyStrategyParam % 3 === 0) {
-          enemy.dealAttackDamage(fighter, 7);
+          damageAmount = enemy.dealAttackDamage(fighter, 7);
           enemyStrategyCategory = "attack";
           mainWindowText[0] = enemy.name + "のひっかき攻撃！";
         }
         else if (enemyStrategyParam % 3 === 1) {
           enemyStrategyCategory = "none";
-          mainWindowText[0] = enemy.name + "は大きく息を吸っている……";
+          mainWindowText[0] = enemy.name + "は大きく息を吸い込んだ！";
           
         }
         else {
-          enemy.dealAttackDamage(fighter, 20);
+          damageAmount = enemy.dealAttackDamage(fighter, 20);
           enemyStrategyCategory = "attack";
           mainWindowText[0] = enemy.name + "のファイアブレス！！";
         }
@@ -598,14 +601,14 @@ let enemyData = {
   },
   "death": {
     name: "シニガミ",
-    hp: 200,
+    hp: 150,
     image1: deathImage1,
     image2: deathImage2,
     floor_min: 12,
     floor_max: 99,
     strategy: () => {
       enemyStrategyParam++;
-      if (enemyStrategyParam >= 6) {
+      if (enemyStrategyParam >= 7) {
         enemy.dealAttackDamage(fighter, 999999);
         enemyStrategyCategory = "attack";
         windowImage = deathFaceImage;
@@ -614,7 +617,7 @@ let enemyData = {
       else {
         enemyStrategyCategory = "none";
         windowImage = deathFaceImage;
-        mainWindowText[0] = "「" + (6 - enemyStrategyParam) + "……」";
+        mainWindowText[0] = "「" + (7 - enemyStrategyParam) + "……」";
       }
     }
   },
@@ -646,7 +649,7 @@ let enemyData = {
         mainWindowText[1] = "……が、どうやらMP切れのようだ";
       }
       else {
-        enemy.dealAttackDamage(fighter, 8);
+        damageAmount = enemy.dealAttackDamage(fighter, 8);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "は" + fighter.name + "を杖で殴った！";
       }
@@ -679,7 +682,7 @@ let magicData = {
     image: magicFlameImage,
     description: "炎で攻撃。自分のLvに応じてダメージ量が上昇。",
     effect: () => {
-      fighter.dealMagicDamage(enemy, 8 + (fighterLv * 3));
+      damageAmount = fighter.dealMagicDamage(enemy, 8 + (fighterLv * 2));
     }
   },
   "heal": {
@@ -697,7 +700,7 @@ let magicData = {
     image: magicThunderImage,
     description: "雷で攻撃。敵を2ターン行動不能にする。",
     effect: () => {
-      fighter.dealMagicDamage(enemy, 6);
+      damageAmount = fighter.dealMagicDamage(enemy, 6);
       enemy.addStatus("stun", 2);
     }
   },
@@ -739,10 +742,10 @@ let magicData = {
         isDebuffExist |= !statusData[enemy.status[i].tag].isBuff;
       }
       if (isDebuffExist) {
-        fighter.dealMagicDamage(enemy, 40 + (fighterLv * 2));
+        damageAmount = fighter.dealMagicDamage(enemy, 40 + (fighterLv * 2));
       }
       else {
-        fighter.dealMagicDamage(enemy, fighterLv * 2);
+        damageAmount = fighter.dealMagicDamage(enemy, 5);
       }
     }
   },
@@ -752,7 +755,8 @@ let magicData = {
     image: magicThreeImage,
     description: "固定3ダメージ。コレで敵を倒すとLvが3増える。",
     effect: () => {
-      enemy.addHp(-3);
+      damageAmount = 3;
+      enemy.addHp(-damageAmount);
       if (enemy.hp <= 0) {
         isSansanFatal = true;
       }
@@ -764,7 +768,7 @@ let magicData = {
     image: magicBurstImage,
     description: "最終兵器。MPに応じてダメージ量が上昇。",
     effect: () => {
-      fighter.dealMagicDamage(enemy, fighterMp * 6);
+      damageAmount = fighter.dealMagicDamage(enemy, fighterMp * 6);
     }
   }
 };
@@ -802,7 +806,9 @@ let toolData = {
     isAvailableFromList: false,
     description: "敵に25の固定ダメージを与える。",
     effect: () => {
-      enemy.addHp(-25);
+      damageAmount = 25
+      enemy.addHp(-damageAmount);
+      mainWindowText[1] = enemy.name + "に" + damageAmount + "のダメージを与えた！";
     }
   },
   "potion": {
@@ -827,6 +833,9 @@ let toolData = {
       let randomMagic = fighterMagic[randInt(0, fighterMagic.length - 1)];
       magicData[randomMagic].effect();
       mainWindowText[1] = magicData[randomMagic].name + "が発動した！";
+      if (damageAmount > 0) {
+        mainWindowText[2] = enemy.name + "に" + damageAmount + "のダメージを与えた！";
+      }
     }
   },
   "battery": {
@@ -1413,8 +1422,9 @@ let sceneList = {
     if (sceneInit) {
       sceneInit = false;
       if (isStartTurn) {
-        fighter.turnStart();
         isStartTurn = false;
+        fighter.turnStart();
+        damageAmount = 0;
       }
       windowImage = null;
       mainWindowText[0] = fighter.name + "のターン";
@@ -1463,13 +1473,13 @@ let sceneList = {
       // init flag
       sceneInit = false;
       // deal damage
-      fighter.dealAttackDamage(enemy, 5 + fighterLv);
+      damageAmount = fighter.dealAttackDamage(enemy, 5 + fighterLv);
       // increase mp
       fighterMp += 1;
       // text
       windowImage = null;
       mainWindowText[0] = fighter.name + "の攻撃！"
-      mainWindowText[1] = "";
+      mainWindowText[1] = enemy.name + "に" + damageAmount + "のダメージを与えた！";
       mainWindowText[2] = "";
       // anime count
       animeCount = 32;
@@ -1571,6 +1581,7 @@ let sceneList = {
       // init flag
       sceneInit = false;
       // apply magic
+      damageAmount = 0;
       castMagic.effect();
       // consume mp
       if (castMagic.mp === "ALL") {
@@ -1584,6 +1595,9 @@ let sceneList = {
       mainWindowText[0] = fighter.name + "は" + castMagic.name + "を使った！"
       mainWindowText[1] = "";
       mainWindowText[2] = "";
+      if (damageAmount > 0) {
+        mainWindowText[1] = enemy.name + "に" + damageAmount + "のダメージを与えた！";
+      }
       // anime count
       animeCount = 32;
     }
@@ -1721,6 +1735,8 @@ let sceneList = {
       sceneInit = false;
       // effect at start of turn
       enemy.turnStart();
+      // reset amount of damage
+      damageAmount = 0;
       // reset main window
       windowImage = null;
       mainWindowText[0] = "";
@@ -1733,6 +1749,9 @@ let sceneList = {
       } 
       else {
         enemyData[enemy.type].strategy();
+        if (damageAmount > 0) {
+          mainWindowText[1] = fighter.name + "は" + damageAmount + "のダメージを受けた！";
+        }
       }
       // anime count
       animeCount = 32;
