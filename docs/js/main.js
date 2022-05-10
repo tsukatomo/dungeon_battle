@@ -42,6 +42,10 @@ iconShopImage.src = "./img/icon_shop.png";
 // image - icon:gem
 let iconGemImage = new Image();
 iconGemImage.src = "./img/icon_gem.png";
+// image - icon:fighter
+let iconFighterImage = new Image();
+iconFighterImage.src = "./img/icon_fighter.png";
+
 
 // image - fighter
 let fighterImage1 = new Image();
@@ -313,6 +317,21 @@ let subSceneInit = false;
 const transAnimeCountInit = 50;
 let transAnimeCount = 0;
 let sceneAfterTrans;
+// for dungeon map
+const dungeonWidth = 7;
+const dungeonHeight = 5;
+let dungeonMap = new Maze(dungeonWidth, dungeonHeight); // ref: mazegen.js
+let fighterMapX = 1;
+let fighterMapY = 1;
+let fighterMapPrevX = 1;
+let fighterMapPrevY = 1;
+let mapWithIcon;
+const wallSize = 8;
+const aisleSize = 64;
+const mapImageWidth = (wallSize + aisleSize) * dungeonWidth + wallSize;
+const mapImageHeight = (wallSize + aisleSize) * dungeonHeight + wallSize;
+const mapImageLeftTopX = (640 - mapImageWidth) / 2;
+const mapImageLeftTopY = ((480 - 3 * gridSize) - mapImageHeight) / 2 + 3 * gridSize;
 
 
 
@@ -977,7 +996,47 @@ let addTool = function (tag, amount) {
 // check if tool is exist
 let isToolExist = function (tag) {
   return fighterTool.findIndex((elem) => elem.tag === tag) != -1;
-}
+};
+
+
+
+// create map
+let createDungeonMap = function () {
+  // make maze
+  dungeonMap.createMazeWithClustering();
+  // copy maze to mapWithIcon
+  mapWithIcon = dungeonMap.map;
+  // put map icon randomly
+  // - create 1 to (MapW * MapH - 2) num list
+  let numList = new Array(dungeonWidth * dungeonHeight - 2);
+  for (let i = 0; i < numList.length; i++) {
+    numList[i] = i + 1;
+  }
+  // - room icon list
+  let roomList = ["encount", "encount", "encount", "encount", "shop", "gemspotin"];
+  // - put icon on map
+  while (roomList.length > 0) {
+    // - pick a num
+    let num = numList.splice(randInt(0, numList.length - 1), 1);
+    let icon = roomList.pop();
+    mapWithIcon[(num % dungeonWidth) * 2 + 1][Math.floor(num / dungeonWidth) * 2 + 1] = icon;
+  }
+};
+
+// マップのインデックスを描画座標に変換
+let mapIndex2RectX = function (x) {
+  let rectX = x % 2 == 0 ? (wallSize + aisleSize) * (x / 2)
+    : (wallSize + aisleSize) * ((x - 1) / 2) + wallSize;
+  rectX += mapImageLeftTopX;
+  return rectX;
+};
+
+let mapIndex2RectY = function (y) {
+  rectY = y % 2 == 0 ? (wallSize + aisleSize) * (y / 2)
+    : (wallSize + aisleSize) * ((y - 1) / 2) + wallSize;
+  rectY += mapImageLeftTopY;
+  return rectY;
+};
 
 
 
@@ -1064,7 +1123,7 @@ window.onkeydown = function (e) {
   if (e.code === "ArrowRight" || e.code === "KeyL") {
     if (keyInput.indexOf("r") == -1) keyInput.push("r");
   }
-  if (e.code === "KeyZ") {
+  if (e.code === "KeyZ" || e.code === "Enter") {
     if (keyInput.indexOf("z") == -1) keyInput.push("z");
   }
   if (e.code === "KeyX") {
@@ -1104,7 +1163,7 @@ window.onkeyup = function (e) {
     idx = keyInput.indexOf("r");
     if (idx != -1) keyInput.splice(idx, 1);
   }
-  if (e.code === "KeyZ") {
+  if (e.code === "KeyZ" || e.code === "Enter") {
     idx = keyInput.indexOf("z");
     if (idx != -1) keyInput.splice(idx, 1);
   }
@@ -1230,14 +1289,14 @@ let setTransition = function (nextscene) {
 };
 
 
-
+/* defined in "mazegen.js"
 // get random integer (min ≤ n ≤ max)
 let randInt = function(min, max) {
   let minInt = Math.ceil(min);
   let maxInt = Math.floor(max);
   return Math.floor(Math.random() * (maxInt - minInt + 1)) + minInt;
 };
-
+*/
 
 
 // game loop --------------------------------------------------------
@@ -1256,7 +1315,9 @@ let gameLoop = function() {
   keyPressed = keyInput.slice();
   keyInterval--;
   // text window
-  drawTextInWindow(windowImage, mainWindowText, 0, 480 - gridSize * 5, 640, useriCtx);
+  if (scene != "map" || subScene != "none") {
+    drawTextInWindow(windowImage, mainWindowText, 0, 480 - gridSize * 5, 640, useriCtx);
+  }
   // info window
   statusWindowText[0] = fighter.name + " Lv." + fighterLv + "    HP " + fighter.hp + "/" + fighter.maxhp + "    MP " + fighterMp + "    " + dungeonFloor + "階    " + money + "円";
   drawTextInWindow(null, statusWindowText, 0, 0, 640, useriCtx);
@@ -1279,6 +1340,63 @@ let gameLoop = function() {
 // scene list ======================================================================
 
 let sceneList = {
+  // scene: map（マップ画面）----------------------------------------
+  "map": () => {
+    // init
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // draw background
+      backgCtx.fillStyle = "#32535f";
+      backgCtx.fillRect(0, 0, 640, 480);
+      // draw dungeon map
+      for (let x = 0; x < mapWithIcon.length; x++) {
+        for (let y = 0; y < mapWithIcon[x].length; y++) {
+          if (mapWithIcon[x][y] != WALL) {
+            backgCtx.fillStyle = "#2a2349";
+          }
+          else {
+            backgCtx.fillStyle = "#4180a0";
+          }
+          let rectX, rectY, rectW, rectH;
+          // calculate drawing position x
+          rectX = mapIndex2RectX(x);
+          // calculate drawing position y
+          rectY = mapIndex2RectY(y);
+          // calculate drawing Size
+          rectW = x % 2 == 0 ? wallSize : aisleSize;
+          // calculate drawing height
+          rectH = y % 2 == 0 ? wallSize : aisleSize;
+          backgCtx.fillRect(rectX, rectY, rectW, rectH);
+          if (mapWithIcon[x][y] != WALL && mapWithIcon[x][y] != AISLE) {
+            backgCtx.drawImage(roomIconData[mapWithIcon[x][y]], rectX, rectY);
+          }
+        }
+      }
+    }
+    // update
+    charaCtx.drawImage(iconFighterImage, mapIndex2RectX(fighterMapX), mapIndex2RectY(fighterMapY));
+    if (subScene === "none") {
+      if (isKeyPressedInterval("u") && (mapWithIcon[fighterMapX][fighterMapY - 1] != WALL)) {
+        fighterMapY -= 2;
+      }
+      else if (isKeyPressedInterval("d") && (mapWithIcon[fighterMapX][fighterMapY + 1] != WALL)) {
+        fighterMapY += 2;
+      }
+      else if (isKeyPressedInterval("l") && (mapWithIcon[fighterMapX - 1][fighterMapY] != WALL)) {
+        fighterMapX -= 2;
+      }
+      else if (isKeyPressedInterval("r") && (mapWithIcon[fighterMapX + 1][fighterMapY] != WALL)) {
+        fighterMapX += 2;
+      }
+      if (mapWithIcon[fighterMapX][fighterMapY] != AISLE) {
+        setTransition(mapWithIcon[fighterMapX][fighterMapY]);
+        mapWithIcon[fighterMapX][fighterMapY] = AISLE;
+      }
+    }
+
+  },
+
   // scene: chooseroom（部屋選択）-----------------------------------
   "chooseroom": () => {
     if (sceneInit) {
@@ -2533,9 +2651,10 @@ window.onload = function() {
   backgCtx.drawImage(backImage, 0, 0);
 
   //console.log("a");
-  scene = "shop";
+  scene = "map";
   sceneInit = true;
   shopInit = true;
   initParam();
+  createDungeonMap();
   setInterval(gameLoop, 10);
 };
