@@ -248,6 +248,7 @@ const windowCursorColor = "rgba(190, 140, 120, 1.0)";
 let windowImage = null;
 let mainWindowText = ["", "", ""];
 let statusWindowText = [""];
+let displayWindowFlag = true;
 // for text in canvas
 const textSize = 24;
 const textPaddingLeft = 12;
@@ -318,7 +319,7 @@ const transAnimeCountInit = 50;
 let transAnimeCount = 0;
 let sceneAfterTrans;
 // for dungeon map
-const dungeonWidth = 7;
+const dungeonWidth = 5;
 const dungeonHeight = 5;
 let dungeonMap = new Maze(dungeonWidth, dungeonHeight); // ref: mazegen.js
 let fighterMapX = 1;
@@ -445,7 +446,7 @@ let enemyData = {
     image1: slimeImage1,
     image2: slimeImage2,
     floor_min: 1,
-    floor_max: 3,
+    floor_max: 1,
     strategy: () => {
       damageAmount = enemy.dealAttackDamage(fighter, 7);
       enemyStrategyCategory = "attack";
@@ -458,7 +459,7 @@ let enemyData = {
     image1: gobImage1,
     image2: gobImage2,
     floor_min: 1,
-    floor_max: 5,
+    floor_max: 1,
     strategy: () => {
       if (enemy.hp * 4 >= enemy.maxhp) {
         damageAmount = enemy.dealAttackDamage(fighter, 5);
@@ -478,7 +479,7 @@ let enemyData = {
     image1: treeImage1,
     image2: treeImage2,
     floor_min: 1,
-    floor_max: 5,
+    floor_max: 2,
     strategy: () => {
       enemyStrategyParam += 1;
       damageAmount = enemy.dealAttackDamage(fighter, enemyStrategyParam);
@@ -491,8 +492,8 @@ let enemyData = {
     hp: 25,
     image1: fairyImage1,
     image2: fairyImage2,
-    floor_min: 3,
-    floor_max: 5,
+    floor_min: 1,
+    floor_max: 2,
     strategy: () => {
       if (enemy.hp < enemy.maxhp / 2 && enemyStrategyParam < 3) {
         enemyStrategyParam += 1;
@@ -510,8 +511,8 @@ let enemyData = {
   "yadotsumu":{
     name: "やどクジ",
     hp: 60,
-    floor_min: 6,
-    floor_max: 10,
+    floor_min: 2,
+    floor_max: 2,
     image1: yadoTsumuImage1,
     image2: yadoTsumuImage2,
     strategy: () => {
@@ -535,8 +536,8 @@ let enemyData = {
     hp: 90,
     image1: renchinImage1,
     image2: renchinImage2,
-    floor_min: 6,
-    floor_max: 12,
+    floor_min: 2,
+    floor_max: 3,
     strategy: () => {
       if (enemyStrategyParam % 6 === 5) {
         enemyStrategyParam += 1;
@@ -564,8 +565,8 @@ let enemyData = {
     hp: 60,
     image1: shieldkusaImage1,
     image2: shieldkusaImage2,
-    floor_min: 6,
-    floor_max: 12,
+    floor_min: 2,
+    floor_max: 2,
     strategy: () => {
       if (enemyStrategyParam++ % 2 === 0) {
         if (randInt(0, 1) === 1) {
@@ -589,8 +590,8 @@ let enemyData = {
     hp: 120,
     image1: dragonImage1,
     image2: dragonImage2,
-    floor_min: 10,
-    floor_max: 16,
+    floor_min: 3,
+    floor_max: 3,
     strategy: () => {
       if (enemy.hp * 2 <= enemy.maxhp && (!enemy.isStatusExist("power"))) {
         enemyStrategyParam = 1;
@@ -623,8 +624,8 @@ let enemyData = {
     hp: 150,
     image1: deathImage1,
     image2: deathImage2,
-    floor_min: 12,
-    floor_max: 99,
+    floor_min: 3,
+    floor_max: 3,
     strategy: () => {
       enemyStrategyParam++;
       if (enemyStrategyParam >= 7) {
@@ -645,8 +646,8 @@ let enemyData = {
     hp: 80,
     image1: mahoSlimeImage1,
     image2: mahoSlimeImage2,
-    floor_min: 8,
-    floor_max: 12,
+    floor_min: 2,
+    floor_max: 3,
     strategy: () => {
       if (enemyStrategyParam === 0) {
         enemyStrategyParam++;
@@ -932,12 +933,13 @@ let oyakudachiInfo = [
   ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"],
   ["やどクジは攻撃力を下げてくるよー", "でもまほうの威力は下がらないよー」"],
   ["レンチンの行動に気をつけてねー", "6ターンに1回放電してくるよー」"],
-  ["敵をなぐるとMPがちょっと増えるよー」",""],
+  ["敵をなぐるとMPがちょっと増えるよー」", ""],
   ["固定ダメージはバフやデバフの", "影響を受けないよー」"],
   ["一部のどうぐは戦闘中以外でも", "Sキーのメニューから使えるよー」"],
   ["Aキーを押すと覚えているまほうを", "確認できるよー」"],
   ["HPが満タンの時にくだものを使うと", "最大HPが増えるよー」"],
-  ["ジェムを『くらふと』するとたまに", "2個のどうぐが手に入るよー」"]
+  ["ジェムを『くらふと』するとたまに", "2個のどうぐが手に入るよー」"],
+  ["マップ上のアイコンは一度踏むと", "なくなっちゃうよー」"]
 ];
 
 
@@ -958,7 +960,7 @@ let initParam = function () {
   fighterMagic = ["flame"];
   fighterTool = [{tag: "fruit", amount: 1}];
   fighterLv = 1;
-  dungeonFloor = 0;
+  dungeonFloor = 1;
   money = 100;
   shopInit = true;
 };
@@ -1315,9 +1317,10 @@ let gameLoop = function() {
   keyPressed = keyInput.slice();
   keyInterval--;
   // text window
-  if (scene != "map" || subScene != "none") {
+  if (displayWindowFlag) {
     drawTextInWindow(windowImage, mainWindowText, 0, 480 - gridSize * 5, 640, useriCtx);
   }
+  displayWindowFlag = true; // main window を非表示にしたい場合は scene 内の update で false に指定
   // info window
   statusWindowText[0] = fighter.name + " Lv." + fighterLv + "    HP " + fighter.hp + "/" + fighter.maxhp + "    MP " + fighterMp + "    " + dungeonFloor + "階    " + money + "円";
   drawTextInWindow(null, statusWindowText, 0, 0, 640, useriCtx);
@@ -1375,6 +1378,7 @@ let sceneList = {
       }
     }
     // update
+    displayWindowFlag = false;
     charaCtx.drawImage(iconFighterImage, mapIndex2RectX(fighterMapX), mapIndex2RectY(fighterMapY));
     if (subScene === "none") {
       if (isKeyPressedInterval("u") && (mapWithIcon[fighterMapX][fighterMapY - 1] != WALL)) {
@@ -1396,7 +1400,7 @@ let sceneList = {
     }
 
   },
-
+  /* old implementation
   // scene: chooseroom（部屋選択）-----------------------------------
   "chooseroom": () => {
     if (sceneInit) {
@@ -1460,6 +1464,7 @@ let sceneList = {
       
     }
   },
+  */
 
   // scene: encount（エンカウント）-----------------------------------
   "encount": () => {
@@ -1472,7 +1477,7 @@ let sceneList = {
         return (enemyData[e].floor_min <= dungeonFloor && dungeonFloor <= enemyData[e].floor_max)
       });
       console.log(encountList);
-      //const eKey = "mahoslime"; // テスト用（敵指定）
+      //const eKey = "slime"; // テスト用（敵指定）
       const eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
@@ -1943,7 +1948,7 @@ let sceneList = {
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       isFighting = false;
-      setTransition("chooseroom");
+      setTransition("map");
       //scene = "encount";
       //sceneInit = true;
     }
@@ -2044,7 +2049,7 @@ let sceneList = {
       }
       else if (menuCursor === 2) {
         shopInit = true; // 品揃え更新フラグ
-        setTransition("chooseroom");
+        setTransition("map");
       }
     }
   },
@@ -2210,6 +2215,7 @@ let sceneList = {
     if (sceneInit) {
       sceneInit = false;
       menuCursor = 0;
+      windowImage = null;
       mainWindowText[0] = "";
       mainWindowText[1] = "";
       mainWindowText[2] = "";
@@ -2259,6 +2265,7 @@ let sceneList = {
       // heal hp
       fighter.addHp(Math.floor(fighter.maxhp / 2));
       // text
+      windowImage = null;
       mainWindowText[0] = fighter.name + "はHPを回復した";
       mainWindowText[1] = "先に進もう";
       mainWindowText[2] = "";
@@ -2273,7 +2280,7 @@ let sceneList = {
     // next scene
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
-      setTransition("chooseroom");
+      setTransition("map");
     }
   },
 
@@ -2284,6 +2291,7 @@ let sceneList = {
       // add MP
       fighterMp += 5;
       // text
+      windowImage = null;
       mainWindowText[0] = fighter.name + "のMPが増加した";
       mainWindowText[1] = "先に進もう";
       mainWindowText[2] = "";
@@ -2298,7 +2306,7 @@ let sceneList = {
     // next scene
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
-      setTransition("chooseroom");
+      setTransition("map");
     }
   },
 
@@ -2313,6 +2321,7 @@ let sceneList = {
       craftedTool = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
       addTool(craftedTool, (goodLuck) ? 2 : 1);
       // text
+      windowImage = null;
       mainWindowText[0] = fighter.name + "は" + toolData[craftedTool].name + "を" + ((goodLuck) ? "2個" : "") + "手に入れた";
       mainWindowText[1] = "先に進もう";
       mainWindowText[2] = "";
@@ -2333,7 +2342,7 @@ let sceneList = {
     // next scene
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
-      setTransition("chooseroom");
+      setTransition("map");
     }
   }
 
