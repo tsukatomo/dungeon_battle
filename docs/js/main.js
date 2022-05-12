@@ -43,8 +43,13 @@ iconShopImage.src = "./img/icon_shop.png";
 let iconGemImage = new Image();
 iconGemImage.src = "./img/icon_gem.png";
 // image - icon:fighter
-let iconFighterImage = new Image();
-iconFighterImage.src = "./img/icon_fighter.png";
+let iconFighterImage1 = new Image();
+iconFighterImage1.src = "./img/icon_fighter1.png";
+let iconFighterImage2 = new Image();
+iconFighterImage2.src = "./img/icon_fighter2.png";
+// image - icon:stair
+let iconStairImage = new Image();
+iconStairImage.src = "./img/icon_stair.png";
 
 
 // image - fighter
@@ -319,13 +324,15 @@ const transAnimeCountInit = 50;
 let transAnimeCount = 0;
 let sceneAfterTrans;
 // for dungeon map
-const dungeonWidth = 5;
-const dungeonHeight = 5;
+const dungeonWidth = 6;
+const dungeonHeight = 4;
 let dungeonMap = new Maze(dungeonWidth, dungeonHeight); // ref: mazegen.js
 let fighterMapX = 1;
 let fighterMapY = 1;
 let fighterMapPrevX = 1;
 let fighterMapPrevY = 1;
+let stairMapX = dungeonWidth * 2 - 1;
+let stairMapY = dungeonHeight * 2 - 1;
 let mapWithIcon;
 const wallSize = 8;
 const aisleSize = 64;
@@ -497,12 +504,12 @@ let enemyData = {
     strategy: () => {
       if (enemy.hp < enemy.maxhp / 2 && enemyStrategyParam < 3) {
         enemyStrategyParam += 1;
-        enemy.addHp(18);
+        enemy.addHp(12);
         enemyStrategyCategory = "magic";
         mainWindowText[0] = enemy.name + "は回復した！";
       }
       else {
-        damageAmount = enemy.dealAttackDamage(fighter, randInt(4, 8));
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(3, 6));
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -961,8 +968,9 @@ let initParam = function () {
   fighterTool = [{tag: "fruit", amount: 1}];
   fighterLv = 1;
   dungeonFloor = 1;
-  money = 100;
+  money = 50;
   shopInit = true;
+  createDungeonMap();
 };
 
 
@@ -1004,25 +1012,42 @@ let isToolExist = function (tag) {
 
 // create map
 let createDungeonMap = function () {
+  let numList;
   // make maze
-  dungeonMap.createMazeWithClustering();
+  dungeonMap.createMazeWithDFS();
   // copy maze to mapWithIcon
   mapWithIcon = dungeonMap.map;
+  // break a horizontal wall (flavor)
+  // - create 0 to ((MapW - 1) * MapH) num list
+  numList = new Array(dungeonWidth * (dungeonHeight - 1)).fill().map((_, i) => i);
+  // - make a wall into an aisle
+  while (numList.length > 0) {
+    let num = numList.splice(randInt(0, numList.length - 1), 1);
+    let x = (num % dungeonWidth) * 2 + 1;
+    let y = Math.floor(num / dungeonWidth) * 2 + 2;
+    if (mapWithIcon[x][y] === WALL){
+      mapWithIcon[x][y] = AISLE;
+      break;
+    }
+  }
   // put map icon randomly
   // - create 1 to (MapW * MapH - 2) num list
-  let numList = new Array(dungeonWidth * dungeonHeight - 2);
-  for (let i = 0; i < numList.length; i++) {
-    numList[i] = i + 1;
-  }
+  numList = new Array(dungeonWidth * dungeonHeight - 2).fill().map((_, i) => i + 1);
   // - room icon list
   let roomList = ["encount", "encount", "encount", "encount", "shop", "gemspotin"];
-  // - put icon on map
+  // - put icons
   while (roomList.length > 0) {
-    // - pick a num
+    // - pick a num and an icon
     let num = numList.splice(randInt(0, numList.length - 1), 1);
     let icon = roomList.pop();
+    // - put an icon
     mapWithIcon[(num % dungeonWidth) * 2 + 1][Math.floor(num / dungeonWidth) * 2 + 1] = icon;
   }
+  // set position of fighter and stair
+  fighterMapX = (dungeonFloor % 2 === 1) ? 1 : 2 * dungeonWidth - 1;
+  fighterMapY = (dungeonFloor % 2 === 1) ? 1 : 2 * dungeonHeight - 1;
+  stairMapX = (dungeonFloor % 2 === 1) ? 2 * dungeonWidth - 1 : 1;
+  stairMapY = (dungeonFloor % 2 === 1) ? 2 * dungeonHeight - 1 : 1;
 };
 
 // マップのインデックスを描画座標に変換
@@ -1203,7 +1228,7 @@ let isKeyPressedInterval = function(key) {
   if (keyInterval > 0) return false;
   if (keyPressed.indexOf(key) != -1) {
     // reset key interval
-    keyInterval = 15;
+    keyInterval = 20;
     return true;
   };
   return false;
@@ -1376,21 +1401,31 @@ let sceneList = {
           }
         }
       }
+      backgCtx.drawImage(iconStairImage, mapIndex2RectX(stairMapX), mapIndex2RectY(stairMapY));
     }
     // update
     displayWindowFlag = false;
-    charaCtx.drawImage(iconFighterImage, mapIndex2RectX(fighterMapX), mapIndex2RectY(fighterMapY));
-    if (subScene === "none") {
+    let drawX = mapIndex2RectX(fighterMapPrevX) + ((mapIndex2RectX(fighterMapX) - mapIndex2RectX(fighterMapPrevX)) / 8 * (8 - animeCount));
+    let drawY = mapIndex2RectY(fighterMapPrevY) + ((mapIndex2RectY(fighterMapY) - mapIndex2RectY(fighterMapPrevY)) / 8 * (8 - animeCount));
+    drawAnimation(iconFighterImage1, iconFighterImage2, drawX, drawY, charaCtx);
+    // move player
+    if (subScene === "none" && animeCount <= 0) {
+      fighterMapPrevX = fighterMapX;
+      fighterMapPrevY = fighterMapY;  
       if (isKeyPressedInterval("u") && (mapWithIcon[fighterMapX][fighterMapY - 1] != WALL)) {
+        animeCount = 8;
         fighterMapY -= 2;
       }
       else if (isKeyPressedInterval("d") && (mapWithIcon[fighterMapX][fighterMapY + 1] != WALL)) {
+        animeCount = 8;
         fighterMapY += 2;
       }
       else if (isKeyPressedInterval("l") && (mapWithIcon[fighterMapX - 1][fighterMapY] != WALL)) {
+        animeCount = 8;
         fighterMapX -= 2;
       }
       else if (isKeyPressedInterval("r") && (mapWithIcon[fighterMapX + 1][fighterMapY] != WALL)) {
+        animeCount = 8;
         fighterMapX += 2;
       }
       if (mapWithIcon[fighterMapX][fighterMapY] != AISLE) {
@@ -1978,7 +2013,7 @@ let sceneList = {
       mainWindowText[1] = "";
       // rebirth
       initParam();
-      setTransition("shop");
+      setTransition("map");
     }
   },
 
@@ -2193,6 +2228,7 @@ let sceneList = {
     if (sceneInit) {
       sceneInit = false;
       animeCount = 8;
+      windowImage = null;
       mainWindowText[0] = "ジェムを見つけた！　何をしようかな？";
       mainWindowText[1] = "";
       mainWindowText[2] = "";
@@ -2662,8 +2698,6 @@ window.onload = function() {
   //console.log("a");
   scene = "map";
   sceneInit = true;
-  shopInit = true;
   initParam();
-  createDungeonMap();
   setInterval(gameLoop, 10);
 };
