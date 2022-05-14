@@ -50,6 +50,11 @@ iconFighterImage2.src = "./img/icon_fighter2.png";
 // image - icon:stair
 let iconStairImage = new Image();
 iconStairImage.src = "./img/icon_stair.png";
+// image - zkey on stair
+let zkeyBaroonImage1 = new Image();
+zkeyBaroonImage1.src = "./img/pressZbaroon1.png";
+let zkeyBaroonImage2 = new Image();
+zkeyBaroonImage2.src = "./img/pressZbaroon2.png";
 
 
 // image - fighter
@@ -72,6 +77,15 @@ let treeImage1 = new Image();
 let treeImage2 = new Image();
 treeImage1.src = "./img/tree1.png";
 treeImage2.src = "./img/tree2.png";
+// image - coffee
+let coffeeImage1 = new Image();
+let coffeeImage2 = new Image();
+let coffeeImage3 = new Image();
+let coffeeImage4 = new Image();
+coffeeImage1.src = "./img/coffee1.png";
+coffeeImage2.src = "./img/coffee2.png";
+coffeeImage3.src = "./img/coffee3.png";
+coffeeImage4.src = "./img/coffee4.png";
 // image - fairy
 let fairyImage1 = new Image();
 let fairyImage2 = new Image();
@@ -115,6 +129,11 @@ merchantBossImage2.src = "./img/merchant_boss2.png";
 // image - grave
 let ohakaImage = new Image();
 ohakaImage.src = "./img/ohaka.png";
+let yarareImage1 = new Image();
+yarareImage1.src = "./img/yarare1.png";
+let yarareImage2 = new Image();
+yarareImage2.src = "./img/yarare2.png";
+
 
 // image - itemselect
 let itemSelectImage1 = new Image();
@@ -327,19 +346,20 @@ let sceneAfterTrans;
 const dungeonWidth = 6;
 const dungeonHeight = 4;
 let dungeonMap = new Maze(dungeonWidth, dungeonHeight); // ref: mazegen.js
+let mapWithIcon;
 let fighterMapX = 1;
 let fighterMapY = 1;
 let fighterMapPrevX = 1;
 let fighterMapPrevY = 1;
 let stairMapX = dungeonWidth * 2 - 1;
 let stairMapY = dungeonHeight * 2 - 1;
-let mapWithIcon;
 const wallSize = 8;
 const aisleSize = 64;
 const mapImageWidth = (wallSize + aisleSize) * dungeonWidth + wallSize;
 const mapImageHeight = (wallSize + aisleSize) * dungeonHeight + wallSize;
 const mapImageLeftTopX = (640 - mapImageWidth) / 2;
 const mapImageLeftTopY = ((480 - 3 * gridSize) - mapImageHeight) / 2 + 3 * gridSize;
+let mapInit = true;
 
 
 
@@ -387,7 +407,7 @@ class CharacterObject {
 
   turnStart() {
     // reduce buff/debuff which is categorised as a "turn_start"
-    for (let i = 0; i < this.status.length; i++) {
+    for (let i = this.status.length - 1; i >= 0; i--) {
       if (statusData[this.status[i].tag].type === "turn_start") {
         this.addStatus(this.status[i].tag, -1);
       }
@@ -396,7 +416,7 @@ class CharacterObject {
 
   turnEnd() {
     // reduce buff/debuff which is categorised as a "turn_end"
-    for (let i = 0; i < this.status.length; i++) {
+    for (let i = this.status.length - 1; i >= 0; i--) {
       if (statusData[this.status[i].tag].type === "turn_end") {
         this.addStatus(this.status[i].tag, -1);
       }
@@ -480,9 +500,40 @@ let enemyData = {
       }
     }
   },
+  "coffee":{
+    name: "コーヒー",
+    hp: 36,
+    image1: coffeeImage1,
+    image2: coffeeImage2,
+    floor_min: 1,
+    floor_max: 1,
+    strategy: () => {
+      if (!enemy.isStatusExist("shield")) {
+        enemy.image1 = coffeeImage1;
+        enemy.image2 = coffeeImage2;
+      }
+      if (enemyStrategyParam === 0 && enemy.hp * 2 <= enemy.maxhp) {
+        enemy.addStatus("shield", 4);
+        enemy.addStatus("m_shield", 4);
+        enemyStrategyParam = 1;
+        enemy.image1 = coffeeImage3;
+        enemy.image2 = coffeeImage4;
+        enemyStrategyCategory = "none";
+        mainWindowText[0] = enemy.name + "はカップの中に隠れた"
+      }
+      else {
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(4, 8));
+        if (enemy.isStatusExist("shield")) {
+          damageAmount += 2;
+        }
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！";
+      }
+    }
+  },
   "tree":{
     name: "モクモク",
-    hp: 50,
+    hp: 40,
     image1: treeImage1,
     image2: treeImage2,
     floor_min: 1,
@@ -496,10 +547,10 @@ let enemyData = {
   },
   "fairy":{
     name: "ようせい",
-    hp: 25,
+    hp: 30,
     image1: fairyImage1,
     image2: fairyImage2,
-    floor_min: 1,
+    floor_min: 2,
     floor_max: 2,
     strategy: () => {
       if (enemy.hp < enemy.maxhp / 2 && enemyStrategyParam < 3) {
@@ -509,7 +560,7 @@ let enemyData = {
         mainWindowText[0] = enemy.name + "は回復した！";
       }
       else {
-        damageAmount = enemy.dealAttackDamage(fighter, randInt(3, 6));
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(4, 8));
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -532,7 +583,7 @@ let enemyData = {
       }
       else {
         enemyStrategyParam += 1;
-        damageAmount = enemy.dealAttackDamage(fighter, 8);
+        damageAmount = enemy.dealAttackDamage(fighter, 10);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -548,20 +599,20 @@ let enemyData = {
     strategy: () => {
       if (enemyStrategyParam % 6 === 5) {
         enemyStrategyParam += 1;
-        damageAmount = enemy.dealAttackDamage(fighter, 6);
+        damageAmount = enemy.dealAttackDamage(fighter, 7);
         fighter.addStatus("stun", 2);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "は放電した！";
       }
       else if (enemyStrategyParam % 2 === 1) {
         enemyStrategyParam += 1;
-        damageAmount = enemy.dealAttackDamage(fighter, 8);
+        damageAmount = enemy.dealAttackDamage(fighter, 12);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "のヒートアタック！";
       }
       else {
         enemyStrategyParam += 1;
-        damageAmount = enemy.dealAttackDamage(fighter, 4);
+        damageAmount = enemy.dealAttackDamage(fighter, 5);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -586,7 +637,7 @@ let enemyData = {
         mainWindowText[0] = enemy.name + "は守りを固めている";
       }
       else {
-        damageAmount = enemy.dealAttackDamage(fighter, 8);
+        damageAmount = enemy.dealAttackDamage(fighter, 10);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -676,19 +727,19 @@ let enemyData = {
         mainWindowText[1] = "……が、どうやらMP切れのようだ";
       }
       else {
-        damageAmount = enemy.dealAttackDamage(fighter, 8);
+        damageAmount = enemy.dealAttackDamage(fighter, 9);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "は" + fighter.name + "を杖で殴った！";
       }
     }
-  }
-  /* 「あー、見ちゃったねー？　みんなには内緒だよー？」
+  },
+  // 「あー、見ちゃったねー？　みんなには内緒だよー？」
   "merchant":{
     name:"商人",
     hp: 200,
     image1: merchantBossImage1,
     image2: merchantBossImage2,
-    floor_min: 16,
+    floor_min: 4,
     floor_max: 99,
     strategy: () => {
       enemy.dealAttackDamage(fighter, 20);
@@ -696,7 +747,6 @@ let enemyData = {
       mainWindowText[0] = enemy.name + "の攻撃！";
     }
   }
-  */
 };
 
 
@@ -742,7 +792,7 @@ let magicData = {
   },
   "hena": {
     name: "ヘナヘナ",
-    mp: 3,
+    mp: 2,
     image: magicHenaImage,
     description: "敵の攻撃力を半減させる。攻撃3回まで有効。",
     effect: () => {
@@ -967,10 +1017,10 @@ let initParam = function () {
   fighterMagic = ["flame"];
   fighterTool = [{tag: "fruit", amount: 1}];
   fighterLv = 1;
-  dungeonFloor = 1;
+  dungeonFloor = 0;
   money = 50;
   shopInit = true;
-  createDungeonMap();
+  mapInit = true;
 };
 
 
@@ -1034,7 +1084,7 @@ let createDungeonMap = function () {
   // - create 1 to (MapW * MapH - 2) num list
   numList = new Array(dungeonWidth * dungeonHeight - 2).fill().map((_, i) => i + 1);
   // - room icon list
-  let roomList = ["encount", "encount", "encount", "encount", "shop", "gemspotin"];
+  let roomList = ["encount", "encount", "encount", "encount", "shop", "gemspotin", "gemspotin"];
   // - put icons
   while (roomList.length > 0) {
     // - pick a num and an icon
@@ -1374,6 +1424,12 @@ let sceneList = {
     if (sceneInit) {
       // init flag
       sceneInit = false;
+      // if mapInit, create dungeon map
+      if (mapInit) {
+        mapInit = false;
+        dungeonFloor++;
+        createDungeonMap();
+      }
       // draw background
       backgCtx.fillStyle = "#32535f";
       backgCtx.fillRect(0, 0, 640, 480);
@@ -1408,6 +1464,9 @@ let sceneList = {
     let drawX = mapIndex2RectX(fighterMapPrevX) + ((mapIndex2RectX(fighterMapX) - mapIndex2RectX(fighterMapPrevX)) / 8 * (8 - animeCount));
     let drawY = mapIndex2RectY(fighterMapPrevY) + ((mapIndex2RectY(fighterMapY) - mapIndex2RectY(fighterMapPrevY)) / 8 * (8 - animeCount));
     drawAnimation(iconFighterImage1, iconFighterImage2, drawX, drawY, charaCtx);
+    if ((stairMapX === fighterMapX) && (stairMapY === fighterMapY)) {
+      drawAnimation(zkeyBaroonImage1, zkeyBaroonImage2, mapIndex2RectX(stairMapX) + 64, mapIndex2RectY(stairMapY) - 32, charaCtx);
+    }
     // move player
     if (subScene === "none" && animeCount <= 0) {
       fighterMapPrevX = fighterMapX;
@@ -1428,79 +1487,20 @@ let sceneList = {
         animeCount = 8;
         fighterMapX += 2;
       }
+      // go to next scene
       if (mapWithIcon[fighterMapX][fighterMapY] != AISLE) {
         setTransition(mapWithIcon[fighterMapX][fighterMapY]);
         mapWithIcon[fighterMapX][fighterMapY] = AISLE;
       }
+      // go to next floor
+      if (isKeyPressedNow("z") && (stairMapX === fighterMapX) && (stairMapY === fighterMapY)) {
+        mapInit = true;
+        setTransition("map");
+      }
     }
 
   },
-  /* old implementation
-  // scene: chooseroom（部屋選択）-----------------------------------
-  "chooseroom": () => {
-    if (sceneInit) {
-      // init flag
-      sceneInit = false;
-      // floor
-      dungeonFloor++;
-      // reset cursor
-      menuCursor = 0;
-      // set next room
-      // - reset room list 
-      if (roomList.length < 2) {
-        roomList = [
-          "encount",
-          "encount",
-          "encount",
-          "encount",
-          "encount",
-          "shop",
-          "gemspotin",
-          "gemspotin"
-        ];
-      }
-      // - shuffle room list
-      for (let i = 0; i < roomList.length; i++) {
-        let j = randInt(i, roomList.length - 1);
-        [roomList[i], roomList[j]] = [roomList[j], roomList[i]];
-      }
-      // - set two rooms
-      room1 = roomList.pop();
-      room2 = roomList.pop();
-      // text
-      windowImage = null;
-      mainWindowText[0] = "〜 " + dungeonFloor + "階 〜";
-      mainWindowText[1] = "行き先を選ぼう";
-      mainWindowText[2] = "";
-      // draw background
-      backgCtx.drawImage(bunkiBackImage, 0, 0);
-    }
-    if (isKeyPressedNow("l")) menuCursor--;
-    if (isKeyPressedNow("r")) menuCursor++;
-    if (menuCursor < 0) menuCursor = 1
-    if (menuCursor > 1) menuCursor = 0;
-    // show cursor
-    let cursorX = (menuCursor === 0) ? 256 + 64 : 448 + 64;
-    let cursorY = (timeCounter < 50) ? 108 : 104;
-    // show character
-    fighter.drawAnime(fighterX, characterY, charaCtx);
-    charaCtx.drawImage(gateImage, 256, bigCharacterY);
-    charaCtx.drawImage(gateImage, 448, bigCharacterY);
-    charaCtx.drawImage(roomIconData[room1], 256 + 64, bigCharacterY + 128);
-    charaCtx.drawImage(roomIconData[room2], 448 + 64, bigCharacterY + 128);
-    charaCtx.drawImage(cursorImage, cursorX, cursorY);
-    if (isKeyPressedNow("z")) {
-      if (menuCursor === 0) { // room 1
-        setTransition(room1);
-      }
-      else { // room 2
-        setTransition(room2);
-      }
-      
-    }
-  },
-  */
-
+  
   // scene: encount（エンカウント）-----------------------------------
   "encount": () => {
     if (sceneInit) {
@@ -2002,7 +2002,7 @@ let sceneList = {
       mainWindowText[2] = "";
     }
     // update
-    charaCtx.drawImage(ohakaImage, fighterX, characterY); // ohaka
+    drawAnimation(yarareImage1, yarareImage2, fighterX + 32, characterY, charaCtx); // ohaka
     enemy.drawAnime(enemyX, characterY, charaCtx);
     drawHpBar(fighter, fighterX, hpBarY, useriCtx);
     drawHpBar(enemy, enemyX, hpBarY, useriCtx);
