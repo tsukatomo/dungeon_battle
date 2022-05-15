@@ -167,6 +167,15 @@ magicThreeImage.src = "./img/magic_sansan.png";
 // image - magic:burst
 let magicBurstImage = new Image();
 magicBurstImage.src = "./img/magic_burst.png";
+// image - magic:money
+let magicMoneyImage = new Image();
+magicMoneyImage.src = "./img/magic_money.png";
+// image - magic:regen
+let magicRegenImage = new Image();
+magicRegenImage.src = "./img/magic_regen.png";
+// image - magic:pachi
+let magicPachiImage = new Image();
+magicPachiImage.src = "./img/magic_pachi.png";
 // image - cannot cast magic
 let cannotCastImage = new Image();
 cannotCastImage.src = "./img/cannotcast.png";
@@ -212,6 +221,9 @@ statusMirrorImage.src = "./img/status_mirror.png";
 // image - status:silence
 let statusSilenceImage = new Image();
 statusSilenceImage.src = "./img/status_silence.png";
+// image - status:regen
+let statusRegenImage = new Image();
+statusRegenImage.src = "./img/status_regen.png";
 
 // image - z key animation
 let zkeyImage1 = new Image();
@@ -274,7 +286,7 @@ let mainWindowText = ["", "", ""];
 let statusWindowText = [""];
 let displayWindowFlag = true;
 // for text in canvas
-const textSize = 24;
+const textSize = 22;
 const textPaddingLeft = 12;
 const fontFamily = '"筑紫A丸ゴシック","游ゴシック体",system-ui';
 const textColor = "rgba(255, 255, 255, 1.0)";
@@ -413,6 +425,11 @@ class CharacterObject {
         this.addStatus(this.status[i].tag, -1);
       }
     }
+    // status: regen
+    let regenIdx = this.status.findIndex((elem) => elem.tag === "regen");
+    if (regenIdx != -1) {
+      this.addHp(this.status[regenIdx].amount);
+    }
   };
 
   turnEnd() {
@@ -473,8 +490,8 @@ let enemyData = {
     hp: 16,
     image1: slimeImage1,
     image2: slimeImage2,
-    floor_min: 1,
-    floor_max: 1,
+    floor_min: 0,
+    floor_max: 0,
     strategy: () => {
       damageAmount = enemy.dealAttackDamage(fighter, 7);
       enemyStrategyCategory = "attack";
@@ -486,8 +503,8 @@ let enemyData = {
     hp: 28,
     image1: gobImage1,
     image2: gobImage2,
-    floor_min: 1,
-    floor_max: 1,
+    floor_min: 0,
+    floor_max: 0,
     strategy: () => {
       if (enemy.hp * 4 >= enemy.maxhp) {
         damageAmount = enemy.dealAttackDamage(fighter, 5);
@@ -734,13 +751,13 @@ let enemyData = {
   // 「あー、見ちゃったねー？　みんなには内緒だよー？」
   "merchant":{
     name:"商人",
-    hp: 200,
+    hp: 999,
     image1: merchantBossImage1,
     image2: merchantBossImage2,
     floor_min: 4,
     floor_max: 99,
     strategy: () => {
-      enemy.dealAttackDamage(fighter, 20);
+      enemy.dealAttackDamage(fighter, 50);
       enemyStrategyCategory = "attack";
       mainWindowText[0] = enemy.name + "の攻撃！";
     }
@@ -808,7 +825,7 @@ let magicData = {
   },
   "jinx": {
     name: "ジンクス",
-    mp: 6,
+    mp: 5,
     image: magicJinxImage,
     description: "敵にデバフがかかっているなら大ダメージ。",
     effect: () => {
@@ -844,6 +861,36 @@ let magicData = {
     description: "最終兵器。MPに応じてダメージ量が上昇。",
     effect: () => {
       damageAmount = fighter.dealMagicDamage(enemy, fighterMp * 6);
+    }
+  },
+  "money": {
+    name: "マネマネ",
+    mp: 3,
+    image: magicMoneyImage,
+    description: "所持金に応じた量のダメージを与え、所持金を10%失う。",
+    effect: () => {
+      damageAmount = fighter.dealMagicDamage(enemy, Math.floor(money * 0.25));
+      money = Math.floor(money * 0.90);
+    }
+  },
+  "regen": {
+    name: "リジェネ",
+    mp: 7,
+    image: magicRegenImage,
+    description: "ターン開始時にHPを7回復する。戦闘終了まで持続。",
+    effect: () => {
+      fighter.addStatus("regen", 7);
+    }
+  },
+  "pachi": {
+    name: "パチパチ",
+    mp: 1,
+    image: magicPachiImage,
+    description: "静電気攻撃。50%の確率で敵を行動不能にする。",
+    effect: () => {
+      damageAmount = fighter.dealMagicDamage(enemy, 4);
+      if (randInt(0, 1) === 1) return;
+      enemy.addStatus("stun", 1);
     }
   }
 };
@@ -969,6 +1016,12 @@ let statusData = {
     image: statusSilenceImage,
     isBuff: false,
     type: "turn_end"
+  },
+  "regen": {
+    name: "リジェネ",
+    image: statusRegenImage,
+    isBuff: true,
+    type: "stack"
   }
 };
 
@@ -1976,6 +2029,8 @@ let sceneList = {
       money += gainMoney;
       // increment slain counter
       slainEnemy++;
+      // clear status
+      fighter.status = [];
       // text 
       windowImage = null;
       mainWindowText[0] = enemy.name + "に勝利した！"
