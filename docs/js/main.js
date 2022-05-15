@@ -292,6 +292,7 @@ const shopMenu = ["かう", "はなす", "たちさる"];
 const gemMenu = ["かいふく", "ほきゅう", "くらふと"];
 let menuCursor = 0;
 let goodLuck = false;
+let slainEnemy = 0;
 // for room
 let roomList = [];
 let room1, room2;
@@ -513,8 +514,8 @@ let enemyData = {
         enemy.image2 = coffeeImage2;
       }
       if (enemyStrategyParam === 0 && enemy.hp * 2 <= enemy.maxhp) {
-        enemy.addStatus("shield", 4);
-        enemy.addStatus("m_shield", 4);
+        enemy.addStatus("shield", 2);
+        enemy.addStatus("m_shield", 2);
         enemyStrategyParam = 1;
         enemy.image1 = coffeeImage3;
         enemy.image2 = coffeeImage4;
@@ -522,10 +523,7 @@ let enemyData = {
         mainWindowText[0] = enemy.name + "はカップの中に隠れた"
       }
       else {
-        damageAmount = enemy.dealAttackDamage(fighter, randInt(4, 8));
-        if (enemy.isStatusExist("shield")) {
-          damageAmount += 2;
-        }
+        damageAmount = enemy.dealAttackDamage(fighter, enemy.isStatusExist("shield") ? randInt(6, 10) : randInt(4, 8));
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -533,7 +531,7 @@ let enemyData = {
   },
   "tree":{
     name: "モクモク",
-    hp: 40,
+    hp: 50,
     image1: treeImage1,
     image2: treeImage2,
     floor_min: 1,
@@ -620,7 +618,7 @@ let enemyData = {
   },
   "shieldkusa":{
     name: "タテグサ",
-    hp: 60,
+    hp: 70,
     image1: shieldkusaImage1,
     image2: shieldkusaImage2,
     floor_min: 2,
@@ -1019,6 +1017,7 @@ let initParam = function () {
   fighterLv = 1;
   dungeonFloor = 0;
   money = 50;
+  slainEnemy = 0;
   shopInit = true;
   mapInit = true;
 };
@@ -1508,12 +1507,15 @@ let sceneList = {
       sceneInit = false;
       // create new enemy
       const enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
-      const encountList = enemyDatakeys.filter( e => {
+      let encountList = enemyDatakeys.filter( e => {
         return (enemyData[e].floor_min <= dungeonFloor && dungeonFloor <= enemyData[e].floor_max)
       });
+      if (slainEnemy < 2 && dungeonFloor < 2) { // 倒した敵の数が2体未満で1Fにいるときは敵の種類を絞る
+        encountList = ["slime", "gob"];
+      }
       console.log(encountList);
       //const eKey = "slime"; // テスト用（敵指定）
-      const eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
+      let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
         enemyData[eKey].name,
@@ -1972,6 +1974,8 @@ let sceneList = {
       // gain money
       let gainMoney = randInt(20, 30);
       money += gainMoney;
+      // increment slain counter
+      slainEnemy++;
       // text 
       windowImage = null;
       mainWindowText[0] = enemy.name + "に勝利した！"
