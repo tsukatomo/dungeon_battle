@@ -29,6 +29,9 @@ bunkiBackImage.src = "./img/background_bunki.png";
 // image - background(shop)
 let shopBackImage = new Image();
 shopBackImage.src = "./img/background_shop.png";
+// image - title
+let titleImage = new Image();
+titleImage.src = "./img/title.png";
 
 // image - gate
 let gateImage = new Image();
@@ -1492,13 +1495,14 @@ let gameLoop = function() {
   keyPressed = keyInput.slice();
   keyInterval--;
   // text window
-  if (displayWindowFlag) {
+  if (scene != "title" && scene != "map") {
     drawTextInWindow(windowImage, mainWindowText, 0, 480 - gridSize * 5, 640, useriCtx);
   }
-  displayWindowFlag = true; // main window を非表示にしたい場合は scene 内の update で false に指定
   // info window
-  statusWindowText[0] = fighter.name + " Lv." + fighterLv + "    HP " + fighter.hp + "/" + fighter.maxhp + "    MP " + fighterMp + "    " + dungeonFloor + "階    " + money + "円";
-  drawTextInWindow(null, statusWindowText, 0, 0, 640, useriCtx);
+  if (scene != "title") {
+    statusWindowText[0] = fighter.name + " Lv." + fighterLv + "    HP " + fighter.hp + "/" + fighter.maxhp + "    MP " + fighterMp + "    " + dungeonFloor + "階    " + money + "円";
+    drawTextInWindow(null, statusWindowText, 0, 0, 640, useriCtx);
+  }
   // a key: show magic list
   if (isKeyPressedNow("a") && subScene === "none") {
     setSubScene("magiclist");
@@ -1518,6 +1522,24 @@ let gameLoop = function() {
 // scene list ======================================================================
 
 let sceneList = {
+  // scene: title（タイトル）----------------------------------------
+  "title": () => {
+    if (sceneInit) {
+      sceneInit = false;
+      // initialize parameters of fighter
+      initParam();
+      // draw background
+      backgCtx.drawImage(bunkiBackImage, 0, 0);
+      backgCtx.drawImage(gateImage, enemyX, bigCharacterY);
+      animeCount = 64;
+    }
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    charaCtx.drawImage(titleImage, 192, fixCoordinate(48 - (animeCount * animeCount / 100) * 4)); 
+    if (isKeyPressedNow("z")) {
+      setTransition("map");
+    }
+  },
+
   // scene: map（マップ画面）----------------------------------------
   "map": () => {
     // init
@@ -1600,10 +1622,14 @@ let sceneList = {
       // go to next floor
       if (isKeyPressedNow("z") && (stairMapX === fighterMapX) && (stairMapY === fighterMapY)) {
         mapInit = true;
-        setTransition("map");
+        if (dungeonFloor < 4) {
+          setTransition("map");
+        }
+        else {
+          setTransition("title");
+        }
       }
     }
-
   },
   
   // scene: encount（エンカウント）-----------------------------------
@@ -2123,9 +2149,7 @@ let sceneList = {
       isFighting = false;
       mainWindowText[0] = "";
       mainWindowText[1] = "";
-      // rebirth
-      initParam();
-      setTransition("map");
+      setTransition("title");
     }
   },
 
@@ -2808,7 +2832,7 @@ window.onload = function() {
   backgCtx.drawImage(backImage, 0, 0);
 
   //console.log("a");
-  scene = "map";
+  scene = "title";
   sceneInit = true;
   initParam();
   setInterval(gameLoop, 10);
