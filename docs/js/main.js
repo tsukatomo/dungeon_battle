@@ -419,16 +419,16 @@ class CharacterObject {
   };
 
   turnStart() {
+    // status: regen
+    let regenIdx = this.status.findIndex((elem) => elem.tag === "regen");
+    if (regenIdx != -1) {
+      this.addHp(this.status[regenIdx].amount);
+    }
     // reduce buff/debuff which is categorised as a "turn_start"
     for (let i = this.status.length - 1; i >= 0; i--) {
       if (statusData[this.status[i].tag].type === "turn_start") {
         this.addStatus(this.status[i].tag, -1);
       }
-    }
-    // status: regen
-    let regenIdx = this.status.findIndex((elem) => elem.tag === "regen");
-    if (regenIdx != -1) {
-      this.addHp(this.status[regenIdx].amount);
     }
   };
 
@@ -504,7 +504,7 @@ let enemyData = {
     image1: gobImage1,
     image2: gobImage2,
     floor_min: 0,
-    floor_max: 0,
+    floor_max: 1,
     strategy: () => {
       if (enemy.hp * 4 >= enemy.maxhp) {
         damageAmount = enemy.dealAttackDamage(fighter, 5);
@@ -552,7 +552,7 @@ let enemyData = {
     image1: treeImage1,
     image2: treeImage2,
     floor_min: 1,
-    floor_max: 2,
+    floor_max: 1,
     strategy: () => {
       enemyStrategyParam += 1;
       damageAmount = enemy.dealAttackDamage(fighter, enemyStrategyParam);
@@ -562,7 +562,7 @@ let enemyData = {
   },
   "fairy":{
     name: "ようせい",
-    hp: 30,
+    hp: 40,
     image1: fairyImage1,
     image2: fairyImage2,
     floor_min: 2,
@@ -570,7 +570,7 @@ let enemyData = {
     strategy: () => {
       if (enemy.hp < enemy.maxhp / 2 && enemyStrategyParam < 3) {
         enemyStrategyParam += 1;
-        enemy.addHp(12);
+        enemy.addHp(15);
         enemyStrategyCategory = "magic";
         mainWindowText[0] = enemy.name + "は回復した！";
       }
@@ -583,7 +583,7 @@ let enemyData = {
   },
   "yadotsumu":{
     name: "やどクジ",
-    hp: 60,
+    hp: 80,
     floor_min: 2,
     floor_max: 2,
     image1: yadoTsumuImage1,
@@ -598,7 +598,7 @@ let enemyData = {
       }
       else {
         enemyStrategyParam += 1;
-        damageAmount = enemy.dealAttackDamage(fighter, 10);
+        damageAmount = enemy.dealAttackDamage(fighter, 13);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -606,10 +606,10 @@ let enemyData = {
   },
   "renchin":{
     name: "レンチン",
-    hp: 90,
+    hp: 120,
     image1: renchinImage1,
     image2: renchinImage2,
-    floor_min: 2,
+    floor_min: 3,
     floor_max: 3,
     strategy: () => {
       if (enemyStrategyParam % 6 === 5) {
@@ -635,7 +635,7 @@ let enemyData = {
   },
   "shieldkusa":{
     name: "タテグサ",
-    hp: 70,
+    hp: 90,
     image1: shieldkusaImage1,
     image2: shieldkusaImage2,
     floor_min: 2,
@@ -652,7 +652,7 @@ let enemyData = {
         mainWindowText[0] = enemy.name + "は守りを固めている";
       }
       else {
-        damageAmount = enemy.dealAttackDamage(fighter, 10);
+        damageAmount = enemy.dealAttackDamage(fighter, 14);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -660,7 +660,7 @@ let enemyData = {
   },
   "dragon":{
     name: "ドラゴン",
-    hp: 120,
+    hp: 140,
     image1: dragonImage1,
     image2: dragonImage2,
     floor_min: 3,
@@ -694,7 +694,7 @@ let enemyData = {
   },
   "death": {
     name: "シニガミ",
-    hp: 150,
+    hp: 180,
     image1: deathImage1,
     image2: deathImage2,
     floor_min: 3,
@@ -716,7 +716,7 @@ let enemyData = {
   },
   "mahoslime": {
     name: "まほスラ",
-    hp: 80,
+    hp: 96,
     image1: mahoSlimeImage1,
     image2: mahoSlimeImage2,
     floor_min: 2,
@@ -742,7 +742,7 @@ let enemyData = {
         mainWindowText[1] = "……が、どうやらMP切れのようだ";
       }
       else {
-        damageAmount = enemy.dealAttackDamage(fighter, 9);
+        damageAmount = enemy.dealAttackDamage(fighter, 10);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "は" + fighter.name + "を杖で殴った！";
       }
@@ -751,13 +751,13 @@ let enemyData = {
   // 「あー、見ちゃったねー？　みんなには内緒だよー？」
   "merchant":{
     name:"商人",
-    hp: 999,
+    hp: 300,
     image1: merchantBossImage1,
     image2: merchantBossImage2,
     floor_min: 4,
     floor_max: 99,
     strategy: () => {
-      enemy.dealAttackDamage(fighter, 50);
+      enemy.dealAttackDamage(fighter, 10);
       enemyStrategyCategory = "attack";
       mainWindowText[0] = enemy.name + "の攻撃！";
     }
@@ -790,10 +790,11 @@ let magicData = {
     name: "ビリビリ",
     mp: 4,
     image: magicThunderImage,
-    description: "雷で攻撃。敵を2ターン行動不能にする。",
+    description: "雷で攻撃。50%の確率で敵を3ターン行動不能にする。",
     effect: () => {
-      damageAmount = fighter.dealMagicDamage(enemy, 6);
-      enemy.addStatus("stun", 2);
+      damageAmount = fighter.dealMagicDamage(enemy, 6 + fighterLv);
+      if (randInt(0, 1) === 1) return;
+      enemy.addStatus("stun", 3);
     }
   },
   "power": {
@@ -834,7 +835,7 @@ let magicData = {
         isDebuffExist |= !statusData[enemy.status[i].tag].isBuff;
       }
       if (isDebuffExist) {
-        damageAmount = fighter.dealMagicDamage(enemy, 40 + (fighterLv * 2));
+        damageAmount = fighter.dealMagicDamage(enemy, 50 + (fighterLv * 2));
       }
       else {
         damageAmount = fighter.dealMagicDamage(enemy, 5);
@@ -869,15 +870,15 @@ let magicData = {
     image: magicMoneyImage,
     description: "所持金に応じた量のダメージを与え、所持金を10%失う。",
     effect: () => {
-      damageAmount = fighter.dealMagicDamage(enemy, Math.floor(money * 0.25));
+      damageAmount = fighter.dealMagicDamage(enemy, Math.floor(money * 0.30));
       money = Math.floor(money * 0.90);
     }
   },
   "regen": {
     name: "リジェネ",
-    mp: 7,
+    mp: 6,
     image: magicRegenImage,
-    description: "ターン開始時にHPを7回復する。戦闘終了まで持続。",
+    description: "再生6を得る。ターン開始時、再生の値に等しいHPを回復。",
     effect: () => {
       fighter.addStatus("regen", 7);
     }
@@ -886,10 +887,10 @@ let magicData = {
     name: "パチパチ",
     mp: 1,
     image: magicPachiImage,
-    description: "静電気攻撃。50%の確率で敵を行動不能にする。",
+    description: "静電気攻撃。80%の確率で敵を行動不能にする。",
     effect: () => {
       damageAmount = fighter.dealMagicDamage(enemy, 4);
-      if (randInt(0, 1) === 1) return;
+      if (randInt(0, 99) < 20) return;
       enemy.addStatus("stun", 1);
     }
   }
@@ -1021,7 +1022,7 @@ let statusData = {
     name: "リジェネ",
     image: statusRegenImage,
     isBuff: true,
-    type: "stack"
+    type: "turn_start"
   }
 };
 
@@ -1150,6 +1151,53 @@ let createDungeonMap = function () {
   fighterMapY = (dungeonFloor % 2 === 1) ? 1 : 2 * dungeonHeight - 1;
   stairMapX = (dungeonFloor % 2 === 1) ? 2 * dungeonWidth - 1 : 1;
   stairMapY = (dungeonFloor % 2 === 1) ? 2 * dungeonHeight - 1 : 1;
+};
+
+let createFinalMap = function () {
+  // reset map
+  mapWithIcon = new Array(dungeonWidth * 2 + 1);
+  for (let i = 0; i < mapWithIcon.length; i++) {
+    mapWithIcon[i] = new Array(dungeonHeight * 2 + 1).fill(WALL);
+  }
+  // define fixed map
+  let finalMap =  [
+    "0000000000000",
+    "0111000000000",
+    "0011000000000",
+    "000b000111110",
+    "0001101111110",
+    "000111111g110",
+    "0000001111110",
+    "0000000111110",
+    "0000000000000",
+  ];
+  // decode
+  for (let y = 0; y < dungeonHeight * 2 + 1; y++){
+    for (let x = 0; x < dungeonWidth * 2 + 1; x++) {
+      switch (finalMap[y][x]) {
+        case 'b':
+          mapWithIcon[x][y] = "encount";
+          break;
+        case 'g':
+          mapWithIcon[x][y] = "gemspotin";
+          break;
+        case '1':
+          mapWithIcon[x][y] = AISLE;
+          break;
+        case '0':
+          mapWithIcon[x][y] = WALL;
+          break;
+        default:
+          mapWithIcon[x][y] = WALL;
+          break;
+      }
+    }
+  }
+  // set position of fighter and stair
+  fighterMapX = 2 * dungeonWidth - 1;
+  fighterMapY = 2 * dungeonHeight - 1;
+  stairMapX = 1;
+  stairMapY = 1;
 };
 
 // マップのインデックスを描画座標に変換
@@ -1480,7 +1528,12 @@ let sceneList = {
       if (mapInit) {
         mapInit = false;
         dungeonFloor++;
-        createDungeonMap();
+        if (dungeonFloor === 4) { // final floor
+          createFinalMap();
+        }
+        else {
+          createDungeonMap();
+        }
       }
       // draw background
       backgCtx.fillStyle = "#32535f";
