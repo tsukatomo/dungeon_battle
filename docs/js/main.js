@@ -29,6 +29,9 @@ bunkiBackImage.src = "./img/background_bunki.png";
 // image - background(shop)
 let shopBackImage = new Image();
 shopBackImage.src = "./img/background_shop.png";
+// image - background(title)
+let titleBackImage = new Image();
+titleBackImage.src = "./img/background_title.png";
 // image - title
 let titleImage = new Image();
 titleImage.src = "./img/title.png";
@@ -323,7 +326,8 @@ let castMagic;
 let fighterTool = [];
 let toolCursor = 0;
 let useTool;
-let craftedTool;
+let obtainedTool;
+let toolDropChance = 40;
 // for combat
 let isFighting = false;
 let isStartTurn = false; // start of turn
@@ -425,7 +429,7 @@ class CharacterObject {
     // status: regen
     let regenIdx = this.status.findIndex((elem) => elem.tag === "regen");
     if (regenIdx != -1) {
-      this.addHp(this.status[regenIdx].amount);
+      this.addHp(Math.floor(this.maxhp * 0.20));
     }
     // reduce buff/debuff which is categorised as a "turn_start"
     for (let i = this.status.length - 1; i >= 0; i--) {
@@ -663,7 +667,7 @@ let enemyData = {
   },
   "dragon":{
     name: "ドラゴン",
-    hp: 140,
+    hp: 156,
     image1: dragonImage1,
     image2: dragonImage2,
     floor_min: 3,
@@ -871,19 +875,19 @@ let magicData = {
     name: "マネマネ",
     mp: 3,
     image: magicMoneyImage,
-    description: "所持金に応じた量のダメージを与え、所持金を10%失う。",
+    description: "所持金の50%に等しいダメージを与え、所持金を20%失う。",
     effect: () => {
-      damageAmount = fighter.dealMagicDamage(enemy, Math.floor(money * 0.30));
-      money = Math.floor(money * 0.90);
+      damageAmount = fighter.dealMagicDamage(enemy, Math.floor(money * 0.50));
+      money = Math.floor(money * 0.80);
     }
   },
   "regen": {
     name: "リジェネ",
-    mp: 6,
+    mp: 7,
     image: magicRegenImage,
-    description: "再生6を得る。ターン開始時、再生の値に等しいHPを回復。",
+    description: "ターン開始時に最大HPの20%を回復する。5ターン持続。",
     effect: () => {
-      fighter.addStatus("regen", 7);
+      fighter.addStatus("regen", 5);
     }
   },
   "pachi": {
@@ -1074,6 +1078,7 @@ let initParam = function () {
   fighterLv = 1;
   dungeonFloor = 0;
   money = 50;
+  toolDropChance = 40;
   slainEnemy = 0;
   shopInit = true;
   mapInit = true;
@@ -1529,12 +1534,11 @@ let sceneList = {
       // initialize parameters of fighter
       initParam();
       // draw background
-      backgCtx.drawImage(bunkiBackImage, 0, 0);
-      backgCtx.drawImage(gateImage, enemyX, bigCharacterY);
+      backgCtx.drawImage(titleBackImage, 0, 0);
       animeCount = 64;
     }
-    fighter.drawAnime(fighterX, characterY, charaCtx);
-    charaCtx.drawImage(titleImage, 192, fixCoordinate(48 - (animeCount * animeCount / 100) * 4)); 
+    fighter.drawAnime(fighterX, 224, charaCtx);
+    charaCtx.drawImage(titleImage, 192, fixCoordinate(18 - (animeCount * animeCount / 100) * 4)); 
     if (isKeyPressedNow("z")) {
       setTransition("map");
     }
@@ -2106,6 +2110,17 @@ let sceneList = {
       // gain money
       let gainMoney = randInt(20, 30);
       money += gainMoney;
+      // obtain item
+      if (randInt(0, 99) < toolDropChance) {
+        toolDropChance -= 20;
+        const toolDataKeys = Object.keys(toolData);
+        obtainedTool = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
+        addTool(obtainedTool, 1);
+      }
+      else {
+        obtainedTool = "none";
+        toolDropChance += 20;
+      }
       // increment slain counter
       slainEnemy++;
       // clear status
@@ -2115,9 +2130,17 @@ let sceneList = {
       mainWindowText[0] = enemy.name + "に勝利した！"
       mainWindowText[1] = fighter.name + "はレベルアップ！";
       mainWindowText[2] = gainMoney + "円を獲得！";
+      if (obtainedTool != "none") {
+        mainWindowText[2] = gainMoney + "円と" + toolData[obtainedTool].name + "を獲得！"
+      }
     }
     fighter.drawAnime(fighterX, characterY, charaCtx);
     drawHpBar(fighter, fighterX, hpBarY, useriCtx);
+    // show obtained tool on whitebox
+    if (obtainedTool != "none") {
+      charaCtx.drawImage(whiteBoxImage, 256, 120);
+      charaCtx.drawImage(toolData[obtainedTool].image, 288, 152);
+    }
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       isFighting = false;
@@ -2489,12 +2512,12 @@ let sceneList = {
       // undameshi
       goodLuck = (randInt(0, 4) === 0);
       // get random tool
-      let toolDataKeys = Object.keys(toolData);
-      craftedTool = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
-      addTool(craftedTool, (goodLuck) ? 2 : 1);
+      const toolDataKeys = Object.keys(toolData);
+      obtainedTool = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
+      addTool(obtainedTool, (goodLuck) ? 2 : 1);
       // text
       windowImage = null;
-      mainWindowText[0] = fighter.name + "は" + toolData[craftedTool].name + "を" + ((goodLuck) ? "2個" : "") + "手に入れた";
+      mainWindowText[0] = fighter.name + "は" + toolData[obtainedTool].name + "を" + ((goodLuck) ? "2個" : "") + "手に入れた";
       mainWindowText[1] = "先に進もう";
       mainWindowText[2] = "";
       // animation
@@ -2507,7 +2530,7 @@ let sceneList = {
     charaCtx.drawImage(gemSpotEmptyImage, 400, 64);
     // show crafted tool on whitebox
     charaCtx.drawImage(whiteBoxImage, 256, 120);
-    charaCtx.drawImage(toolData[craftedTool].image, 288, 152);
+    charaCtx.drawImage(toolData[obtainedTool].image, 288, 152);
     if (goodLuck) {
       charaCtx.drawImage(doubleLuckyImage, 256, 120);
     }
@@ -2537,7 +2560,7 @@ let subSceneList = {
     //transCtx.globalAlpha = 1.0;
     transCtx.fillStyle = "rgba(0, 0, 0, 1.0)"; // black
     transCtx.fillRect(640 * (transAnimeCount / transAnimeCountInit), 0, 640, 480);
-    transCtx.globalAlpha = 1.0 - (transAnimeCount / transAnimeCountInit);
+    //transCtx.globalAlpha = 1.0 - (transAnimeCount / transAnimeCountInit);
     //transCtx.fillRect(0, 0, 640, 480);
     if (--transAnimeCount <= 0) {
       // set transition animation
@@ -2572,7 +2595,7 @@ let subSceneList = {
     }
     // update
     transCtx.fillStyle = "rgba(0, 0, 0, 1.0)"; // black
-    transCtx.globalAlpha = transAnimeCount / transAnimeCountInit;
+    //transCtx.globalAlpha = transAnimeCount / transAnimeCountInit;
     //transCtx.fillRect(0, 0, 640, 480);
     transCtx.fillRect(0, 0, 640 * (transAnimeCount / transAnimeCountInit), 480);
     if (--transAnimeCount <= 0) {
@@ -2829,8 +2852,6 @@ let subSceneList = {
 
 
 window.onload = function() {
-  backgCtx.drawImage(backImage, 0, 0);
-
   //console.log("a");
   scene = "title";
   sceneInit = true;
