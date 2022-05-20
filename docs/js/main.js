@@ -130,8 +130,12 @@ mahoSlimeImage2.src = "./img/mahoslime2.png";
 // image - merchant(boss)
 let merchantBossImage1 = new Image();
 let merchantBossImage2 = new Image();
+let merchantBossImage3 = new Image();
+let merchantBossImage4 = new Image();
 merchantBossImage1.src = "./img/merchant_boss1.png";
 merchantBossImage2.src = "./img/merchant_boss2.png";
+merchantBossImage3.src = "./img/merchant_boss3.png";
+merchantBossImage4.src = "./img/merchant_boss4.png";
 // image - grave
 let ohakaImage = new Image();
 ohakaImage.src = "./img/ohaka.png";
@@ -333,6 +337,7 @@ let isFighting = false;
 let isStartTurn = false; // start of turn
 let damageAmount = 0;
 let isSansanFatal = false; // fatal with "sansan"
+let isResurrection = false; // resurrection (merchant)
 // for info
 let fighterLv = 1;
 let dungeonFloor = 0;
@@ -651,12 +656,13 @@ let enemyData = {
       if (enemyStrategyParam++ % 2 === 0) {
         if (randInt(0, 1) === 1) {
           enemy.addStatus("shield", 2);
+          mainWindowText[0] = enemy.name + "は「ぶつりシールド」を展開した！";
         }
         else {
           enemy.addStatus("m_shield", 2);
+          mainWindowText[0] = enemy.name + "は「まほうシールド」を展開した！";
         }
         enemyStrategyCategory = "none";
-        mainWindowText[0] = enemy.name + "は守りを固めている";
       }
       else {
         damageAmount = enemy.dealAttackDamage(fighter, 14);
@@ -758,15 +764,63 @@ let enemyData = {
   // 「あー、見ちゃったねー？　みんなには内緒だよー？」
   "merchant":{
     name:"商人",
-    hp: 300,
-    image1: merchantBossImage1,
-    image2: merchantBossImage2,
+    hp: 200,
+    image1: merchantBossImage3,
+    image2: merchantBossImage4,
     floor_min: 4,
     floor_max: 99,
     strategy: () => {
-      enemy.dealAttackDamage(fighter, 10);
-      enemyStrategyCategory = "attack";
-      mainWindowText[0] = enemy.name + "の攻撃！";
+      // before resurrection
+      if (isResurrection === true) {
+        if (enemy.hp <= 0){
+          isResurrection = false;
+          enemyStrategyParam = 0;
+          enemy.addHp(200);
+          enemyStrategyCategory = "none";
+          enemy.image1 = merchantBossImage1;
+          enemy.image2 = merchantBossImage2;
+          windowImage = merchantFuryImage;
+          mainWindowText[0] = "「キミつよいねー。本気出しちゃおっかなー」";
+        }
+        else if (enemy.hp * 2 <= enemy.maxhp && enemyStrategyParam === 0) {
+          enemyStrategyParam = 1;
+          if (fighterMp > 10) {
+            enemy.addStatus("m_shield", 4);
+          }
+          else {
+            enemy.addStatus("shield", 4);
+          }
+          windowImage = merchantSadImage;
+          enemyStrategyCategory = "none";
+          mainWindowText[0] = "「うーん、ちょっとピンチかもー？」"  
+        }
+        else {
+          damageAmount = enemy.dealAttackDamage(fighter, randInt(12, 16));
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "の攻撃！";
+        }
+      }
+      // after resurrection
+      else {
+        if (enemyStrategyParam % 3 === 0) {
+          damageAmount = enemy.dealAttackDamage(fighter, randInt(26, 30));
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "の攻撃！";
+        }
+        else if (enemyStrategyParam % 3 === 1) {
+          enemy.addStatus("m_shield", 2);
+          fighter.addStatus("weak", 1);
+          enemyStrategyCategory = "magic";
+          mainWindowText[0] = enemy.name + "は防御まほうと脱力まほうを唱えた！";
+        }
+        else {
+          enemy.addStatus("power", 1);
+          enemyStrategyCategory = "none";
+          windowImage = merchantFuryImage;
+          mainWindowText[0] = "「さーて、耐えられるかなー？」";
+        }
+        enemyStrategyParam++;
+      }
     }
   }
 };
@@ -885,9 +939,9 @@ let magicData = {
     name: "リジェネ",
     mp: 7,
     image: magicRegenImage,
-    description: "ターン開始時に最大HPの20%を回復する。5ターン持続。",
+    description: "ターン開始時に最大HPの20%を回復する。4ターン持続。",
     effect: () => {
-      fighter.addStatus("regen", 5);
+      fighter.addStatus("regen", 4);
     }
   },
   "pachi": {
@@ -1041,21 +1095,19 @@ let statusData = {
 // 商人「私に話しかけるのが面倒なら、ここを見るといいよー」
 let oyakudachiInfo = [
   ["ちびゴブはHPがピンチになると", "強い攻撃をしてくるよ。怖いねー」"],
-  ["ようせいの回復行動は3回までだよー」", ""],
-  ["モクモクはターン数がかかるほど", "攻撃が強くなっていくよー」"],
   ["スライム？かわいいよねー」", ""],
-  ["フレイムはキミのLvに応じて", "どんどん強くなるよー」"],
+  ["『なぐる』の威力はキミのLv+5だよー」"]
   ["敵に勝つとレベルアップ！", "最大HPとMPが増えるよー」"],
   ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"],
-  ["やどクジは攻撃力を下げてくるよー", "でもまほうの威力は下がらないよー」"],
   ["レンチンの行動に気をつけてねー", "6ターンに1回放電してくるよー」"],
-  ["敵をなぐるとMPがちょっと増えるよー」", ""],
+  ["敵をなぐるとMPが1増えるよー」", ""],
   ["固定ダメージはバフやデバフの", "影響を受けないよー」"],
   ["一部のどうぐは戦闘中以外でも", "Sキーのメニューから使えるよー」"],
   ["Aキーを押すと覚えているまほうを", "確認できるよー」"],
   ["HPが満タンの時にくだものを使うと", "最大HPが増えるよー」"],
   ["ジェムを『くらふと』するとたまに", "2個のどうぐが手に入るよー」"],
-  ["マップ上のアイコンは一度踏むと", "なくなっちゃうよー」"]
+  ["マップ上のアイコンは一度踏むと", "なくなっちゃうよー」"],
+  ["一部の攻撃まほうはLvに応じて", "威力が上がるよー」"],
 ];
 
 
@@ -1509,11 +1561,11 @@ let gameLoop = function() {
     drawTextInWindow(null, statusWindowText, 0, 0, 640, useriCtx);
   }
   // a key: show magic list
-  if (isKeyPressedNow("a") && subScene === "none") {
+  if (isKeyPressedNow("a") && subScene === "none" && scene != "title") {
     setSubScene("magiclist");
   }
   // s key: show magic list
-  if (isKeyPressedNow("s") && subScene === "none") {
+  if (isKeyPressedNow("s") && subScene === "none" && scene != "title") {
     setSubScene("toollist");
   }
   // scene
@@ -1664,11 +1716,16 @@ let sceneList = {
       menuCursor = 0;
       // fighting flag
       isFighting = true;
-      // text
+      // text (and merchant special)
       windowImage = null;
       mainWindowText[0] = enemy.name + "が立ちはだかる！"
       mainWindowText[1] = "";
       mainWindowText[2] = "";
+      if (eKey === "merchant") {
+        isResurrection = true;
+        windowImage = merchantFaceImage;
+        mainWindowText[0] = "「いらっしゃー。じゃ、始めよっか」";
+      }
       // start turn flag
       isStartTurn = true;
       // anime count
@@ -1793,7 +1850,7 @@ let sceneList = {
       fdx = 4 * animeCount;
     }
     // if enemy is killed
-    if (enemy.hp <= 0) {
+    if (enemy.hp <= 0 && isResurrection === false) {
       edx = 12 * (- animeCount + 32);
       edy = -12 * (- animeCount + 32);
     }
@@ -1804,7 +1861,7 @@ let sceneList = {
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0){
       fighter.turnEnd();
-      if (enemy.hp <= 0) {
+      if (enemy.hp <= 0 && isResurrection === false) {
         setScene("victory");
       }
       else {
@@ -1909,7 +1966,7 @@ let sceneList = {
       fdy = -4 * animeCount;
     }
     // if enemy is killed
-    if (enemy.hp <= 0) {
+    if (enemy.hp <= 0 && isResurrection === false) {
       edx = 12 * (- animeCount + 32);
       edy = -12 * (- animeCount + 32);
     }
@@ -1920,7 +1977,7 @@ let sceneList = {
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       fighter.turnEnd();
-      if (enemy.hp <= 0) {
+      if (enemy.hp <= 0 && isResurrection === false) {
         setScene("victory");
       }
       else {
@@ -2003,7 +2060,7 @@ let sceneList = {
       fdy = -4 * animeCount;
     }
     // if enemy is killed
-    if (enemy.hp <= 0) {
+    if (enemy.hp <= 0 && isResurrection === false) {
       edx = 12 * (- animeCount + 32);
       edy = -12 * (- animeCount + 32);
     }
@@ -2014,7 +2071,7 @@ let sceneList = {
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       fighter.turnEnd();
-      if (enemy.hp <= 0) {
+      if (enemy.hp <= 0 && isResurrection === false) {
         setScene("victory");
       }
       else {
