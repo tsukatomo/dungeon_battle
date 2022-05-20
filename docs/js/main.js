@@ -281,6 +281,11 @@ whiteBoxImage.src = "./img/whitebox.png";
 let doubleLuckyImage = new Image();
 doubleLuckyImage.src = "./img/double_lucky.png";
 
+// image - golden apple
+let goldenAppleImage1 = new Image();
+let goldenAppleImage2 = new Image();
+goldenAppleImage1.src = "./img/goldenapple1.png";
+goldenAppleImage2.src = "./img/goldenapple2.png";
 
 // some variables 
 // for window
@@ -312,9 +317,11 @@ let animeCount = 0; // animation counter
 const combatMenu = ["なぐる", "まほう", "どうぐ"];
 const shopMenu = ["かう", "はなす", "たちさる"];
 const gemMenu = ["かいふく", "ほきゅう", "くらふと"];
+const tweetMenu = ["タイトルへ", "ツイート", ""];
 let menuCursor = 0;
 let goodLuck = false;
 let slainEnemy = 0;
+let gameClear = false;
 // for room
 let roomList = [];
 let room1, room2;
@@ -795,7 +802,7 @@ let enemyData = {
           mainWindowText[0] = "「うーん、ちょっとピンチかもー？」"  
         }
         else {
-          damageAmount = enemy.dealAttackDamage(fighter, randInt(12, 16));
+          damageAmount = enemy.dealAttackDamage(fighter, randInt(16, 20));
           enemyStrategyCategory = "attack";
           mainWindowText[0] = enemy.name + "の攻撃！";
         }
@@ -911,7 +918,7 @@ let magicData = {
     effect: () => {
       damageAmount = 3;
       enemy.addHp(-damageAmount);
-      if (enemy.hp <= 0) {
+      if (enemy.hp <= 0 && isResurrection === false) {
         isSansanFatal = true;
       }
     }
@@ -1090,13 +1097,13 @@ let statusData = {
 
 
 // oyakudachi info
-// 記法：適切な位置で改行、終わりに”」”を付ける
+// 記法：2行分、適切な位置で改行、終わりに”」”を付ける
 // 商人「いらっしゃー。ここはソースコードだよー」
 // 商人「私に話しかけるのが面倒なら、ここを見るといいよー」
 let oyakudachiInfo = [
   ["ちびゴブはHPがピンチになると", "強い攻撃をしてくるよ。怖いねー」"],
   ["スライム？かわいいよねー」", ""],
-  ["『なぐる』の威力はキミのLv+5だよー」"]
+  ["『なぐる』の威力はキミのLv+5だよー」", ""],
   ["敵に勝つとレベルアップ！", "最大HPとMPが増えるよー」"],
   ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"],
   ["レンチンの行動に気をつけてねー", "6ターンに1回放電してくるよー」"],
@@ -1134,6 +1141,7 @@ let initParam = function () {
   slainEnemy = 0;
   shopInit = true;
   mapInit = true;
+  gameClear = false;
 };
 
 
@@ -1535,6 +1543,20 @@ let randInt = function(min, max) {
 };
 */
 
+// share to twitter
+let tweet = function () {
+  let tweetmes;
+  if (gameClear) {
+    tweetmes = "だんじょんを踏破した！\n"
+  }
+  else {
+    tweetmes = dungeonFloor + "階で" + enemy.name + "に倒された……\n"
+  }
+  tweetmes += "&url=https://tsukatomo.github.io/dungeon_battle";
+  tweetmes += "&hashtags=だんじょん・ばとる";
+  window.open("https://twitter.com/intent/tweet?text=" + tweetmes,'_blank');
+};
+
 
 // game loop --------------------------------------------------------
 
@@ -1682,7 +1704,7 @@ let sceneList = {
           setTransition("map");
         }
         else {
-          setTransition("title");
+          setTransition("clear");
         }
       }
     }
@@ -1717,6 +1739,7 @@ let sceneList = {
       // fighting flag
       isFighting = true;
       // text (and merchant special)
+      isResurrection = false;
       windowImage = null;
       mainWindowText[0] = enemy.name + "が立ちはだかる！"
       mainWindowText[1] = "";
@@ -2096,6 +2119,9 @@ let sceneList = {
       mainWindowText[1] = "";
       mainWindowText[2] = "";
       // enemy move
+      if (enemy.hp <= 0) {
+        enemy.status.length = 0;
+      }
       if (enemy.isStatusExist("stun")) {
         mainWindowText[0] = enemy.name + "はシビレて動けない！";
         enemyStrategyCategory = "stun";
@@ -2216,7 +2242,7 @@ let sceneList = {
       // text 
       windowImage = null;
       mainWindowText[0] = fighter.name + "は死んでしまった……";
-      mainWindowText[1] = "Zキーでリトライ";
+      mainWindowText[1] = "";
       mainWindowText[2] = "";
     }
     // update
@@ -2224,12 +2250,21 @@ let sceneList = {
     enemy.drawAnime(enemyX, characterY, charaCtx);
     drawHpBar(fighter, fighterX, hpBarY, useriCtx);
     drawHpBar(enemy, enemyX, hpBarY, useriCtx);
-    if (animeCount === 0) zkeyAnime();
+    // menu
+    if (isKeyPressedNow("u") && animeCount === 0) menuCursor--;
+    if (isKeyPressedNow("d") && animeCount === 0) menuCursor++;
+    if (menuCursor < 0) menuCursor = 1;
+    if (menuCursor > 1) menuCursor = 0;
+    drawTextInWindowWithCursor(tweetMenu, 480, 480 - gridSize * 5, 160, menuCursor, useriCtx);
+    // press z key
     if (isKeyPressedNow("z") && animeCount === 0) {
-      isFighting = false;
-      mainWindowText[0] = "";
-      mainWindowText[1] = "";
-      setTransition("title");
+      if (menuCursor === 0) {
+        isFighting = false;
+        setTransition("title");
+      }
+      else {
+        tweet();
+      }
     }
   },
 
@@ -2596,8 +2631,57 @@ let sceneList = {
     if (isKeyPressedNow("z") && animeCount === 0) {
       setTransition("map");
     }
-  }
+  },
 
+  // scene:clear（クリア！）----------------------------------------------------
+  "clear": () => {
+    if (sceneInit) {
+      sceneInit = false;
+      // background
+      backgCtx.drawImage(backImage, 0, 0);
+      // clear flag
+      gameClear = true;
+      // text
+      windowImage = merchantFaceImage;
+      mainWindowText[0] = "「クリアおめでとー！」";
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
+      // buffer
+      animeCount = 16;
+    }
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    drawAnimation(merchantBossImage3, merchantBossImage4, enemyX, characterY, charaCtx);
+    drawAnimation(goldenAppleImage1, goldenAppleImage2, 256, characterY, charaCtx);
+    if (animeCount === 0) zkeyAnime();
+    if (isKeyPressedNow("z") && animeCount === 0) {
+      setScene("cleartweetmenu");
+    }
+  },
+
+  "cleartweetmenu": () => {
+    if (sceneInit) {
+      sceneInit = false;
+    }
+    // animation
+    fighter.drawAnime(fighterX, characterY, charaCtx);
+    drawAnimation(merchantBossImage3, merchantBossImage4, enemyX, characterY, charaCtx);
+    drawAnimation(goldenAppleImage1, goldenAppleImage2, 256, characterY, charaCtx);
+    // menu
+    if (isKeyPressedNow("u")) menuCursor--;
+    if (isKeyPressedNow("d")) menuCursor++;
+    if (menuCursor < 0) menuCursor = 1;
+    if (menuCursor > 1) menuCursor = 0;
+    drawTextInWindowWithCursor(tweetMenu, 480, 480 - gridSize * 5, 160, menuCursor, useriCtx);
+    // press z key
+    if (isKeyPressedNow("z")) {
+      if (menuCursor === 0) {
+        setTransition("title");
+      }
+      else {
+        tweet();
+      }
+    }
+  }
 };
 
 // scene list ここまで ==============================================================
