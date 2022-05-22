@@ -10,6 +10,7 @@
     <meta property="og:image" content="https://github.com/tsukatomo/dungeon_battle/blob/main/docs/img/fighter1.png?raw=true">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:site" content="@katsudontkd">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>だんじょん・ばとる</title>
 </head>
 <body>
@@ -20,8 +21,11 @@
     <canvas id="useri_lay" width="640" height="480"></canvas>
     <canvas id="trans_lay" width="640" height="480"></canvas>
   </div>
+  <div id="button_canv">
+    <canvas id="btn" width="160" height="120"></canvas>
+  </div>
   <p style="text-align:center;font-family:'筑紫a丸ゴシック',system-ui">
-    ダンジョンでバトルするゲームです。※PC専用。ただいま製作中
+    ダンジョンでバトルするゲームです。※ただいま製作中
   </p>
   <div id="howto">
     <table style="font-family:'筑紫a丸ゴシック',system-ui">
@@ -52,15 +56,52 @@
     html {
       touch-action: manipulation;
     }
-    #canv {
-      width: 640px;
-      height: 480px;
-      position: relative;
-      border: 2px solid black;
-      margin-left: auto;
-      margin-right: auto;
+    /* pc */
+    @media (min-width: 768px) {
+      #canv {
+        width: 640px;
+        height: 480px;
+        position: relative;
+        border: 2px solid black;
+        margin-left: auto;
+        margin-right: auto;
+        image-rendering: pixelated;
+      }
+      #canv canvas { position: absolute; }
+      #button_canv {
+        display: none !important;
+      }      
     }
-    canvas { position: absolute; }
+    /* sp */
+    @media (max-width: 767px) {
+      #canv {
+        width: 320px;
+        height: 240px;
+        position: relative;
+        margin-left: auto;
+        margin-right: auto;
+        image-rendering: pixelated;
+      }
+      #canv canvas {
+        width: 100%;
+        height: auto;
+        position: absolute;
+      }
+      #button_canv {
+        width: 90%;
+        height: auto;
+        position: relative;
+        align-items: center;
+        margin-left: auto;
+        margin-right: auto;
+        image-rendering: pixelated;
+      }
+      #button_canv canvas {
+        width: 100%;
+        height: auto;
+        position: relative;
+      }
+    }
     #backg_lay { z-index: 1; }
     #chara_lay { z-index: 2; }
     #useri_lay { z-index: 3; }

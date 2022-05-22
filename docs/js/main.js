@@ -17,6 +17,10 @@ const useriCtx = useriLay.getContext("2d");
 const transLay = document.getElementById("trans_lay");
 const transCtx = transLay.getContext("2d");
 
+// canvas - button
+// canvas - transition layer
+const btnLay = document.getElementById("btn");
+const btnCtx = btnLay.getContext("2d");
 
 
 // get resouce path
@@ -287,6 +291,12 @@ let goldenAppleImage2 = new Image();
 goldenAppleImage1.src = "./img/goldenapple1.png";
 goldenAppleImage2.src = "./img/goldenapple2.png";
 
+// image - button
+let buttonImage = new Image();
+buttonImage.src = "./img/button.png";
+
+
+
 // some variables 
 // for window
 const gridSize = 32; // grid cell
@@ -310,6 +320,7 @@ let keyInput = [];
 let keyPressed = [];
 let keyPressedPrevious = [];
 let keyInterval = 0;
+let buttonPressed;
 // for some uses
 const counterMax = 100; // timeCounter counts 0 - counterMax-1
 let timeCounter = 0; // time counter in game loop
@@ -672,7 +683,7 @@ let enemyData = {
         enemyStrategyCategory = "none";
       }
       else {
-        damageAmount = enemy.dealAttackDamage(fighter, 14);
+        damageAmount = enemy.dealAttackDamage(fighter, 12);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -714,7 +725,7 @@ let enemyData = {
   },
   "death": {
     name: "シニガミ",
-    hp: 180,
+    hp: 160,
     image1: deathImage1,
     image2: deathImage2,
     floor_min: 3,
@@ -762,7 +773,7 @@ let enemyData = {
         mainWindowText[1] = "……が、どうやらMP切れのようだ";
       }
       else {
-        damageAmount = enemy.dealAttackDamage(fighter, 10);
+        damageAmount = enemy.dealAttackDamage(fighter, 8);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "は" + fighter.name + "を杖で殴った！";
       }
@@ -802,7 +813,7 @@ let enemyData = {
           mainWindowText[0] = "「うーん、ちょっとピンチかもー？」"  
         }
         else {
-          damageAmount = enemy.dealAttackDamage(fighter, randInt(16, 20));
+          damageAmount = enemy.dealAttackDamage(fighter, randInt(12, 16));
           enemyStrategyCategory = "attack";
           mainWindowText[0] = enemy.name + "の攻撃！";
         }
@@ -810,7 +821,7 @@ let enemyData = {
       // after resurrection
       else {
         if (enemyStrategyParam % 3 === 0) {
-          damageAmount = enemy.dealAttackDamage(fighter, randInt(26, 30));
+          damageAmount = enemy.dealAttackDamage(fighter, 26);
           enemyStrategyCategory = "attack";
           mainWindowText[0] = enemy.name + "の攻撃！";
         }
@@ -914,7 +925,7 @@ let magicData = {
     name: "サンサン",
     mp: 3,
     image: magicThreeImage,
-    description: "固定3ダメージ。コレで敵を倒すとLvが3増える。",
+    description: "固定3ダメージ。コレで敵を倒すとLvが追加で1増える。",
     effect: () => {
       damageAmount = 3;
       enemy.addHp(-damageAmount);
@@ -1106,7 +1117,6 @@ let oyakudachiInfo = [
   ["『なぐる』の威力はキミのLv+5だよー」", ""],
   ["敵に勝つとレベルアップ！", "最大HPとMPが増えるよー」"],
   ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"],
-  ["レンチンの行動に気をつけてねー", "6ターンに1回放電してくるよー」"],
   ["敵をなぐるとMPが1増えるよー」", ""],
   ["固定ダメージはバフやデバフの", "影響を受けないよー」"],
   ["一部のどうぐは戦闘中以外でも", "Sキーのメニューから使えるよー」"],
@@ -1430,6 +1440,66 @@ window.onkeyup = function (e) {
   }
 };
 
+
+
+// get touch event
+let buttonList = {
+  "u": { x:  24, y: 24 },
+  "d": { x:  24, y: 72 },
+  "l": { x:   0, y: 48 },
+  "r": { x:  48, y: 48 },
+  "z": { x: 136, y: 48 },
+  "x": { x: 112, y: 72 },
+  "a": { x:  88, y: 48 },
+  "s": { x: 112, y: 24 }
+};
+
+let pushButton = function(evt) {
+  evt.preventDefault();
+  console.log("touch start!");
+  // タッチ位置リストの取得
+  const touches = evt.changedTouches;
+  // btnLayの位置情報を取得
+  const btnLayRect = evt.target.getBoundingClientRect();
+  for (let i = 0; i < touches.length; i++) {
+    console.log("client:", touches[i].clientX, touches[i].clientY);
+    //console.log("page:", touches[i].pageX, touches[i].pageY);
+    //console.log("screen:", touches[i].screenX, touches[i].screenY);
+    // ブラウザ上のbtnLayにおけるタッチ座標を求める
+    const viewX = touches[i].clientX - btnLayRect.left;
+    const viewY = touches[i].clientY - btnLayRect.top;
+    // 実物とブラウザ上のbtnLayのサイズ比率を求める
+    const ratioX = btnLay.width / btnLay.clientWidth;
+    const ratioY = btnLay.height / btnLay.clientHeight;
+    // ブラウザ上のタッチ座標を実物のbtnLay上の座標に変換
+    const canvX = Math.floor(viewX * ratioX);
+    const canvY = Math.floor(viewY * ratioY);
+    console.log("canvas:", canvX, canvY);
+    // タッチ位置にあるボタンを取得
+    buttonPressed = "";
+    const buttonKeys = Object.keys(buttonList);
+    for (let i = 0; i < buttonKeys.length; i++) {
+      if (canvX < buttonList[buttonKeys[i]].x || buttonList[buttonKeys[i]].x + 24 < canvX) continue;
+      if (canvY < buttonList[buttonKeys[i]].y || buttonList[buttonKeys[i]].y + 24 < canvY) continue;
+      buttonPressed = buttonKeys[i];
+      break;
+    }
+    console.log("pressed:", buttonPressed);
+    if (buttonPressed === "") return;
+    // 入力リストにボタンを追加
+    if (keyInput.indexOf(buttonPressed) == -1) keyInput.push(buttonPressed);
+  }
+};
+
+let releaseButton = function(evt) {
+  // 入力リストからボタンを削除
+  idx = keyInput.indexOf(buttonPressed);
+  if (idx != -1) keyInput.splice(idx, 1);
+};
+
+btnLay.addEventListener("touchstart", pushButton, false);
+btnLay.addEventListener("touchend", releaseButton, false);
+
 // check if the key pressed in this loop
 let isKeyPressedNow = function(key) {
   if (subScene != "none") return false; // サブシーン中はキー入力を受け付けない
@@ -1464,6 +1534,7 @@ let drawAnimation = function (image1, image2, posX, posY, ctx) {
 let fixCoordinate = function (num) {
   return dotSize * Math.floor(num / dotSize);
 }
+
 
 
 // z key animation
@@ -1532,6 +1603,7 @@ let setTransition = function (nextscene) {
   transAnimeCount = transAnimeCountInit;
   sceneAfterTrans = nextscene;
 };
+
 
 
 /* defined in "mazegen.js"
@@ -2188,7 +2260,6 @@ let sceneList = {
       if (isSansanFatal) { // まほう「サンサン」で致命を取ったとき
         isSansanFatal = false;
         levelUp();
-        levelUp();
       }
       // gain money
       let gainMoney = randInt(20, 30);
@@ -2244,6 +2315,7 @@ let sceneList = {
       mainWindowText[0] = fighter.name + "は死んでしまった……";
       mainWindowText[1] = "";
       mainWindowText[2] = "";
+      menuCursor = 0;
     }
     // update
     drawAnimation(yarareImage1, yarareImage2, fighterX + 32, characterY, charaCtx); // ohaka
@@ -2661,6 +2733,7 @@ let sceneList = {
   "cleartweetmenu": () => {
     if (sceneInit) {
       sceneInit = false;
+      menuCursor = 0;
     }
     // animation
     fighter.drawAnime(fighterX, characterY, charaCtx);
@@ -2996,6 +3069,7 @@ window.onload = function() {
   //console.log("a");
   scene = "title";
   sceneInit = true;
+  btnCtx.drawImage(buttonImage, 0, 0);
   initParam();
   setInterval(gameLoop, 10);
 };
