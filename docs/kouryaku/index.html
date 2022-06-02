@@ -1,0 +1,628 @@
+<!DOCTYPE HTML>
+<html>
+  <head prefix="og: http://ogp.me/ns#">
+    <meta charset="utf-8">
+    <meta property="og:site_name" content="だんじょん・ばとるWiki">
+    <meta property="og:title" content="だんじょん・ばとるWiki">
+    <meta property="og:description" content="ダンジョンでバトルするゲームの攻略サイト。製作中">
+    <meta property="og:url" content="https://tsukatomo.github.io/dungeon_battle/kouryaku">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="https://github.com/tsukatomo/dungeon_battle/blob/main/docs/img/fighter1.png?raw=true">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@katsudontkd">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>だんじょん・ばとるWiki</title>
+</head>
+<body>
+
+  <h1 style="text-align:center">だんじょん・ばとるWiki</h1>
+  
+  <p>
+    だんじょん・ばとるの攻略サイトです。随時更新
+  </p>
+  <a href="https://tsukatomo.github.io/dungeon_battle">ゲーム本編はコチラ</a>
+  
+  <h2>闘士</h2>
+  <div id="imagebox"><img src="../img/fighter1.png" alt="闘士の画像" title="闘士ちゃん"></div>
+  <p>
+    本作のプレイヤーキャラクター。己の技を磨くため、単身でだんじょんに潜る。
+  </p>
+  <ul>
+    <li>初期ステータス: HP 45/45, MP 6, 所持金 50円</li>
+    <li>所持まほう: フレイム</li>
+    <li>所持どうぐ: くだもの×1</li>
+  </ul>
+  <h2>だんじょん</h2>
+  
+  <h3>マップ</h3>
+  
+  <ul>
+    <li>全4階。4階を制覇すればゲームクリア。</li>
+    <li>各階には<b>戦闘・ジェム・ショップ</b>のアイコンが点在している。アイコンを踏むと対応するイベントが発生。</li>
+    <ul>
+      <li>1~3階: 戦闘×4、ジェム×2、ショップ×1</li>
+      <li>4階: ジェム×1、戦闘×1（固定マップ）</li>
+    </ul>
+    <li>アイコンは<b>一度踏むと消滅する。</b>踏む順番に気をつけよう。</li>
+  </ul>
+  
+  <h3>戦闘</h3>
+  
+  <img src="../img/icon_enemy.png" alt="戦闘のアイコン" title="戦闘のアイコン">
+  <p>敵が立ちはだかる！ばとるで蹴散らせ！</p>
+  <ul>
+    <li>闘士は自分のターンに以下の行動が可能。</li>
+    <ul>
+      <li>なぐる……ゲンコツ！　敵に(闘士のLv)+5のダメージを与え、MPを1得る。</li>
+      <li>まほう……覚えているまほうを一つ選んで発動。MPを消費する。</li>
+      <li>どうぐ……持っているどうぐを一つ使用する。</li>
+    </ul>
+    <li>闘士のターンが終わると敵のターンになる。敵は闘士にダメージを与えるほか、バフやデバフを使用してくることがある。</li>
+    <li>敵のHPを0にすると勝利。闘士のLvが上がり、報酬としてお金（+どうぐ）を獲得できる。</li>
+    <li>闘士のHPが0になるとゲームオーバー。だんじょん入口からやり直し。</li>
+    <li><b>だんじょんを進めば進むほど敵は手強くなっていく。</b>しっかりとLvを上げながら進もう。</li>
+  </ul>
+  
+  <h3>ジェム</h3>
+  
+  <img src="../img/icon_gem.png" alt="ジェムのアイコン" title="ジェムのアイコン">
+  <p>ジェムパワーを授かれる。以下の3つから1つだけ選択。</p>
+  <ul>
+    <li>かいふく……闘士のHPを最大HPの50%だけ回復する。</li>
+    <li>ほきゅう……MP+5。</li>
+    <li>くらふと……ランダムなどうぐを獲得する。4分の1の確率でどうぐを2個獲得できる（種類は同じ）。</li>
+  </ul>
+  
+  <h3>ショップ</h3>
+  
+  <img src="../img/icon_shop.png" alt="ショップのアイコン" title="ショップのアイコン">
+  <p>謎の商人が経営するショップ。お金を払ってまほうやどうぐを購入できる。</p>
+  <ul>
+    <li>品揃えの内訳はまほう×3、どうぐ×2。</li>
+    <li>まほうは40~50円、どうぐは20~30円でそれぞれ購入可能。</li>
+    <li>商人に話しかけると攻略情報を聞ける。</li>
+  </ul>
+  
+  <h2>データ</h2>
+  
+  <p>ゲーム中では特に言及されていないデータたち。</p>
+
+  <h3>ステータスアイコン一覧</h3>
+  <p>Xはアイコン右側の数字を指す。</p>
+  <table>
+    <colgroup span="2"></colgroup>
+    <tr>
+      <th>アイコン</th>
+      <th>効果</th>
+    </tr>
+    <tr>
+      <td><img id="statusimg" src="../img/status_stun.png"></td>
+      <td>Xターンの間行動不能。</td>
+    </tr>
+    <tr>
+      <td><img id="statusimg" src="../img/status_power.png"></td>
+      <td>次のX回の攻撃（なぐる）の威力は2倍。</td>
+    </tr>
+    <tr>
+      <td><img id="statusimg" src="../img/status_weak.png"></td>
+      <td>次のX回の攻撃（なぐる）の威力は2分の1。</td>
+    </tr>
+    <tr>
+      <td><img id="statusimg" src="../img/status_shield.png"></td>
+      <td>Xターンの間、攻撃（なぐる）から受けるダメージを半分にする。</td>
+    </tr>
+    <tr>
+      <td><img id="statusimg" src="../img/status_magicshield.png"></td>
+      <td>Xターンの間、まほうから受けるダメージを半分にする。</td>
+    </tr>
+    <tr>
+      <td><img id="statusimg" src="../img/status_mirror.png"></td>
+      <td>次のX回のまほうの威力は2倍。</td>
+    </tr>
+    <tr>
+      <td><img id="statusimg" src="../img/status_regen.png"></td>
+      <td>Xターンの間、最大HPの20%を回復。</td>
+    </tr>
+    <tr>
+      <td><img id="statusimg" src="../img/status_silence.png"></td>
+      <td>Xターンの間、まほうを使用できない。</td>
+    </tr>
+  </table>
+  
+  <h3>まほう一覧</h3>
+  
+  <ul>
+    <li>敵にダメージを与える「こうげきまほう」と、回復やステータス付与を行う「ほじょまほう」の2種類が存在する。</li>
+    <li>こうげきまほうのダメージは<b>（基礎ダメージ）＋（闘士のLv）×（Lvボーナス）</b>で算出される。</li>
+    <li>ゲーム開始時点では「フレイム」のみ使用可能。他はショップで買うと使えるようになる。</li>
+  </ul>
+  
+  <h4>こうげきまほう</h4>
+  <table>
+    <colgroup span="6"></colgroup>
+    <tr>
+      <th>名前</th>
+      <th>画像</th>
+      <th>消費MP</th>
+      <th>基礎ダメージ</th>
+      <th>Lvボーナス</th>
+      <th>追加効果など</th>
+    </tr>
+    <tr>
+      <td>フレイム</td>
+      <td><img src="../img/magic_flame.png" width="32px" height="32px"></td>
+      <td>3</td>
+      <td>8</td>
+      <td>×2</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>パチパチ</td>
+      <td><img src="../img/magic_pachi.png" width="32px" height="32px"></td>
+      <td>1</td>
+      <td>4</td>
+      <td>×0</td>
+      <td>80%の確率で敵に<img src="../img/status_stun.png" width="16px" height="16px">1を付与。</td>
+    </tr>
+    <tr>
+      <td>ビリビリ</td>
+      <td><img src="../img/magic_thunder.png" width="32px" height="32px"></td>
+      <td>4</td>
+      <td>6</td>
+      <td>×1</td>
+      <td>50%の確率で敵に<img src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
+    </tr>
+    <tr>
+      <td rowspan="2">ジンクス</td>
+      <td rowspan="2"><img src="../img/magic_jinx.png" width="32px" height="32px"></td>
+      <td rowspan="2">5</td>
+      <td>50</td>
+      <td>×2</td>
+      <td>敵に<img src="../img/status_stun.png" width="16px" height="16px">or<img src="../img/status_weak.png" width="16px" height="16px">が付与されているとき</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>×0</td>
+      <td>それ以外</td>
+    </tr>
+    <tr>
+      <td>サンサン</td>
+      <td><img src="../img/magic_sansan.png" width="32px" height="32px"></td>
+      <td>3</td>
+      <td>3（固定）</td>
+      <td>×0</td>
+      <td>これで敵を倒すと闘士のLvが追加で1上昇する。</td>
+    </tr>
+    <tr>
+      <td>マネマネ</td>
+      <td><img src="../img/magic_money.png" width="32px" height="32px"></td>
+      <td>3</td>
+      <td>所持金の50%</td>
+      <td>×0</td>
+      <td>所持金が20%減少。</td>
+    </tr>
+    <tr>
+      <td>バースト</td>
+      <td><img src="../img/magic_burst.png" width="32px" height="32px"></td>
+      <td>ALL</td>
+      <td>MP×6</td>
+      <td>×0</td>
+      <td>MPを全て消費。</td>
+    </tr>
+  </table>
+
+  <h4>ほじょまほう</h4>
+  <table>
+    <colgroup span="4"></colgroup>
+    <tr>
+      <th>名前</th>
+      <th>画像</th>
+      <th>消費MP</th>
+      <th>効果</th>
+    </tr>
+    <tr>
+      <td>カイフク</td>
+      <td><img src="../img/magic_heal.png" width="32px" height="32px"></td>
+      <td>5</td>
+      <td>最大HPの50%を回復する。</td>
+    </tr>
+    <tr>
+      <td>リジェネ</td>
+      <td><img src="../img/magic_regen.png" width="32px" height="32px"></td>
+      <td>7</td>
+      <td>闘士に<img src="../img/status_regen.png" width="16px" height="16px">4を付与。</td>
+    </tr>
+    <tr>
+      <td>シールド</td>
+      <td><img src="../img/magic_shield.png" width="32px" height="32px"></td>
+      <td>3</td>
+      <td>闘士に<img src="../img/status_shield.png" width="16px" height="16px">5を付与。</td>
+    </tr>
+    <tr>
+      <td>ムキムキ</td>
+      <td><img src="../img/magic_power.png" width="32px" height="32px"></td>
+      <td>3</td>
+      <td>闘士に<img src="../img/status_power.png" width="16px" height="16px">2を付与。</td>
+    </tr>
+    <tr>
+      <td>ヘナヘナ</td>
+      <td><img src="../img/magic_hena.png" width="32px" height="32px"></td>
+      <td>2</td>
+      <td>敵に<img src="../img/status_weak.png" width="16px" height="16px">3を付与。</td>
+    </tr>
+  </table>
+
+  <h3>どうぐ一覧</h3>
+
+  <ul>
+    <li>使い捨て。ショップ・敵のドロップ・ジェムの「くらふと」により入手可能。</li>
+    <li>一部のどうぐは戦闘中以外でもSキーのメニューから使用可能。</li>
+  </ul>
+  <table>
+    <colgroup span="4"></colgroup>
+    <tr>
+      <th>名前</th>
+      <th>画像</th>
+      <th>戦闘外での使用</th>
+      <th>効果</th>
+    </tr>
+    <tr>
+      <td>くだもの</td>
+      <td><img src="../img/tool_apple.png" width="32px" height="32px"></td>
+      <td>○</td>
+      <td>最大HPの50%を回復する。HPが満タンの時に使うと最大HP＋6。</td>
+    </tr>
+    <tr>
+      <td>あおじる</td>
+      <td><img src="../img/tool_potion.png" width="32px" height="32px"></td>
+      <td>○</td>
+      <td>MP＋5。</td>
+    </tr>
+    <tr>
+      <td>てかがみ</td>
+      <td><img src="../img/tool_mirror.png" width="32px" height="32px"></td>
+      <td>×</td>
+      <td>闘士に<img src="../img/status_mirror.png" width="16px" height="16px">1を付与。</td>
+    </tr>
+    <tr>
+      <td>ばくだん</td>
+      <td><img src="../img/tool_bomb.png" width="32px" height="32px"></td>
+      <td>×</td>
+      <td>敵に25の固定ダメージを与える。</td>
+    </tr>
+    <tr>
+      <td>さいころ</td>
+      <td><img src="../img/tool_dice.png" width="32px" height="32px"></td>
+      <td>×</td>
+      <td>覚えているまほうの内1つをランダムに発動する。MPは消費しない。</td>
+    </tr>
+    <tr>
+      <td>でんげん</td>
+      <td><img src="../img/tool_battery.png" width="32px" height="32px"></td>
+      <td>×</td>
+      <td>敵に<img src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
+    </tr>
+  </table>
+  
+  <h3>敵一覧</h3>
+  <p>だんじょんに住まう敵の一覧。</p>
+
+  <h4>スライム</h4>
+  <div id="imagebox"><img src="../img/slime1.png" alt="敵の画像" title="スライム"></div>
+  <ul>
+    <li>出現階層: 1F（最初の2戦のみ）</li>
+    <li>HP: 16</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>攻撃</td><td>7ダメージを与える。</td>
+    </tr>
+  </table>
+  
+  <h4>ちびゴブ</h4>
+  <div id="imagebox"><img src="../img/gob1.png" alt="敵の画像" title="ちびゴブ"></div>
+  <ul>
+    <li>出現階層: 1F</li>
+    <li>HP: 28</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>攻撃</td><td>5ダメージを与える。</td><td>自身のHPが25%以上のときに使用。</td>
+    </tr>
+    <tr>
+      <td>怒りの一撃</td><td>15ダメージを与える。</td><td>自身のHPが25%未満のときに使用。</td>
+    </tr>
+  </table>
+
+  <h4>コーヒー</h4>
+  <div id="imagebox"><img src="../img/coffee1.png" alt="敵の画像" title="コーヒー"></div>
+  <ul>
+    <li>出現階層: 1F（後半2戦のみ）</li>
+    <li>HP: 36</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>攻撃</td>
+      <td>4-8ダメージを与える。</td>
+      <td>自身に<img id="statusimg" src="../img/status_shield.png">が付与されていないときに使用。</td>
+    </tr>
+    <tr>
+      <td>攻撃</td>
+      <td>6-10ダメージを与える。</td>
+      <td>自身に<img id="statusimg" src="../img/status_shield.png">が付与されているときに使用。</td>
+    </tr>
+    <tr>
+      <td>隠れる</td>
+      <td>自身に<img id="statusimg" src="../img/status_shield.png">2と<img id="statusimg" src="../img/status_magicshield.png">2を付与。</td>
+      <td>自身のHPが50%以下になったとき一度だけ使用。</td>
+    </tr>
+  </table>
+
+  <h4>モクモク</h4>
+  <div id="imagebox"><img src="../img/tree1.png" alt="敵の画像" title="モクモク"></div>
+  <ul>
+    <li>出現階層: 1F（後半2戦のみ）</li>
+    <li>HP: 50</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>攻撃</td>
+      <td>Xダメージを与える。</td>
+      <td>X=行動回数</td>
+    </tr>
+  </table>
+
+  <h4>やどクジ</h4>
+  <div id="imagebox"><img src="../img/yadotsumu1.png" alt="敵の画像" title="やどクジ"></div>
+  <ul>
+    <li>出現階層: 2F</li>
+    <li>HP: 80</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>攻撃</td>
+      <td>13ダメージを与える。</td>
+      <td>3n,3n+1回目の行動時に使用。(nは整数)</td>
+    </tr>
+    <tr>
+      <td>ネトネト攻撃</td>
+      <td>闘士に<img id="statusimg" src="../img/status_weak.png">2を与える。</td>
+      <td>3n+2回目の行動時に使用。(nは整数)</td>
+    </tr>
+  </table>
+
+  <h4>ようせい</h4>
+  <div id="imagebox"><img src="../img/fairy1.png" alt="敵の画像" title="ようせい"></div>
+  <ul>
+    <li>出現階層: 2F</li>
+    <li>HP: 40</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>攻撃</td>
+      <td>4-8ダメージを与える。</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>回復</td>
+      <td>自身のHPを15回復する。</td>
+      <td>自身のHPが50%未満になったとき、3回まで使用。</td>
+    </tr>
+  </table>
+
+  <h4>タテグサ</h4>
+  <div id="imagebox"><img src="../img/shieldkusa1.png" alt="敵の画像" title="タテグサ"></div>
+  <ul>
+    <li>出現階層: 2F</li>
+    <li>HP: 90</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>ぶつりシールド</td>
+      <td>自身に<img id="statusimg" src="../img/status_shield.png">2を付与。</td>
+      <td>奇数回目の行動時に50%の確率で使用。</td>
+    </tr>
+    <tr>
+      <td>まほうシールド</td>
+      <td>自身に<img id="statusimg" src="../img/status_magicshield.png">2を付与。</td>
+      <td>奇数回目の行動時に50%の確率で使用。</td>
+    </tr>
+    <tr>
+      <td>攻撃</td>
+      <td>12ダメージを与える。</td>
+      <td>偶数回目の行動時に使用。</td>
+    </tr>
+  </table>
+
+  <h4>まほスラ</h4>
+  <div id="imagebox"><img src="../img/mahoslime1.png" alt="敵の画像" title="まほスラ"></div>
+  <ul>
+    <li>出現階層: 2~3F</li>
+    <li>HP: 96</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>チンモク</td>
+      <td>闘士に<img id="statusimg" src="../img/status_silence.png">3を付与。</td>
+      <td>1回目の行動時に使用。</td>
+    </tr>
+    <tr>
+      <td>カイフク</td>
+      <td>自身のHPを48回復。</td>
+      <td>自身のHPが50%以下でカイフクを未使用のとき、一度だけ使用。</td>
+    </tr>
+    <tr>
+      <td>カイフク（不発）</td>
+      <td>何もしない</td>
+      <td>自身のHPが50%以下でカイフクを使用済みのとき、一度だけ使用。</td>
+    </tr>
+    <tr>
+      <td>攻撃</td>
+      <td>8ダメージを与える。</td>
+      <td></td>
+    </tr>
+  </table>
+
+  <h4>レンチン</h4>
+  <div id="imagebox"><img src="../img/renchin1.png" alt="敵の画像" title="レンチン"></div>
+  <ul>
+    <li>出現階層: 3F</li>
+    <li>HP: 120</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>攻撃</td>
+      <td>5ダメージを与える。</td>
+      <td>奇数回目の行動時に使用。</td>
+    </tr>
+    <tr>
+      <td>ヒートアタック</td>
+      <td>12ダメージを与える。</td>
+      <td>6の倍数を除く偶数回目の行動時に使用。</td>
+    </tr>
+    <tr>
+      <td>放電</td>
+      <td>7ダメージを与え、闘士に<img id="statusimg" src="../img/status_stun.png">2を付与。</td>
+      <td>6の倍数回目の行動時に使用。</td>
+    </tr>
+  </table>
+
+  <h4>ドラゴン</h4>
+  <div id="imagebox"><img src="../img/dragon1.png" alt="敵の画像" title="ドラゴン"></div>
+  <ul>
+    <li>出現階層: 3F</li>
+    <li>HP: 156</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>引っ掻き攻撃</td>
+      <td>7ダメージを与える。</td>
+      <td>1回目の行動時に使用。<br>ファイアブレスの次に使用。</td>
+    </tr>
+    <tr>
+      <td>チャージ</td>
+      <td>何もしない。</td>
+      <td>引っ掻き攻撃の次に使用。<br>覚醒の次に使用。</td>
+    </tr>
+    <tr>
+      <td>ファイアブレス</td>
+      <td>20ダメージを与える。</td>
+      <td>チャージの次に使用。</td>
+    </tr>
+    <tr>
+      <td>覚醒</td>
+      <td>自身に<img id="statusimg" src="../img/status_power.png">99を付与。</td>
+      <td>自身のHPが50%以下になったとき一度だけ使用。</td>
+    </tr>
+  </table>
+
+  <h4>シニガミ</h4>
+  <div id="imagebox"><img src="../img/death1.png" alt="敵の画像" title="シニガミ"></div>
+  <ul>
+    <li>出現階層: 3F</li>
+    <li>HP: 160</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>死のカウントダウン</td>
+      <td>何もしない。</td>
+      <td>1-6回目の行動時に使用。</td>
+    </tr>
+    <tr>
+      <td>死</td>
+      <td>999999ダメージを与える。</td>
+      <td>7回目以降の行動時に使用。</td>
+    </tr>
+  </table>
+
+  <h4>商人</h4>
+  <div id="imagebox">
+    <img src="../img/merchant_boss3.png" alt="敵の画像" title="商人ちゃん">
+    <img src="../img/merchant_boss1.png" alt="敵の画像" title="商人ちゃん第２形態">
+  </div>
+  <ul>
+    <li>出現階層: 4F</li>
+    <li>HP: 200+200</li>
+  </ul>
+  <table>
+    <caption>行動パターン（復活前）</caption>
+    <tr>
+      <td>攻撃</td>
+      <td>12-16ダメージを与える。</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>護身（ぶつり）</td>
+      <td>自身に<img id="statusimg" src="../img/status_shield.png">4を付与。</td>
+      <td>自身のHPが50%以下で闘士のMPが10以下のとき、一度だけ使用。</td>
+    </tr>
+    <tr>
+      <td>護身（まほう）</td>
+      <td>自身に<img id="statusimg" src="../img/status_magicshield.png">4を付与。</td>
+      <td>自身のHPが50%以下で闘士のMPが10より大きいとき、一度だけ使用。</td>
+    </tr>
+    <tr>
+      <td>復活</td>
+      <td>自身のHPを完全に回復する。</td>
+      <td>自身のHPが0になったとき使用。以降は復活後の行動パターンになる。</td>
+    </tr>
+  </table>
+  <br>
+  <table>
+    <caption>行動パターン（復活後）</caption>
+    <tr>
+      <td>攻撃</td>
+      <td>26ダメージを与える。</td>
+      <td>復活後1ターン目に使用。<br>気合溜めの次に使用。</td>
+    </tr>
+    <tr>
+      <td>まほう乱舞</td>
+      <td>自身に<img id="statusimg" src="../img/status_magicshield.png">2を付与。<br>闘士に<img id="statusimg" src="../img/status_weak.png">1を付与。</td>
+      <td>攻撃の次に使用。</td>
+    </tr>
+    <tr>
+      <td>気合溜め</td>
+      <td>自身に<img id="statusimg" src="../img/status_power.png">1を付与。</td>
+      <td>まほう乱舞の次に使用。</td>
+    </tr>
+  </table>
+
+
+<style>
+    body {
+      font-size: large;
+      font-family: '筑紫a丸ゴシック', system-ui;
+      line-height: 1.5;
+    }
+    #imagebox{
+      padding: 4px;
+      width: 128px;
+      background-color: #2a2349;
+      border-radius: 4px;
+    }
+    #statusimg{
+      width: 16px;
+      height: 16px;
+    }
+    table {
+      border-collapse: collapse;
+      border-spacing: 0;
+    }
+    table, tr, th, td {
+      padding: 0.5em;
+      border: 1px solid black;
+    }
+  </style>
+</body>
+</html>

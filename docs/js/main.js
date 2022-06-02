@@ -1456,13 +1456,13 @@ let buttonList = {
 
 let pushButton = function(evt) {
   evt.preventDefault();
-  console.log("touch start!");
+  //console.log("touch start!");
   // タッチ位置リストの取得
   const touches = evt.changedTouches;
   // btnLayの位置情報を取得
   const btnLayRect = evt.target.getBoundingClientRect();
   for (let i = 0; i < touches.length; i++) {
-    console.log("client:", touches[i].clientX, touches[i].clientY);
+    //console.log("client:", touches[i].clientX, touches[i].clientY);
     //console.log("page:", touches[i].pageX, touches[i].pageY);
     //console.log("screen:", touches[i].screenX, touches[i].screenY);
     // ブラウザ上のbtnLayにおけるタッチ座標を求める
@@ -1474,7 +1474,7 @@ let pushButton = function(evt) {
     // ブラウザ上のタッチ座標を実物のbtnLay上の座標に変換
     const canvX = Math.floor(viewX * ratioX);
     const canvY = Math.floor(viewY * ratioY);
-    console.log("canvas:", canvX, canvY);
+    //console.log("canvas:", canvX, canvY);
     // タッチ位置にあるボタンを取得
     buttonPressed = "";
     const buttonKeys = Object.keys(buttonList);
@@ -1497,8 +1497,15 @@ let releaseButton = function(evt) {
   if (idx != -1) keyInput.splice(idx, 1);
 };
 
+let cancelButton = function(evt) {
+  // 入力リストからボタンを削除
+  idx = keyInput.indexOf(buttonPressed);
+  if (idx != -1) keyInput.splice(idx, 1);
+};
+
 btnLay.addEventListener("touchstart", pushButton, false);
 btnLay.addEventListener("touchend", releaseButton, false);
+btnLay.addEventListener("touchcancel", cancelButton, false);
 
 // check if the key pressed in this loop
 let isKeyPressedNow = function(key) {
@@ -1617,6 +1624,9 @@ let randInt = function(min, max) {
 
 // share to twitter
 let tweet = function () {
+  // reset key inputs
+  keyInput.length = 0;
+  // create tweet message
   let tweetmes;
   if (gameClear) {
     tweetmes = "だんじょんを踏破した！\n"
@@ -1626,7 +1636,9 @@ let tweet = function () {
   }
   tweetmes += "&url=https://tsukatomo.github.io/dungeon_battle";
   tweetmes += "&hashtags=だんじょん・ばとる";
-  window.open("https://twitter.com/intent/tweet?text=" + tweetmes,'_blank');
+  const url = "https://twitter.com/intent/tweet?text=" + tweetmes;
+  window.open(url, '_blank');
+  //window.location.href = url; // ポップアップしない場合
 };
 
 
@@ -2299,8 +2311,6 @@ let sceneList = {
     if (isKeyPressedNow("z") && animeCount === 0) {
       isFighting = false;
       setTransition("map");
-      //scene = "encount";
-      //sceneInit = true;
     }
   },
 
