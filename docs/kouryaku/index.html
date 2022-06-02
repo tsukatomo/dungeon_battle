@@ -387,12 +387,12 @@
     <tr>
       <td>攻撃</td>
       <td>13ダメージを与える。</td>
-      <td>3n,3n+1回目の行動時に使用。(nは整数)</td>
+      <td></td>
     </tr>
     <tr>
       <td>ネトネト攻撃</td>
       <td>闘士に<img id="statusimg" src="../img/status_weak.png">2を与える。</td>
-      <td>3n+2回目の行動時に使用。(nは整数)</td>
+      <td>2ターン目に使用。<br>以降3ターンごとに使用。</td>
     </tr>
   </table>
 
@@ -427,17 +427,17 @@
     <tr>
       <td>ぶつりシールド</td>
       <td>自身に<img id="statusimg" src="../img/status_shield.png">2を付与。</td>
-      <td>奇数回目の行動時に50%の確率で使用。</td>
+      <td>奇数回目の行動で50%の確率で使用。</td>
     </tr>
     <tr>
       <td>まほうシールド</td>
       <td>自身に<img id="statusimg" src="../img/status_magicshield.png">2を付与。</td>
-      <td>奇数回目の行動時に50%の確率で使用。</td>
+      <td>奇数回目の行動で50%の確率で使用。</td>
     </tr>
     <tr>
       <td>攻撃</td>
       <td>12ダメージを与える。</td>
-      <td>偶数回目の行動時に使用。</td>
+      <td>偶数回目の行動で使用。</td>
     </tr>
   </table>
 
@@ -452,7 +452,7 @@
     <tr>
       <td>チンモク</td>
       <td>闘士に<img id="statusimg" src="../img/status_silence.png">3を付与。</td>
-      <td>1回目の行動時に使用。</td>
+      <td>1回目の行動で使用。</td>
     </tr>
     <tr>
       <td>カイフク</td>
@@ -482,17 +482,17 @@
     <tr>
       <td>攻撃</td>
       <td>5ダメージを与える。</td>
-      <td>奇数回目の行動時に使用。</td>
+      <td>奇数回目の行動で使用。</td>
     </tr>
     <tr>
       <td>ヒートアタック</td>
       <td>12ダメージを与える。</td>
-      <td>6の倍数を除く偶数回目の行動時に使用。</td>
+      <td>6の倍数を除く偶数回目の行動で使用。</td>
     </tr>
     <tr>
       <td>放電</td>
       <td>7ダメージを与え、闘士に<img id="statusimg" src="../img/status_stun.png">2を付与。</td>
-      <td>6の倍数回目の行動時に使用。</td>
+      <td>6の倍数回目の行動で使用。</td>
     </tr>
   </table>
 
@@ -507,7 +507,7 @@
     <tr>
       <td>引っ掻き攻撃</td>
       <td>7ダメージを与える。</td>
-      <td>1回目の行動時に使用。<br>ファイアブレスの次に使用。</td>
+      <td>1回目の行動で使用。<br>ファイアブレスの次に使用。</td>
     </tr>
     <tr>
       <td>チャージ</td>
@@ -537,12 +537,12 @@
     <tr>
       <td>死のカウントダウン</td>
       <td>何もしない。</td>
-      <td>1-6回目の行動時に使用。</td>
+      <td>1-6回目の行動で使用。</td>
     </tr>
     <tr>
       <td>死</td>
       <td>999999ダメージを与える。</td>
-      <td>7回目以降の行動時に使用。</td>
+      <td>7回目以降の行動で使用。</td>
     </tr>
   </table>
 
@@ -565,12 +565,12 @@
     <tr>
       <td>護身（ぶつり）</td>
       <td>自身に<img id="statusimg" src="../img/status_shield.png">4を付与。</td>
-      <td>自身のHPが50%以下で闘士のMPが10以下のとき、一度だけ使用。</td>
+      <td>自身のHPが50%以下になったとき、闘士のMPが10以下ならば使用。</td>
     </tr>
     <tr>
       <td>護身（まほう）</td>
       <td>自身に<img id="statusimg" src="../img/status_magicshield.png">4を付与。</td>
-      <td>自身のHPが50%以下で闘士のMPが10より大きいとき、一度だけ使用。</td>
+      <td>自身のHPが50%以下になったとき、闘士のMPが10より大きいならば使用。</td>
     </tr>
     <tr>
       <td>復活</td>
@@ -584,7 +584,7 @@
     <tr>
       <td>攻撃</td>
       <td>26ダメージを与える。</td>
-      <td>復活後1ターン目に使用。<br>気合溜めの次に使用。</td>
+      <td>復活後最初の行動で使用。<br>気合溜めの次に使用。</td>
     </tr>
     <tr>
       <td>まほう乱舞</td>
