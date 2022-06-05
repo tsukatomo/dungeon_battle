@@ -59,6 +59,9 @@
     </ul>
     <li>闘士のターンが終わると敵のターンになる。敵は闘士にダメージを与えるほか、バフやデバフを使用してくることがある。</li>
     <li>敵のHPを0にすると勝利。闘士のLvが上がり、報酬としてお金（+どうぐ）を獲得できる。</li>
+    <ul>
+      <li>Lvが1上がると最大HPが4増加し、MPが1増える。</li>
+    </ul>
     <li>闘士のHPが0になるとゲームオーバー。だんじょん入口からやり直し。</li>
     <li><b>だんじょんを進めば進むほど敵は手強くなっていく。</b>しっかりとLvを上げながら進もう。</li>
   </ul>
@@ -610,10 +613,12 @@
       width: 128px;
       background-color: #2a2349;
       border-radius: 4px;
+      image-rendering: pixelated;
     }
     #statusimg{
       width: 16px;
       height: 16px;
+      image-rendering: pixelated;
     }
     table {
       border-collapse: collapse;
