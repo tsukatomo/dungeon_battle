@@ -2251,6 +2251,8 @@ let sceneList = {
         setScene("defeated");
       }
       else if (fighter.isStatusExist("stun")){
+        // start turn flag
+        isStartTurn = true;
         setScene("stunned");
       }
       else {
