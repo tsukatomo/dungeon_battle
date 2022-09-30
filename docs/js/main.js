@@ -131,6 +131,11 @@ let mahoSlimeImage1 = new Image();
 let mahoSlimeImage2 = new Image();
 mahoSlimeImage1.src = "./img/mahoslime1.png";
 mahoSlimeImage2.src = "./img/mahoslime2.png";
+// image - idol
+let idolImage1 = new Image();
+let idolImage2 = new Image();
+idolImage1.src = "./img/idol1.png";
+idolImage2.src = "./img/idol2.png";
 // image - merchant(boss)
 let merchantBossImage1 = new Image();
 let merchantBossImage2 = new Image();
@@ -745,13 +750,60 @@ let enemyData = {
       }
     }
   },
+  "idol": {
+    name: "アイドル",
+    hp: 120,
+    image1: idolImage1,
+    image2: idolImage2,
+    floor_min: 3,
+    floor_max: 3,
+    strategy: () => {
+      // 最初のターン：HPが少ないなら回復、そうでないならバフ付与
+      if (enemyStrategyParam === 0) {
+        if (fighter.hp * 4 < fighter.maxhp) {
+          fighterMp += 3;
+          fighter.addHp(Math.floor(fighter.maxhp / 2));
+          enemyStrategyCategory = "magic";
+          mainWindowText[0] = enemy.name + "は" + fighter.name + "を歌声で癒した！";
+          mainWindowText[1] = fighter.name + "のHPとMPが回復した！";
+        }
+        else {
+          fighter.addStatus("power", 2);
+          enemyStrategyCategory = "magic";
+          mainWindowText[0] = enemy.name + "は" + fighter.name + "を歌で鼓舞した！";
+          mainWindowText[1] = fighter.name + "はやる気に満ち溢れている！";
+        }
+      }
+      // 6ターンごとに再生3を得る（3回まで）
+      else if (enemyStrategyParam % 6 === 0 && enemyStrategyParam <= 18){
+        enemy.addStatus("regen", 3);
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "はキラキラ輝いている…………";
+        mainWindowText[1] = "(" + enemy.name + "はしばらくの間、体力を少しずつ回復する！)";
+      }
+      // 1/6の確率で沈黙1を付与
+      else if (randInt(0, 5) === 0){
+        fighter.addStatus("silence", 1);
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "は切ないバラードを歌っている……";
+        mainWindowText[1] = fighter.name + "は沈黙した！";
+      }
+      // 上のいずれにも当てはまらないなら攻撃
+      else {
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(12, 18));
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の激しいダンスパフォーマンス！";
+      }
+      enemyStrategyParam++;
+    }
+  },
   "mahoslime": {
     name: "まほスラ",
     hp: 96,
     image1: mahoSlimeImage1,
     image2: mahoSlimeImage2,
     floor_min: 2,
-    floor_max: 3,
+    floor_max: 2,
     strategy: () => {
       if (enemyStrategyParam === 0) {
         enemyStrategyParam++;
@@ -1808,7 +1860,7 @@ let sceneList = {
         encountList = ["slime", "gob"];
       }
       console.log(encountList);
-      //const eKey = "slime"; // テスト用（敵指定）
+      //const eKey = "idol"; // テスト用（敵指定）
       let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
