@@ -565,7 +565,7 @@ let enemyData = {
         enemy.image1 = coffeeImage1;
         enemy.image2 = coffeeImage2;
       }
-      if (enemyStrategyParam === 0 && enemy.hp * 2 <= enemy.maxhp) {
+      if (enemyStrategyParam === 0 && enemy.hp * 2 < enemy.maxhp) {
         enemy.addStatus("shield", 2);
         enemy.addStatus("m_shield", 2);
         enemyStrategyParam = 1;
@@ -603,7 +603,7 @@ let enemyData = {
     floor_min: 2,
     floor_max: 2,
     strategy: () => {
-      if (enemy.hp < enemy.maxhp / 2 && enemyStrategyParam < 3) {
+      if (enemy.hp * 2 < enemy.maxhp && enemyStrategyParam < 3) {
         enemyStrategyParam += 1;
         enemy.addHp(15);
         enemyStrategyCategory = "magic";
@@ -702,7 +702,7 @@ let enemyData = {
     floor_min: 3,
     floor_max: 3,
     strategy: () => {
-      if (enemy.hp * 2 <= enemy.maxhp && (!enemy.isStatusExist("power"))) {
+      if (enemy.hp * 2 < enemy.maxhp && (!enemy.isStatusExist("power"))) {
         enemyStrategyParam = 1;
         enemy.addStatus("power", 99);
         enemyStrategyCategory = "magic";
@@ -812,13 +812,13 @@ let enemyData = {
         mainWindowText[0] = enemy.name + "はチンモクを唱えた！";
         mainWindowText[1] = fighter.name + "はまほうを封じられた！";
       }
-      else if (enemyStrategyParam === 1 && enemy.hp * 2 <= enemy.maxhp) {
+      else if (enemyStrategyParam === 1 && enemy.hp * 2 < enemy.maxhp) {
         enemyStrategyParam++;
         enemy.addHp(Math.floor(enemy.maxhp / 2));
         enemyStrategyCategory = "magic";
         mainWindowText[0] = enemy.name + "はカイフクを唱えた！";
       }
-      else if (enemyStrategyParam === 2 && enemy.hp * 2 <= enemy.maxhp) {
+      else if (enemyStrategyParam === 2 && enemy.hp * 2 < enemy.maxhp) {
         enemyStrategyParam++;
         enemyStrategyCategory = "magic";
         mainWindowText[0] = enemy.name + "はカイフクを唱えた！";
@@ -852,7 +852,7 @@ let enemyData = {
           windowImage = merchantFuryImage;
           mainWindowText[0] = "「キミつよいねー。本気出しちゃおっかなー」";
         }
-        else if (enemy.hp * 2 <= enemy.maxhp && enemyStrategyParam === 0) {
+        else if (enemy.hp * 2 < enemy.maxhp && enemyStrategyParam === 0) {
           enemyStrategyParam = 1;
           if (fighterMp > 10) {
             enemy.addStatus("m_shield", 4);
@@ -919,7 +919,7 @@ let magicData = {
   },
   "thunder": {
     name: "ビリビリ",
-    mp: 4,
+    mp: 5,
     image: magicThunderImage,
     description: "雷で攻撃。70%の確率で敵を3ターン行動不能にする。",
     effect: () => {
@@ -1652,8 +1652,13 @@ let drawHpBar = function (characterObj, x, y, ctx) {
   ctx.fillRect(x, y, hpBarWidth, HpBarHeight);
   ctx.fillStyle = "#2a2349";
   ctx.fillRect(x + 4, y + 4, hpBarWidth - 8, HpBarHeight - 8);
-  ctx.fillStyle = "#7bb24e";
-  if (characterObj.hp * 4 < characterObj.maxhp) ctx.fillStyle = "#c16c5b";
+  ctx.fillStyle = "#7bb24e"; // 緑
+  if (characterObj.hp * 4 < characterObj.maxhp) {
+    ctx.fillStyle = "#c16c5b"; // 赤
+  }
+  else if (characterObj.hp * 2 < characterObj.maxhp) {
+    ctx.fillStyle = "#f0bd77"; // 黄
+  }
   ctx.fillRect(x + 4, y + 4, (hpBarWidth - 8) * characterObj.hp / characterObj.maxhp, HpBarHeight - 8);
   // text
   let hpText = characterObj.hp + "/" + characterObj.maxhp;
