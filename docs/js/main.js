@@ -387,7 +387,7 @@ let subScene = "none";
 let sceneInit = false; // Whenever scene changes, Don't forget set this true!!
 let subSceneInit = false;
 // for transition animation
-const transAnimeCountInit = 50;
+const transAnimeCountInit = 30;
 let transAnimeCount = 0;
 let sceneAfterTrans;
 // for dungeon map
@@ -752,7 +752,7 @@ let enemyData = {
   },
   "idol": {
     name: "アイドル",
-    hp: 120,
+    hp: 140,
     image1: idolImage1,
     image2: idolImage2,
     floor_min: 3,
@@ -764,25 +764,25 @@ let enemyData = {
           fighterMp += 3;
           fighter.addHp(Math.floor(fighter.maxhp / 2));
           enemyStrategyCategory = "magic";
-          mainWindowText[0] = enemy.name + "は" + fighter.name + "を歌声で癒した！";
+          mainWindowText[0] = enemy.name + "の歌声が" + fighter.name + "を癒す！";
           mainWindowText[1] = fighter.name + "のHPとMPが回復した！";
         }
         else {
-          fighter.addStatus("power", 2);
+          fighter.addStatus("power", 1);
           enemyStrategyCategory = "magic";
-          mainWindowText[0] = enemy.name + "は" + fighter.name + "を歌で鼓舞した！";
+          mainWindowText[0] = enemy.name + "は歌で" + fighter.name + "を鼓舞した！";
           mainWindowText[1] = fighter.name + "はやる気に満ち溢れている！";
         }
       }
-      // 6ターンごとに再生3を得る（3回まで）
-      else if (enemyStrategyParam % 6 === 0 && enemyStrategyParam <= 18){
+      // 4ターン目以降、5ターンごとに再生3を得る（3回まで）
+      else if ((enemyStrategyParam % 5 === 3) && (enemyStrategyParam <= 5 * 3)){
         enemy.addStatus("regen", 3);
         enemyStrategyCategory = "magic";
         mainWindowText[0] = enemy.name + "はキラキラ輝いている…………";
         mainWindowText[1] = "(" + enemy.name + "はしばらくの間、体力を少しずつ回復する！)";
       }
-      // 1/6の確率で沈黙1を付与
-      else if (randInt(0, 5) === 0){
+      // 1/4の確率で沈黙1を付与
+      else if (randInt(0, 3) === 0){
         fighter.addStatus("silence", 1);
         enemyStrategyCategory = "magic";
         mainWindowText[0] = enemy.name + "は切ないバラードを歌っている……";
@@ -921,10 +921,10 @@ let magicData = {
     name: "ビリビリ",
     mp: 4,
     image: magicThunderImage,
-    description: "雷で攻撃。50%の確率で敵を3ターン行動不能にする。",
+    description: "雷で攻撃。70%の確率で敵を3ターン行動不能にする。",
     effect: () => {
       damageAmount = fighter.dealMagicDamage(enemy, 6 + fighterLv);
-      if (randInt(0, 1) === 1) return;
+      if (randInt(0, 99) < 30) return;
       enemy.addStatus("stun", 3);
     }
   },
@@ -1018,10 +1018,10 @@ let magicData = {
     name: "パチパチ",
     mp: 1,
     image: magicPachiImage,
-    description: "静電気攻撃。80%の確率で敵を行動不能にする。",
+    description: "静電気攻撃。90%の確率で敵を行動不能にする。",
     effect: () => {
       damageAmount = fighter.dealMagicDamage(enemy, 4);
-      if (randInt(0, 99) < 20) return;
+      if (randInt(0, 99) < 10) return;
       enemy.addStatus("stun", 1);
     }
   }
@@ -1164,8 +1164,6 @@ let statusData = {
 // 商人「いらっしゃー。ここはソースコードだよー」
 // 商人「私に話しかけるのが面倒なら、ここを見るといいよー」
 let oyakudachiInfo = [
-  ["ちびゴブはHPがピンチになると", "強い攻撃をしてくるよ。怖いねー」"],
-  ["スライム？かわいいよねー」", ""],
   ["『なぐる』の威力はキミのLv+5だよー」", ""],
   ["敵に勝つとレベルアップ！", "最大HPとMPが増えるよー」"],
   ["まほうを使うとMPを消費するよ", "MP切れに気をつけてねー」"],
@@ -1176,7 +1174,31 @@ let oyakudachiInfo = [
   ["HPが満タンの時にくだものを使うと", "最大HPが増えるよー」"],
   ["ジェムを『くらふと』するとたまに", "2個のどうぐが手に入るよー」"],
   ["マップ上のアイコンは一度踏むと", "なくなっちゃうよー」"],
-  ["一部の攻撃まほうはLvに応じて", "威力が上がるよー」"],
+  ["一部の攻撃まほうはLvに応じて", "威力が上がるよー」"]
+];
+
+let oyakudachiAdditional = [
+  [ // 1F
+    ["ちびゴブはHPがピンチになると", "強い攻撃をしてくるよ。怖いねー」"],
+    ["スライム？かわいいよねー」", ""],
+    ["モクモクはターン経過で", "攻撃力がぐんぐん上がるよー」"],
+    ["コーヒーちゃんはHPが半分になると", "カップの中に隠れちゃうよー」"],
+    ["どうしてこんな所で商売してるのかって？", "ふふふ、ナイショー」"]
+  ],
+  [ // 2F
+    ["ようせいの回復行動は3回までだよー」", ""],
+    ["タテグサのシールドには『ぶつり』", "『まほう』の2種類があるよー」"],
+    ["やどクジはネトネト攻撃で", "キミの攻撃力を下げてくるよー」"],
+    ["まほスラはキミのまほうを封じる", "『チンモク』を使ってくるよー」"],
+    ["零細企業をサポートしてね！", "なんつってー」"]
+  ],
+  [ // 3F
+    ["ドラゴンはHPが半分以下になると", "本気を出すみたいだよー」"],
+    ["キミはアイドルのライブを", "見たことある？」"],
+    ["シニガミは7ターン以内に倒さないと", "痛い目見るよー……」"],
+    ["レンチンは6ターンに1回放電して", "キミを行動不能にするよー」"],
+    ["最上階では何が待ち受けてるんだろうね？", "うふふふ……」"]
+  ],
 ];
 
 
@@ -2591,11 +2613,19 @@ let sceneList = {
       sceneInit = false;
       // counter (buffer)
       animeCount = 8;
+      // make dialog list
+      let oyakudachiList;
+      if (1 <= dungeonFloor && dungeonFloor <= 3) {
+        oyakudachiList = oyakudachiInfo.concat(oyakudachiAdditional[dungeonFloor - 1]);
+      }
+      else {
+        oyakudachiList = oyakudachiInfo;
+      }
       // text 
       windowImage = merchantFaceImage;
-      let oyakudachiIndex = randInt(0, oyakudachiInfo.length - 1)
-      mainWindowText[0] = "「" + oyakudachiInfo[oyakudachiIndex][0];
-      mainWindowText[1] = "　" + oyakudachiInfo[oyakudachiIndex][1];
+      let oyakudachiIndex = randInt(0, oyakudachiList.length - 1)
+      mainWindowText[0] = "「" + oyakudachiList[oyakudachiIndex][0];
+      mainWindowText[1] = "　" + oyakudachiList[oyakudachiIndex][1];
       mainWindowText[2] = "";
     }
     // update

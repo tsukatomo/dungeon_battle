@@ -90,7 +90,7 @@
   
   <p>ゲーム中では特に言及されていないデータたち。</p>
 
-  <h3>ステータスアイコン一覧</h3>
+  <h3>バフ・デバフアイコン一覧</h3>
   <p>Xはアイコン右側の数字を指す。</p>
   <table>
     <colgroup span="2"></colgroup>
@@ -165,7 +165,7 @@
       <td>1</td>
       <td>4</td>
       <td>×0</td>
-      <td>80%の確率で敵に<img src="../img/status_stun.png" width="16px" height="16px">1を付与。</td>
+      <td>90%の確率で敵に<img src="../img/status_stun.png" width="16px" height="16px">1を付与。</td>
     </tr>
     <tr>
       <td>ビリビリ</td>
@@ -173,7 +173,7 @@
       <td>4</td>
       <td>6</td>
       <td>×1</td>
-      <td>50%の確率で敵に<img src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
+      <td>70%の確率で敵に<img src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
     </tr>
     <tr>
       <td rowspan="2">ジンクス</td>
@@ -528,6 +528,42 @@
       <td>自身のHPが50%以下になったとき一度だけ使用。</td>
     </tr>
   </table>
+
+  <h4>アイドル</h4>
+  <div id="imagebox"><img src="../img/idol1.png" alt="敵の画像" title="アイドル"></div>
+  <ul>
+    <li>出現階層: 3F</li>
+    <li>HP: 140</li>
+  </ul>
+  <table>
+    <caption>行動パターン</caption>
+    <tr>
+      <td>癒しの歌</td>
+      <td>闘士のHPを50%回復。闘士のMP+3。</td>
+      <td>1回目の行動時、闘士のHPが25%未満ならば使用。</td>
+    </tr>
+    <tr>
+      <td>エール</td>
+      <td>闘士に<img id="statusimg" src="../img/status_power.png">1を付与。</td>
+      <td>1回目の行動時、闘士のHPが25%以上ならば使用。</td>
+    </tr>
+    <tr>
+      <td>シャイニング</td>
+      <td>自身に<img id="statusimg" src="../img/status_regen.png">3を付与。</td>
+      <td>4・9・14ターン目に必ず使用。</td>
+    </tr>
+    <tr>
+      <td>バラード</td>
+      <td>闘士に<img id="statusimg" src="../img/status_silence.png">1を付与。</td>
+      <td>1/4の確率で使用。</td>
+    </tr>
+    <tr>
+      <td>ダンス</td>
+      <td>12~18ダメージを与える。</td>
+      <td>上のいずれにも当てはまらないとき使用。</td>
+    </tr>
+  </table>
+
 
   <h4>シニガミ</h4>
   <div id="imagebox"><img src="../img/death1.png" alt="敵の画像" title="シニガミ"></div>
