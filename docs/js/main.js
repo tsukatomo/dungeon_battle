@@ -296,6 +296,32 @@ let goldenAppleImage2 = new Image();
 goldenAppleImage1.src = "./img/goldenapple1.png";
 goldenAppleImage2.src = "./img/goldenapple2.png";
 
+// image - achievement
+let jissekiImage1 = new Image();
+let jissekiImage2 = new Image();
+let jissekiImage3 = new Image();
+let jissekiImage4 = new Image();
+let jissekiImage5 = new Image();
+let jissekiImage6 = new Image();
+let jissekiImage7 = new Image();
+let jissekiImage8 = new Image();
+let jissekiImage9 = new Image();
+let jissekiImage10 = new Image();
+let jissekiImage11 = new Image();
+let jissekiImage12 = new Image();
+jissekiImage1.src = "./img/jisseki1.png";
+jissekiImage2.src = "./img/jisseki2.png";
+jissekiImage3.src = "./img/jisseki3.png";
+jissekiImage4.src = "./img/jisseki4.png";
+jissekiImage5.src = "./img/jisseki5.png";
+jissekiImage6.src = "./img/jisseki6.png";
+jissekiImage7.src = "./img/jisseki7.png";
+jissekiImage8.src = "./img/jisseki8.png";
+jissekiImage9.src = "./img/jisseki9.png";
+jissekiImage10.src = "./img/jisseki10.png";
+jissekiImage11.src = "./img/jisseki11.png";
+jissekiImage12.src = "./img/jisseki12.png";
+
 // image - button
 let buttonImage = new Image();
 buttonImage.src = "./img/button.png";
@@ -1208,6 +1234,27 @@ let roomIconData = {
   "encount": iconEnemyImage,
   "shop": iconShopImage,
   "gemspotin" : iconGemImage
+};
+
+
+
+// achievement data
+let jissekiData = {
+  "clear": {
+    name: "だんじょんクリア！",
+    description: "だんじょんを制覇する。",
+    image: jissekiImage1
+  },
+  "perfect": {
+    name: "だんじょんの覇者",
+    description: "全ての敵を倒してだんじょんを制覇する。",
+    image: jissekiImage2
+  },
+  "infighter": {
+    name: "格闘家",
+    description: "「なぐる」コマンド",
+    image: jissekiImage1
+  },
 };
 
 
