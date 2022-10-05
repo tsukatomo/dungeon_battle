@@ -321,6 +321,12 @@ jissekiImage9.src = "./img/jisseki9.png";
 jissekiImage10.src = "./img/jisseki10.png";
 jissekiImage11.src = "./img/jisseki11.png";
 jissekiImage12.src = "./img/jisseki12.png";
+let jissekiLockedImage = new Image();
+jissekiLockedImage.src = "./img/jisseki_locked.png";
+let jissekiCursorImage1 = new Image();
+let jissekiCursorImage2 = new Image();
+jissekiCursorImage1.src = "./img/jisseki_cursor1.png";
+jissekiCursorImage2.src = "./img/jisseki_cursor2.png";
 
 // image - button
 let buttonImage = new Image();
@@ -360,10 +366,12 @@ const combatMenu = ["なぐる", "まほう", "どうぐ"];
 const shopMenu = ["かう", "はなす", "たちさる"];
 const gemMenu = ["かいふく", "ほきゅう", "くらふと"];
 const tweetMenu = ["タイトルへ", "ツイート", ""];
+const deleteMenu = ["消さない", "消す！", ""];
 let menuCursor = 0;
 let goodLuck = false;
 let slainEnemy = 0;
 let gameClear = false;
+let isGamingNow = false; //ゲーム中かどうか
 // for room
 let roomList = [];
 let room1, room2;
@@ -434,7 +442,11 @@ const mapImageHeight = (wallSize + aisleSize) * dungeonHeight + wallSize;
 const mapImageLeftTopX = (640 - mapImageWidth) / 2;
 const mapImageLeftTopY = ((480 - 3 * gridSize) - mapImageHeight) / 2 + 3 * gridSize;
 let mapInit = true;
-
+// for jisseki scene
+const jissekiCol = 6;
+const jissekiRow = 2;
+let jissekiCursorX = 0;
+let jissekiCursorY = 0;
 
 
 // object
@@ -1240,7 +1252,7 @@ let roomIconData = {
 
 // achievement data
 let jissekiData = {
-  "clear": {
+  "dungeonclear": {
     name: "だんじょんクリア！",
     description: "だんじょんを制覇する。",
     image: jissekiImage1
@@ -1252,14 +1264,61 @@ let jissekiData = {
   },
   "infighter": {
     name: "格闘家",
-    description: "「なぐる」コマンド",
-    image: jissekiImage1
+    description: "「なぐる」コマンドだけで敵を倒す。",
+    image: jissekiImage3
+  },
+  "magician": {
+    name: "マジシャン",
+    description: "「まほう」コマンドだけで敵を倒す。",
+    image: jissekiImage4
+  },
+  "fullMP": {
+    name: "エナジー満タン",
+    description: "MPを30以上蓄積する。",
+    image: jissekiImage5
+  },
+  "overkill": {
+    name: "渾身の一撃！",
+    description: "1回の攻撃で100ダメージ以上与える。",
+    image: jissekiImage6
+  },
+  "pieceofcake": {
+    name: "取るに足りぬ",
+    description: "HPを50%以上残してラスボスを撃破する。",
+    image: jissekiImage7
+  },
+  "toolmaster": {
+    name: "どうぐマスター",
+    description: "1回の攻略でどうぐを10個以上使用する。",
+    image: jissekiImage8
+  },
+  "ascension20": {
+    name: "ちりも積もれば",
+    description: "Lv20に到達する。",
+    image: jissekiImage9
+  },
+  "SOULdOUT": {
+    name: "完売御礼！",
+    description: "ショップの品物を買い占める。", // ありがとー
+    image: jissekiImage10
+  },
+  "apple": {
+    name: "おなかいっぱい",
+    description: "「くだもの」を食べて最大HPを増加させる。",
+    image: jissekiImage11
+  },
+  "thankyou": {
+    name: "遊んでくれてありがとう！",
+    description: "他の実績を全て集める。",
+    image: jissekiImage12
   },
 };
 
+let jissekiList = Object.keys(jissekiData);
 
 
-// initialize param
+
+// initialize param (part of initialize in "title" scene)
 let initParam = function () {
   fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
   fighterMp = 6;
@@ -1273,6 +1332,7 @@ let initParam = function () {
   shopInit = true;
   mapInit = true;
   gameClear = false;
+  isGamingNow = false;
 };
 
 
@@ -1748,6 +1808,26 @@ let randInt = function(min, max) {
 };
 */
 
+
+
+// unlock achievement
+let unlockAchievement = function (achievementKey) {
+  localStorage.setItem(achievementKey, "unlocked");
+};
+
+// check achievement
+let isAchievementUnlocked = function (achievementKey) {
+  let savedata = localStorage.getItem(achievementKey);
+  return (savedata === "unlocked");
+};
+
+// delete achievement
+let deleteAchievement = function (achievementKey) {
+  localStorage.removeItem(achievementKey);
+};
+
+
+
 // share to twitter
 let tweet = function () {
   // reset key inputs
@@ -1789,15 +1869,20 @@ let gameLoop = function() {
   }
   // info window
   if (scene != "title") {
-    statusWindowText[0] = fighter.name + " Lv." + fighterLv + "    HP " + fighter.hp + "/" + fighter.maxhp + "    MP " + fighterMp + "    " + dungeonFloor + "階    " + money + "円";
+    if (scene === "jisseki" || scene === "erasedata") {
+      statusWindowText[0] = "実績一覧    X:タイトルに戻る  S:データ消去";
+    }
+    else {
+      statusWindowText[0] = fighter.name + " Lv." + fighterLv + "    HP " + fighter.hp + "/" + fighter.maxhp + "    MP " + fighterMp + "    " + dungeonFloor + "階    " + money + "円";
+    }
     drawTextInWindow(null, statusWindowText, 0, 0, 640, useriCtx);
   }
   // a key: show magic list
-  if (isKeyPressedNow("a") && subScene === "none" && scene != "title") {
+  if (isKeyPressedNow("a") && subScene === "none" && isGamingNow === true) {
     setSubScene("magiclist");
   }
   // s key: show magic list
-  if (isKeyPressedNow("s") && subScene === "none" && scene != "title") {
+  if (isKeyPressedNow("s") && subScene === "none" && isGamingNow === true) {
     setSubScene("toollist");
   }
   // scene
@@ -1824,7 +1909,103 @@ let sceneList = {
     fighter.drawAnime(fighterX, 224, charaCtx);
     charaCtx.drawImage(titleImage, 192, fixCoordinate(18 - (animeCount * animeCount / 100) * 4)); 
     if (isKeyPressedNow("z")) {
+      isGamingNow = true;
       setTransition("map");
+    }
+    else if (isKeyPressedNow("x")) {
+      setTransition("jisseki");
+    }
+  },
+
+  // scene: jisseki（実績） ----------------------------------------
+  "jisseki" : () => {
+    //init
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      // reset cursor
+      jissekiCursorX = 0;
+      jissekiCursorY = 0;
+      // draw background
+      backgCtx.fillStyle = "#32535f";
+      backgCtx.fillRect(0, 0, 640, 480);
+      // draw achievement
+      let imageOfJisseki;
+      for (let i = 0; i < jissekiList.length; i++) {
+        imageOfJisseki = isAchievementUnlocked(jissekiList[i]) ? jissekiData[jissekiList[i]].image : jissekiLockedImage;
+        backgCtx.drawImage(imageOfJisseki, (i % 6) * 96 + 48, Math.floor(i / 6) * 96 + 128);
+      }
+    }
+    // update
+    // show achievement info
+    let id = jissekiCursorY * jissekiCol + jissekiCursorX;
+    if (0 <= id && id < jissekiList.length) {
+      if (isAchievementUnlocked([jissekiList[id]])) {
+        mainWindowText[0] = jissekiData[jissekiList[id]].name;
+      }
+      else {
+        mainWindowText[0] = "???";
+      }
+      mainWindowText[1] = jissekiData[jissekiList[id]].description;
+    }
+    // drawing
+    drawAnimation(jissekiCursorImage1, jissekiCursorImage2, jissekiCursorX * 96 + 48 - 32, jissekiCursorY * 96 + 128 - 32, charaCtx);
+    // get key input
+    if (isKeyPressedInterval("u")) {
+      jissekiCursorY--;
+      if (jissekiCursorY < 0) jissekiCursorY = jissekiRow - 1;
+    }
+    else if (isKeyPressedInterval("d")) {
+      jissekiCursorY++;
+      if (jissekiCursorY > jissekiRow - 1) jissekiCursorY = 0;
+    }
+    else if (isKeyPressedInterval("l")) {
+      jissekiCursorX--;
+      if (jissekiCursorX < 0) jissekiCursorX = jissekiCol - 1;
+    }
+    else if (isKeyPressedInterval("r")) {
+      jissekiCursorX++;
+      if (jissekiCursorX > jissekiCol - 1) jissekiCursorX = 0;
+    }
+    if (isKeyPressedNow("x")) { // x: back to title
+      setTransition("title");
+    }
+    else if (isKeyPressedNow("s")){ // s: erase save data (subScene)
+      setScene("erasedata");
+    }
+  },
+
+  // scene: erasedata（実績画面：データを消す）
+  "erasedata": () => {
+    // init
+    if (sceneInit) {
+      // init flag
+      sceneInit = false;
+      menuCursor = 0;
+    }
+    // update
+    mainWindowText[0] = "データを消します。本当にいいの？";
+    mainWindowText[1] = "";
+    mainWindowText[2] = "";
+    // menu
+    if (isKeyPressedNow("u")) menuCursor--;
+    if (isKeyPressedNow("d")) menuCursor++;
+    if (menuCursor < 0) menuCursor = 1;
+    if (menuCursor > 1) menuCursor = 0;
+    drawTextInWindowWithCursor(deleteMenu, 480, 480 - gridSize * 5, 160, menuCursor, useriCtx);
+    // press z key
+    if (isKeyPressedNow("z")) {
+      if (menuCursor === 0) {
+        setScene("jisseki");
+      }
+      else {
+        localStorage.clear(); // ドカーン！
+        setTransition("title");
+      }
+    }
+    // cancel
+    if (isKeyPressedNow("x") || isKeyPressedNow("s")) {
+      setScene("jisseki");
     }
   },
 
