@@ -1688,7 +1688,7 @@ let pushButton = function(evt) {
       buttonPressed = buttonKeys[i];
       break;
     }
-    console.log("pressed:", buttonPressed);
+    //console.log("pressed:", buttonPressed);
     if (buttonPressed === "") return;
     // 入力リストにボタンを追加
     if (keyInput.indexOf(buttonPressed) == -1) keyInput.push(buttonPressed);
@@ -2172,12 +2172,11 @@ let sceneList = {
       // create new enemy
       const enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
       let encountList = enemyDatakeys.filter( e => {
-        return (enemyData[e].floor_min <= dungeonFloor && dungeonFloor <= enemyData[e].floor_max)
+        return (enemyData[e].floor_min <= dungeonFloor && dungeonFloor <= enemyData[e].floor_max && e != enemy.type) // 現在フロアで出現、かつ直前にエンカしてない敵
       });
       if (slainEnemy < 2 && dungeonFloor < 2) { // 倒した敵の数が2体未満で1Fにいるときは敵の種類を絞る
         encountList = ["slime", "gob"];
       }
-      console.log(encountList);
       //const eKey = "idol"; // テスト用（敵指定）
       let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
