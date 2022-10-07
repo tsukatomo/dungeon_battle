@@ -329,6 +329,11 @@ jissekiCursorImage1.src = "./img/jisseki_cursor1.png";
 jissekiCursorImage2.src = "./img/jisseki_cursor2.png";
 let jissekiNewImage = new Image();
 jissekiNewImage.src = "./img/new_jisseki.png";
+let jissekiNewTsutiImage1 = new Image();
+let jissekiNewTsutiImage2 = new Image();
+jissekiNewTsutiImage1.src = "./img/new_tsuti1.png";
+jissekiNewTsutiImage2.src = "./img/new_tsuti2.png";
+
 
 // image - button
 let buttonImage = new Image();
@@ -453,6 +458,8 @@ const jissekiCol = 6;
 const jissekiRow = 2;
 let jissekiCursorX = 0;
 let jissekiCursorY = 0;
+let isNewAchievementExist = false; // J(¬_¬)「なんで『jisseki』と『achievement』が混在してるんですか？」
+
 
 
 // object
@@ -1941,12 +1948,27 @@ let sceneList = {
       sceneInit = false;
       // initialize parameters of fighter
       initParam();
+      // check num of unlocked achievement and new achievement
+      let numOfUnlock = 0;
+      isNewAchievementExist = false;
+      jissekiList.forEach((e) => {
+        if (isAchievementUnlocked(e)) numOfUnlock++;
+        if (isAchievementNew(e)) isNewAchievementExist = true;
+      });
+      // unlock achievement: thankyou
+      if (numOfUnlock >= jissekiList.length - 1) {
+        unlockAchievement("thankyou");
+        isNewAchievementExist = true;
+      }
       // draw background
       backgCtx.drawImage(titleBackImage, 0, 0);
       animeCount = 64;
     }
     fighter.drawAnime(fighterX, 224, charaCtx);
     charaCtx.drawImage(titleImage, 192, fixCoordinate(18 - (animeCount * animeCount / 100) * 4)); 
+    if (isNewAchievementExist) {
+      drawAnimation(jissekiNewTsutiImage1, jissekiNewTsutiImage2, 380, 420, charaCtx);
+    }
     if (isKeyPressedNow("z")) {
       isGamingNow = true;
       setTransition("map");
@@ -1965,13 +1987,6 @@ let sceneList = {
       // reset cursor
       jissekiCursorX = 0;
       jissekiCursorY = 0;
-      // check num of unlocked achievement
-      let numOfUnlock = 0;
-      jissekiList.forEach((e) => {
-        if (isAchievementUnlocked(e)) numOfUnlock++;
-      });
-      // unlock achievement: thankyou
-      if (numOfUnlock >= jissekiList.length - 1) unlockAchievement("thankyou");
       // reset window
       windowImage = null;
       // draw background
@@ -2033,7 +2048,7 @@ let sceneList = {
     if (isKeyPressedNow("x")) { // x: back to title
       setTransition("title");
     }
-    else if (isKeyPressedNow("s")){ // s: erase save data (subScene)
+    else if (isKeyPressedNow("s")){ // s: erase save data
       setScene("erasedata");
     }
   },
