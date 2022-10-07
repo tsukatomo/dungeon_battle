@@ -319,7 +319,14 @@
   <table>
     <caption>行動パターン</caption>
     <tr>
-      <td>攻撃</td><td>7ダメージを与える。</td>
+      <td>ベトベト液</td>
+      <td>闘士に<img id="statusimg" src="../img/status_weak.png">1を付与。</td>
+      <td>1/3の確率で使用。連続で使用しない。</td>
+    </tr>
+    <tr>
+      <td>攻撃</td>
+      <td>7ダメージを与える。</td>
+      <td>2/3の確率で使用。</td>
     </tr>
   </table>
   
@@ -343,10 +350,15 @@
   <div id="imagebox"><img src="../img/coffee1.png" alt="敵の画像" title="コーヒー"></div>
   <ul>
     <li>出現階層: 1F（後半2戦のみ）</li>
-    <li>HP: 36</li>
+    <li>HP: 32</li>
   </ul>
   <table>
     <caption>行動パターン</caption>
+    <tr>
+      <td>隠れる</td>
+      <td>自身に<img id="statusimg" src="../img/status_shield.png">3と<img id="statusimg" src="../img/status_magicshield.png">3を付与。</td>
+      <td>自身のHPが減少したとき一度だけ使用。</td>
+    </tr>
     <tr>
       <td>攻撃</td>
       <td>4-8ダメージを与える。</td>
@@ -356,11 +368,6 @@
       <td>攻撃</td>
       <td>6-10ダメージを与える。</td>
       <td>自身に<img id="statusimg" src="../img/status_shield.png">が付与されているときに使用。</td>
-    </tr>
-    <tr>
-      <td>隠れる</td>
-      <td>自身に<img id="statusimg" src="../img/status_shield.png">2と<img id="statusimg" src="../img/status_magicshield.png">2を付与。</td>
-      <td>自身のHPが50%未満になったとき一度だけ使用。</td>
     </tr>
   </table>
 
@@ -448,7 +455,7 @@
   <div id="imagebox"><img src="../img/mahoslime1.png" alt="敵の画像" title="まほスラ"></div>
   <ul>
     <li>出現階層: 2~3F</li>
-    <li>HP: 96</li>
+    <li>HP: 90</li>
   </ul>
   <table>
     <caption>行動パターン</caption>
@@ -550,7 +557,7 @@
     <tr>
       <td>シャイニング</td>
       <td>自身に<img id="statusimg" src="../img/status_regen.png">3を付与。</td>
-      <td>4・9・14ターン目に必ず使用。</td>
+      <td>4・9ターン目に必ず使用。</td>
     </tr>
     <tr>
       <td>バラード</td>
@@ -559,7 +566,7 @@
     </tr>
     <tr>
       <td>ダンス</td>
-      <td>12~18ダメージを与える。</td>
+      <td>8-14ダメージを与える。</td>
       <td>上のいずれにも当てはまらないとき使用。</td>
     </tr>
   </table>

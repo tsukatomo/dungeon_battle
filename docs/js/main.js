@@ -327,6 +327,8 @@ let jissekiCursorImage1 = new Image();
 let jissekiCursorImage2 = new Image();
 jissekiCursorImage1.src = "./img/jisseki_cursor1.png";
 jissekiCursorImage2.src = "./img/jisseki_cursor2.png";
+let jissekiNewImage = new Image();
+jissekiNewImage.src = "./img/new_jisseki.png";
 
 // image - button
 let buttonImage = new Image();
@@ -382,6 +384,7 @@ let enemyStrategyCategory = "attack";
 let fighterMagic = ["flame"]; // magic can be cast
 let magicCursor = 0;
 let fighterMp = 99;
+let largestMp = 99;
 let castMagic;
 // for tool
 let fighterTool = [];
@@ -389,12 +392,14 @@ let toolCursor = 0;
 let useTool;
 let obtainedTool;
 let toolDropChance = 40;
+let toolCounter = 0;
 // for combat
 let isFighting = false;
 let isStartTurn = false; // start of turn
 let damageAmount = 0;
 let isSansanFatal = false; // fatal with "sansan"
 let isResurrection = false; // resurrection (merchant)
+let commandCounter = [0, 0, 0];
 // for info
 let fighterLv = 1;
 let dungeonFloor = 0;
@@ -404,6 +409,7 @@ let listCursor = 0;
 // for shop
 let shopInit = false;
 const numOfItem = 5;
+let buys = 0;
 let shopItem = [];
 let shopCursor = 0;
 // for showing character
@@ -566,9 +572,19 @@ let enemyData = {
     floor_min: 0,
     floor_max: 0,
     strategy: () => {
-      damageAmount = enemy.dealAttackDamage(fighter, 7);
-      enemyStrategyCategory = "attack";
-      mainWindowText[0] = enemy.name + "の攻撃！";
+      if (enemyStrategyParam === 0 && randInt(0, 2) === 0) {
+        enemyStrategyParam = 1;
+        fighter.addStatus("weak", 1);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "はベトベト液を撒き散らした！";
+        mainWindowText[1] = "「なぐる」の威力が弱くなった！";
+      }
+      else {
+        enemyStrategyParam = 0;
+        damageAmount = enemy.dealAttackDamage(fighter, 7);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！";
+      }
     },
   },
   "gob":{
@@ -593,7 +609,7 @@ let enemyData = {
   },
   "coffee":{
     name: "コーヒー",
-    hp: 36,
+    hp: 32,
     image1: coffeeImage1,
     image2: coffeeImage2,
     floor_min: 1,
@@ -603,14 +619,15 @@ let enemyData = {
         enemy.image1 = coffeeImage1;
         enemy.image2 = coffeeImage2;
       }
-      if (enemyStrategyParam === 0 && enemy.hp * 2 < enemy.maxhp) {
-        enemy.addStatus("shield", 2);
-        enemy.addStatus("m_shield", 2);
+      if (enemyStrategyParam === 0 && enemy.hp < enemy.maxhp) {
+        enemy.addStatus("shield", 3);
+        enemy.addStatus("m_shield", 3);
         enemyStrategyParam = 1;
         enemy.image1 = coffeeImage3;
         enemy.image2 = coffeeImage4;
         enemyStrategyCategory = "none";
         mainWindowText[0] = enemy.name + "はカップの中に隠れた"
+        mainWindowText[1] = "（しばらくの間、ダメージを半減する！）"
       }
       else {
         damageAmount = enemy.dealAttackDamage(fighter, enemy.isStatusExist("shield") ? randInt(6, 10) : randInt(4, 8));
@@ -667,7 +684,7 @@ let enemyData = {
         fighter.addStatus("weak", 2);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "のネトネト攻撃！";
-        mainWindowText[1] = "なぐるの威力が弱くなった！";
+        mainWindowText[1] = "「なぐる」の威力が弱くなった！";
       }
       else {
         enemyStrategyParam += 1;
@@ -812,8 +829,8 @@ let enemyData = {
           mainWindowText[1] = fighter.name + "はやる気に満ち溢れている！";
         }
       }
-      // 4ターン目以降、5ターンごとに再生3を得る（3回まで）
-      else if ((enemyStrategyParam % 5 === 3) && (enemyStrategyParam <= 5 * 3)){
+      // 4ターン目以降、5ターンごとに再生3を得る（2回まで）
+      else if ((enemyStrategyParam % 5 === 3) && (enemyStrategyParam <= 5 * 2)){
         enemy.addStatus("regen", 3);
         enemyStrategyCategory = "magic";
         mainWindowText[0] = enemy.name + "はキラキラ輝いている…………";
@@ -828,7 +845,7 @@ let enemyData = {
       }
       // 上のいずれにも当てはまらないなら攻撃
       else {
-        damageAmount = enemy.dealAttackDamage(fighter, randInt(12, 18));
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(8, 14));
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の激しいダンスパフォーマンス！";
       }
@@ -837,7 +854,7 @@ let enemyData = {
   },
   "mahoslime": {
     name: "まほスラ",
-    hp: 96,
+    hp: 90,
     image1: mahoSlimeImage1,
     image2: mahoSlimeImage2,
     floor_min: 2,
@@ -1127,6 +1144,10 @@ let toolData = {
       mainWindowText[1] = magicData[randomMagic].name + "が発動した！";
       if (damageAmount > 0) {
         mainWindowText[2] = enemy.name + "に" + damageAmount + "のダメージを与えた！";
+        // achievement: overkill（渾身の一撃！）
+        if (damageAmount >= 100) {
+          unlockAchievement("overkill");
+        }
       }
     }
   },
@@ -1302,9 +1323,9 @@ let jissekiData = {
     description: "ショップの品物を買い占める。", // ありがとー
     image: jissekiImage10
   },
-  "apple": {
-    name: "おなかいっぱい",
-    description: "「くだもの」を食べて最大HPを増加させる。",
+  "lucky": {
+    name: "ラッキー！",
+    description: "「くらふと」1回でどうぐを2個手に入れる。",
     image: jissekiImage11
   },
   "thankyou": {
@@ -1329,6 +1350,8 @@ let initParam = function () {
   money = 50;
   toolDropChance = 40;
   slainEnemy = 0;
+  toolCounter = 0;
+  largestMp = 0;
   shopInit = true;
   mapInit = true;
   gameClear = false;
@@ -1812,18 +1835,29 @@ let randInt = function(min, max) {
 
 // unlock achievement
 let unlockAchievement = function (achievementKey) {
-  localStorage.setItem(achievementKey, "unlocked");
+  // 獲得済みやんけ！→おわり
+  if (isAchievementUnlocked(achievementKey)) return;
+  // 新規獲得
+  localStorage.setItem(achievementKey, "new");
+};
+
+// update achievement
+let updateAchievement = function (achievementKey) {
+  // 新しい実績じゃないやんけ！→おわり
+  if (!isAchievementNew(achievementKey)) return;
+  // new → old
+  localStorage.setItem(achievementKey, "old");
 };
 
 // check achievement
 let isAchievementUnlocked = function (achievementKey) {
   let savedata = localStorage.getItem(achievementKey);
-  return (savedata === "unlocked");
+  return (savedata === "old" || savedata === "new");
 };
 
-// delete achievement
-let deleteAchievement = function (achievementKey) {
-  localStorage.removeItem(achievementKey);
+let isAchievementNew = function (achievementKey) {
+  let savedata = localStorage.getItem(achievementKey);
+  return (savedata === "new");
 };
 
 
@@ -1877,13 +1911,18 @@ let gameLoop = function() {
     }
     drawTextInWindow(null, statusWindowText, 0, 0, 640, useriCtx);
   }
-  // a key: show magic list
-  if (isKeyPressedNow("a") && subScene === "none" && isGamingNow === true) {
-    setSubScene("magiclist");
-  }
-  // s key: show magic list
-  if (isKeyPressedNow("s") && subScene === "none" && isGamingNow === true) {
-    setSubScene("toollist");
+  // in game
+  if (isGamingNow) {
+    // update largest MP
+    largestMp = (largestMp < fighterMp) ? fighterMp : largestMp;
+    // a key: show magic list
+    if (isKeyPressedNow("a") && subScene === "none") {
+      setSubScene("magiclist");
+    }
+    // s key: show tool list
+    if (isKeyPressedNow("s") && subScene === "none") {
+      setSubScene("toollist");
+    }
   }
   // scene
   sceneList[scene]();
@@ -1926,30 +1965,54 @@ let sceneList = {
       // reset cursor
       jissekiCursorX = 0;
       jissekiCursorY = 0;
+      // check num of unlocked achievement
+      let numOfUnlock = 0;
+      jissekiList.forEach((e) => {
+        if (isAchievementUnlocked(e)) numOfUnlock++;
+      });
+      // unlock achievement: thankyou
+      if (numOfUnlock >= jissekiList.length - 1) unlockAchievement("thankyou");
+      // reset window
+      windowImage = null;
       // draw background
       backgCtx.fillStyle = "#32535f";
       backgCtx.fillRect(0, 0, 640, 480);
-      // draw achievement
-      let imageOfJisseki;
+      // drawing - jisseki list
+      let imageOfJisseki, left, top;
       for (let i = 0; i < jissekiList.length; i++) {
         imageOfJisseki = isAchievementUnlocked(jissekiList[i]) ? jissekiData[jissekiList[i]].image : jissekiLockedImage;
-        backgCtx.drawImage(imageOfJisseki, (i % 6) * 96 + 48, Math.floor(i / 6) * 96 + 128);
+        left = (i % 6) * 96 + 48;
+        top = Math.floor(i / 6) * 96 + 128;
+        backgCtx.drawImage(imageOfJisseki, left, top);
+        if (isAchievementNew(jissekiList[i])) {
+          backgCtx.drawImage(jissekiNewImage, left - 16, top);
+        }
       }
+      // update achievement (new → old)
+      jissekiList.forEach((e) => {
+        updateAchievement(e);
+      });
     }
     // update
     // show achievement info
     let id = jissekiCursorY * jissekiCol + jissekiCursorX;
     if (0 <= id && id < jissekiList.length) {
       if (isAchievementUnlocked([jissekiList[id]])) {
-        mainWindowText[0] = jissekiData[jissekiList[id]].name;
+        mainWindowText[0] = "【" + jissekiData[jissekiList[id]].name + "】";
       }
       else {
-        mainWindowText[0] = "???";
+        mainWindowText[0] = "【？？？】";
       }
-      mainWindowText[1] = jissekiData[jissekiList[id]].description;
+      if (isAchievementUnlocked([jissekiList[id]]) || isAchievementUnlocked("dungeonclear")) {
+        mainWindowText[1] = jissekiData[jissekiList[id]].description;
+      }
+      else {
+        mainWindowText[1] = "？？？？？？？？？？";
+      }
+      mainWindowText[2] = "";
     }
-    // drawing
-    drawAnimation(jissekiCursorImage1, jissekiCursorImage2, jissekiCursorX * 96 + 48 - 32, jissekiCursorY * 96 + 128 - 32, charaCtx);
+    // drawing - cursor
+    drawAnimation(jissekiCursorImage1, jissekiCursorImage2, jissekiCursorX * 96 + 48 - 32, jissekiCursorY * 96 + 128 - 32, useriCtx);
     // get key input
     if (isKeyPressedInterval("u")) {
       jissekiCursorY--;
@@ -2129,6 +2192,10 @@ let sceneList = {
       menuCursor = 0;
       // fighting flag
       isFighting = true;
+      // reset command counter
+      commandCounter[0] = 0; // なぐる
+      commandCounter[1] = 0; // まほう
+      commandCounter[2] = 0; // どうぐ
       // text (and merchant special)
       isResurrection = false;
       windowImage = null;
@@ -2241,8 +2308,14 @@ let sceneList = {
       sceneInit = false;
       // deal damage
       damageAmount = fighter.dealAttackDamage(enemy, 5 + fighterLv);
+      // achievement: overkill（渾身の一撃！）
+      if (damageAmount >= 100) {
+        unlockAchievement("overkill");
+      }
       // increase mp
       fighterMp += 1;
+      // command counter
+      commandCounter[0]++;
       // text
       windowImage = null;
       mainWindowText[0] = fighter.name + "の攻撃！"
@@ -2350,6 +2423,10 @@ let sceneList = {
       // apply magic
       damageAmount = 0;
       castMagic.effect();
+      // achievement: overkill（渾身の一撃！）
+      if (damageAmount >= 100) {
+        unlockAchievement("overkill");
+      }
       // consume mp
       if (castMagic.mp === "ALL") {
         fighterMp = 0; // consume ALL MP
@@ -2357,6 +2434,8 @@ let sceneList = {
       else {
         fighterMp -= castMagic.mp;
       }
+      // command counter
+      commandCounter[1]++;
       // text
       windowImage = null;
       mainWindowText[0] = fighter.name + "は" + castMagic.name + "を使った！"
@@ -2436,6 +2515,7 @@ let sceneList = {
     if (isKeyPressedNow("z")) {
       // consume tool
       addTool(fighterTool[toolCursor].tag, -1);
+      toolCounter++;
       // change scene
       setScene("tooluse");
     }
@@ -2459,6 +2539,8 @@ let sceneList = {
       mainWindowText[2] = "";
       // apply tool
       useTool.effect();
+      // command counter
+      commandCounter[2]++;
       // anime count
       animeCount = 32;
     }
@@ -2600,6 +2682,11 @@ let sceneList = {
       slainEnemy++;
       // clear status
       fighter.status = [];
+      // achievement unlock: infighter/magician/ascension20/pieceofcake
+      if (commandCounter[1] === 0 && commandCounter[2] === 0) unlockAchievement("infighter");
+      if (commandCounter[0] === 0 && commandCounter[2] === 0) unlockAchievement("magician");
+      if (fighterLv >= 20) unlockAchievement("ascension20");
+      if (enemy.type === "merchant" && fighter.hp * 2 >= fighter.maxhp) unlockAchievement("pieceofcake");
       // text 
       windowImage = null;
       mainWindowText[0] = enemy.name + "に勝利した！"
@@ -2629,6 +2716,9 @@ let sceneList = {
     if (sceneInit) {
       // init flag
       sceneInit = false;
+      // achievement unlock: toolmaster/fullMP
+      if (toolCounter >= 10) unlockAchievement("toolmaster");
+      if (largestMp >= 30) unlockAchievement("fullMP");
       // text 
       windowImage = null;
       mainWindowText[0] = fighter.name + "は死んでしまった……";
@@ -2703,6 +2793,8 @@ let sceneList = {
         }
         // reset cursor
         menuCursor = 0;
+        // reset num of buys
+        buys = 0;
       }
     }
     // update
@@ -2727,6 +2819,8 @@ let sceneList = {
       else if (menuCursor === 2) {
         shopInit = true; // 品揃え更新フラグ
         setTransition("map");
+        // achievement unlock: SOULdOUT
+        if (buys >= numOfItem) unlockAchievement("SOULdOUT");
       }
     }
   },
@@ -2825,6 +2919,8 @@ let sceneList = {
         }
         // remove from shop item list
         shopItem[shopCursor] = {item: null, category: "none", price: null};
+        // increase buys
+        buys++;
         // sub scene
         setSubScene("afford");
       }
@@ -3006,6 +3102,8 @@ let sceneList = {
       const toolDataKeys = Object.keys(toolData);
       obtainedTool = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
       addTool(obtainedTool, (goodLuck) ? 2 : 1);
+      // achievement unlock: lucky
+      if (goodLuck) unlockAchievement("lucky");
       // text
       windowImage = null;
       mainWindowText[0] = fighter.name + "は" + toolData[obtainedTool].name + "を" + ((goodLuck) ? "2個" : "") + "手に入れた";
@@ -3040,6 +3138,11 @@ let sceneList = {
       backgCtx.drawImage(backImage, 0, 0);
       // clear flag
       gameClear = true;
+      // unlock achievement: dungeonclear/perfect/toolmaster/fullMP
+      unlockAchievement("dungeonclear");
+      if (slainEnemy >= 13) unlockAchievement("perfect");
+      if (toolCounter >= 10) unlockAchievement("toolmaster");
+      if (largestMp >= 30) unlockAchievement("fullMP");
       // text
       windowImage = merchantFaceImage;
       mainWindowText[0] = "「クリアおめでとー！」";
@@ -3333,6 +3436,7 @@ let subSceneList = {
       if (isKeyPressedNowSub("z") && !isFighting && toolData[fighterTool[listCursor].tag].isAvailableFromList) {
         toolData[fighterTool[listCursor].tag].effect();
         addTool(fighterTool[listCursor].tag, -1);
+        toolCounter++;
       }
       // A: move to magic list
       else if (isKeyPressedNowSub("a") ){
