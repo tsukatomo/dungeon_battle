@@ -1958,7 +1958,7 @@ let sceneList = {
       // unlock achievement: thankyou
       if (numOfUnlock >= jissekiList.length - 1) {
         unlockAchievement("thankyou");
-        isNewAchievementExist = true;
+        //isNewAchievementExist = true;
       }
       // draw background
       backgCtx.drawImage(titleBackImage, 0, 0);
