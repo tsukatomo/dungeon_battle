@@ -459,7 +459,8 @@ let menuCursor = 0;
 let goodLuck = false;
 let slainEnemy = 0;
 let gameClear = false;
-let isGamingNow = false; //ゲーム中かどうか
+let isGamingNow = false; // ゲーム中かどうか
+let gameMode = "Normal"; // 闘士が主役の"Normal" or 商人が主役の"EX"
 // for room
 let roomList = [];
 let room1, room2;
@@ -663,6 +664,7 @@ let enemyData = {
     hp: 16,
     image1: slimeImage1,
     image2: slimeImage2,
+    mode: "Normal",
     floor_min: 0,
     floor_max: 0,
     strategy: () => {
@@ -686,6 +688,7 @@ let enemyData = {
     hp: 28,
     image1: gobImage1,
     image2: gobImage2,
+    mode: "Normal",
     floor_min: 0,
     floor_max: 1,
     strategy: () => {
@@ -706,6 +709,7 @@ let enemyData = {
     hp: 32,
     image1: coffeeImage1,
     image2: coffeeImage2,
+    mode: "Normal",
     floor_min: 1,
     floor_max: 1,
     strategy: () => {
@@ -735,6 +739,7 @@ let enemyData = {
     hp: 50,
     image1: treeImage1,
     image2: treeImage2,
+    mode: "Normal",
     floor_min: 1,
     floor_max: 1,
     strategy: () => {
@@ -749,6 +754,7 @@ let enemyData = {
     hp: 40,
     image1: fairyImage1,
     image2: fairyImage2,
+    mode: "Normal",
     floor_min: 2,
     floor_max: 2,
     strategy: () => {
@@ -772,6 +778,7 @@ let enemyData = {
     floor_max: 2,
     image1: yadoTsumuImage1,
     image2: yadoTsumuImage2,
+    mode: "Normal",
     strategy: () => {
       if (enemyStrategyParam % 3 === 1) {
         enemyStrategyParam += 1;
@@ -793,6 +800,7 @@ let enemyData = {
     hp: 120,
     image1: renchinImage1,
     image2: renchinImage2,
+    mode: "Normal",
     floor_min: 3,
     floor_max: 3,
     strategy: () => {
@@ -822,6 +830,7 @@ let enemyData = {
     hp: 90,
     image1: shieldkusaImage1,
     image2: shieldkusaImage2,
+    mode: "Normal",
     floor_min: 2,
     floor_max: 2,
     strategy: () => {
@@ -848,6 +857,7 @@ let enemyData = {
     hp: 156,
     image1: dragonImage1,
     image2: dragonImage2,
+    mode: "Normal",
     floor_min: 3,
     floor_max: 3,
     strategy: () => {
@@ -882,6 +892,7 @@ let enemyData = {
     hp: 160,
     image1: deathImage1,
     image2: deathImage2,
+    mode: "Normal",
     floor_min: 3,
     floor_max: 3,
     strategy: () => {
@@ -904,6 +915,7 @@ let enemyData = {
     hp: 140,
     image1: idolImage1,
     image2: idolImage2,
+    mode: "Normal",
     floor_min: 3,
     floor_max: 3,
     strategy: () => {
@@ -951,6 +963,7 @@ let enemyData = {
     hp: 90,
     image1: mahoSlimeImage1,
     image2: mahoSlimeImage2,
+    mode: "Normal",
     floor_min: 2,
     floor_max: 2,
     strategy: () => {
@@ -986,6 +999,7 @@ let enemyData = {
     hp: 200,
     image1: merchantBossImage3,
     image2: merchantBossImage4,
+    mode: "Normal",
     floor_min: 4,
     floor_max: 99,
     strategy: () => {
@@ -1052,6 +1066,7 @@ let magicData = {
     name: "フレイム",
     mp: 3,
     image: magicFlameImage,
+    mode: "Normal",
     description: "炎で攻撃。自分のLvに応じてダメージ量が上昇。",
     effect: () => {
       damageAmount = fighter.dealMagicDamage(enemy, 8 + (fighterLv * 2));
@@ -1061,6 +1076,7 @@ let magicData = {
     name: "カイフク",
     mp: 5,
     image: magicHealImage,
+    mode: "Normal",
     description: "最大HPの50%を回復する。",
     effect: () => {
       fighter.addHp(Math.floor(fighter.maxhp / 2));
@@ -1070,6 +1086,7 @@ let magicData = {
     name: "ビリビリ",
     mp: 5,
     image: magicThunderImage,
+    mode: "Normal",
     description: "雷で攻撃。70%の確率で敵を3ターン行動不能にする。",
     effect: () => {
       damageAmount = fighter.dealMagicDamage(enemy, 6 + fighterLv);
@@ -1081,6 +1098,7 @@ let magicData = {
     name: "ムキムキ",
     mp: 3,
     image: magicPowerImage,
+    mode: "Normal",
     description: "次の2回の「なぐる」の威力を2倍にする。",
     effect: () => {
       fighter.addStatus("power", 2);
@@ -1090,6 +1108,7 @@ let magicData = {
     name: "ヘナヘナ",
     mp: 2,
     image: magicHenaImage,
+    mode: "Normal",
     description: "敵の攻撃力を半減させる。攻撃3回まで有効。",
     effect: () => {
       enemy.addStatus("weak", 3);
@@ -1099,6 +1118,7 @@ let magicData = {
     name: "シールド",
     mp: 3,
     image: magicShieldImage,
+    mode: "Normal",
     description: "5ターンの間、受けるダメージを半分にする。",
     effect: () => {
       fighter.addStatus("shield", 5);
@@ -1108,6 +1128,7 @@ let magicData = {
     name: "ジンクス",
     mp: 5,
     image: magicJinxImage,
+    mode: "Normal",
     description: "敵にデバフがかかっているなら大ダメージ。",
     effect: () => {
       let isDebuffExist = false;
@@ -1126,6 +1147,7 @@ let magicData = {
     name: "サンサン",
     mp: 3,
     image: magicThreeImage,
+    mode: "Normal",
     description: "固定3ダメージ。コレで敵を倒すとLvが追加で1増える。",
     effect: () => {
       damageAmount = 3;
@@ -1139,6 +1161,7 @@ let magicData = {
     name: "バースト",
     mp: "ALL",
     image: magicBurstImage,
+    mode: "Normal",
     description: "最終兵器。MPに応じてダメージ量が上昇。",
     effect: () => {
       damageAmount = fighter.dealMagicDamage(enemy, fighterMp * 6);
@@ -1148,6 +1171,7 @@ let magicData = {
     name: "マネマネ",
     mp: 3,
     image: magicMoneyImage,
+    mode: "Normal",
     description: "所持金の50%に等しいダメージを与え、所持金を20%失う。",
     effect: () => {
       damageAmount = fighter.dealMagicDamage(enemy, Math.floor(money * 0.50));
@@ -1158,6 +1182,7 @@ let magicData = {
     name: "リジェネ",
     mp: 7,
     image: magicRegenImage,
+    mode: "Normal",
     description: "ターン開始時に最大HPの20%を回復する。4ターン持続。",
     effect: () => {
       fighter.addStatus("regen", 4);
@@ -1167,6 +1192,7 @@ let magicData = {
     name: "パチパチ",
     mp: 1,
     image: magicPachiImage,
+    mode: "Normal",
     description: "静電気攻撃。90%の確率で敵を行動不能にする。",
     effect: () => {
       damageAmount = fighter.dealMagicDamage(enemy, 4);
@@ -1178,34 +1204,25 @@ let magicData = {
     name: "プラント",
     mp: 3,
     image: magicDrainImage,
+    mode: "EX",
     description: "敵に寄生2を付与。寄生した敵を「なぐる」とHPを吸収する。",
     effect: () => {
       enemy.addStatus("drain", 2);
     }
-  }
-};
-
-// magic data(EX)
-let magicDataEX = {
+  },
   "bougyo": {
     name: "ボウギョ",
     mp: 1,
     image: magicBougyoImage,
+    mode: "EX",
     description: "2ターンの間、敵から受けるダメージを4分の1にする。",
     effect: () => {
-      fighter.addStatus("supershield", 4);
-    }
-  },
-  "plant": {
-    name: "プラント",
-    mp: 3,
-    image: magicDrainImage,
-    description: "敵に寄生2を付与。寄生された敵を「なぐる」とHPを吸収できる。",
-    effect: () => {
-      enemy.addStatus("drain", 2);
+      fighter.addStatus("supershield", 2);
     }
   }
 };
+// magic key list [flame, heal, …]
+const allMagicList = Object.keys(magicData);
 
 
 // tool data
@@ -1213,6 +1230,7 @@ let toolData = {
   "mirror": {
     name: "てかがみ",
     image: toolMirrorImage,
+    mode: "Normal",
     description: "次の「まほう」が与えるダメージを2倍にする。",
     isAvailableFromList: false,
     effect: () => {
@@ -1222,6 +1240,7 @@ let toolData = {
   "fruit": {
     name: "くだもの",
     image: toolAppleImage,
+    mode: "Normal",
     description: "最大HPの50%を回復する。",
     isAvailableFromList: true,
     effect: () => {
@@ -1236,6 +1255,7 @@ let toolData = {
   "bomb": {
     name: "ばくだん",
     image: toolBombImage,
+    mode: "Normal",
     isAvailableFromList: false,
     description: "敵に25の固定ダメージを与える。",
     effect: () => {
@@ -1247,6 +1267,7 @@ let toolData = {
   "potion": {
     name: "あおじる",
     image: toolPotionImage,
+    mode: "Normal",
     isAvailableFromList: true,
     description: "MP +5。",
     effect: () => {
@@ -1256,6 +1277,7 @@ let toolData = {
   "dice": {
     name: "さいころ",
     image: toolDiceImage,
+    mode: "Normal",
     isAvailableFromList: false,
     description: "覚えているまほうをランダムに発動。MPは消費しない。",
     effect: () => {
@@ -1278,6 +1300,7 @@ let toolData = {
   "battery": {
     name: "でんげん",
     image: toolBatteryImage,
+    mode: "Normal",
     isAvailableFromList: false,
     description: "敵を3ターン行動不能にする。",
     effect: () => {
@@ -1285,10 +1308,15 @@ let toolData = {
     }
   }
 };
-
+// all tool key list
+const allToolList = Object.keys(toolData);
 
 
 // status data
+// [typeについて]
+//  turn_end  : ターン終了時に1減少
+//  turn_start: ターン開始時に1減少
+//  stack     : 特定のタイミングで減少（減少処理はプログラムに適宜組み込む）
 let statusData = {
   "stun": {
     name: "シビレ",
@@ -2316,7 +2344,7 @@ let sceneList = {
       // create new enemy
       const enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
       let encountList = enemyDatakeys.filter( e => {
-        return (enemyData[e].floor_min <= dungeonFloor && dungeonFloor <= enemyData[e].floor_max && e != enemy.type) // 現在フロアで出現、かつ直前にエンカしてない敵
+        return (enemyData[e].mode === gameMode && enemyData[e].floor_min <= dungeonFloor && dungeonFloor <= enemyData[e].floor_max && e != enemy.type) // 現在フロアで出現、かつ直前にエンカしてない敵
       });
       if (slainEnemy < 2 && dungeonFloor < 2) { // 倒した敵の数が2体未満で1Fにいるときは敵の種類を絞る
         encountList = ["slime", "gob"];
