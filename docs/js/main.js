@@ -40,6 +40,7 @@ titleBackImage.src = "./img/background_title.png";
 let titleImage = new Image();
 titleImage.src = "./img/title.png";
 
+
 // image - gate
 let gateImage = new Image();
 gateImage.src = "./img/gate.png";
@@ -153,12 +154,52 @@ yarareImage1.src = "./img/yarare1.png";
 let yarareImage2 = new Image();
 yarareImage2.src = "./img/yarare2.png";
 
+// image - player_merchant(EX)
+let playerMerchantImage1 = new Image();
+let playerMerchantImage2 = new Image();
+let playerMerchantImage3 = new Image();
+let playerMerchantImage4 = new Image();
+playerMerchantImage1.src = "./img/player_merchant1.png";
+playerMerchantImage2.src = "./img/player_merchant2.png";
+playerMerchantImage3.src = "./img/player_merchant3.png";
+playerMerchantImage4.src = "./img/player_merchant4.png";
+// image - doubleslime(EX)
+let doubleslimeImage1 = new Image();
+let doubleslimeImage2 = new Image();
+doubleslimeImage1.src = "./img/doubleslime1.png";
+doubleslimeImage2.src = "./img/doubleslime2.png";
+// image - hebi(EX)
+let hebiImage1 = new Image();
+let hebiImage2 = new Image();
+hebiImage1.src = "./img/hebi1.png";
+hebiImage2.src = "./img/hebi2.png";
+// image - hokogusa(EX)
+let hokogusaImage1 = new Image();
+let hokogusaImage2 = new Image();
+hokogusaImage1.src = "./img/hokogusa1.png";
+hokogusaImage2.src = "./img/hokogusa2.png";
+// image - dekagobu(EX)
+let dekagobuImage1 = new Image();
+let dekagobuImage2 = new Image();
+dekagobuImage1.src = "./img/dekagobu1.png";
+dekagobuImage2.src = "./img/dekagobu2.png";
+// image - yajirushiman(EX)
+let yajirushimanImage1 = new Image();
+let yajirushimanImage2 = new Image();
+yajirushimanImage1.src = "./img/yajirushiman1.png";
+yajirushimanImage2.src = "./img/yajirushiman2.png";
+
 
 // image - itemselect
 let itemSelectImage1 = new Image();
 itemSelectImage1.src = "./img/itemselect1.png";
 let itemSelectImage2 = new Image();
 itemSelectImage2.src = "./img/itemselect2.png";
+// image - cannot cast magic
+let cannotCastImage = new Image();
+cannotCastImage.src = "./img/cannotcast.png";
+
+
 // image - magic:flame
 let magicFlameImage = new Image();
 magicFlameImage.src = "./img/magic_flame.png";
@@ -195,9 +236,20 @@ magicRegenImage.src = "./img/magic_regen.png";
 // image - magic:pachi
 let magicPachiImage = new Image();
 magicPachiImage.src = "./img/magic_pachi.png";
-// image - cannot cast magic
-let cannotCastImage = new Image();
-cannotCastImage.src = "./img/cannotcast.png";
+
+// image - magic:bougyo(EX)
+let magicBougyoImage = new Image();
+magicBougyoImage.src = "./img/magic_bougyo.png";
+// image - magic:drain(EX)
+let magicDrainImage = new Image();
+magicDrainImage.src = "./img/magic_drain.png";
+// image - magic:haisui(EX)
+let magicHaisuiImage = new Image();
+magicHaisuiImage.src = "./img/magic_haisui.png";
+// image - magic:oshimai(EX)
+let magicOshimaiImage = new Image();
+magicOshimaiImage.src = "./img/magic_oshimai.png";
+
 
 // image - tool:mirror
 let toolMirrorImage = new Image();
@@ -217,6 +269,19 @@ toolDiceImage.src = "./img/tool_dice.png";
 // image - tool:battery
 let toolBatteryImage = new Image();
 toolBatteryImage.src = "./img/tool_battery.png";
+
+// image - tool:drink(EX)
+let toolDrinkImage = new Image();
+toolDrinkImage.src = "./img/tool_drink.png";
+// image - tool:gear(EX)
+let toolGearImage = new Image();
+toolGearImage.src = "./img/tool_gear.png";
+// image - tool:yadorigi(EX)
+let toolYadorigiImage = new Image();
+toolYadorigiImage.src = "./img/tool_yadorigi.png";
+// image - tool:yakuhai(EX)
+let toolYakuhaiImage = new Image();
+toolYakuhaiImage.src = "./img/tool_yakuhai.png";
 
 
 // image - status:stun
@@ -243,6 +308,22 @@ statusSilenceImage.src = "./img/status_silence.png";
 // image - status:regen
 let statusRegenImage = new Image();
 statusRegenImage.src = "./img/status_regen.png";
+// image - status:choke
+let statusChokeImage = new Image();
+statusChokeImage.src = "./img/status_choke.png";
+// image - status:chun
+let statusChunImage = new Image();
+statusChunImage.src = "./img/status_chun.png";
+// image - status:drain
+let statusDrainImage = new Image();
+statusDrainImage.src = "./img/status_drain.png";
+// image - status:drink
+let statusDrinkImage = new Image();
+statusDrinkImage.src = "./img/status_drink.png";
+// image - status:gear
+let statusGearImage = new Image();
+statusGearImage.src = "./img/status_gear.png";
+
 
 // image - z key animation
 let zkeyImage1 = new Image();
@@ -542,8 +623,18 @@ class CharacterObject {
     if (opponent.isStatusExist("shield")) {
       amount /= 2;
     }
+    // opponent buff: supershield
+    if (opponent.isStatusExist("supershield")) {
+      amount /= 4;
+    }
+    // deal damage
     amount = Math.floor(amount)
-    opponent.addHp(-Math.floor(amount));
+    opponent.addHp(-amount);
+    // opponent debuff: drain
+    if (opponent.isStatusExist("drain")) {
+      this.addHp(amount);
+      opponent.addStatus("drain", -1);
+    }
     return amount;
   };
 
@@ -557,6 +648,7 @@ class CharacterObject {
     if (opponent.isStatusExist("m_shield")) {
       amount /= 2;
     }
+    // deal damage
     amount = Math.floor(amount)
     opponent.addHp(-amount);
     return amount;
@@ -1089,6 +1181,27 @@ let magicData = {
   }
 };
 
+// magic data(EX)
+let magicDataEX = {
+  "bougyo": {
+    name: "ボウギョ",
+    mp: 1,
+    image: magicBougyoImage,
+    description: "2ターンの間、敵から受けるダメージを4分の1にする。",
+    effect: () => {
+      fighter.addStatus("supershield", 4);
+    }
+  },
+  "drain": {
+    name: "ドレイン",
+    mp: 4,
+    image: magicDrainImage,
+    description: "敵に寄生4を付与。寄生した敵を「なぐる」とHPを吸収できる。",
+    effect: () => {
+      enemy.addStatus("drain", 4);
+    }
+  }
+};
 
 
 // tool data
@@ -1220,6 +1333,18 @@ let statusData = {
     image: statusRegenImage,
     isBuff: true,
     type: "turn_start"
+  },
+  "supershield": {
+    name: "スーパーボウギョ",
+    image: statusShieldImage,
+    isBuff: true,
+    type: "turn_start"
+  },
+  "drain": {
+    name: "寄生",
+    image: statusDrainImage,
+    isBuff: false,
+    type: "stack"
   }
 };
 
