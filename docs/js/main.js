@@ -630,11 +630,6 @@ class CharacterObject {
     // deal damage
     amount = Math.floor(amount)
     opponent.addHp(-amount);
-    // opponent debuff: drain
-    if (opponent.isStatusExist("drain")) {
-      this.addHp(amount);
-      opponent.addStatus("drain", -1);
-    }
     return amount;
   };
 
@@ -1178,6 +1173,15 @@ let magicData = {
       if (randInt(0, 99) < 10) return;
       enemy.addStatus("stun", 1);
     }
+  },
+  "plant": {
+    name: "プラント",
+    mp: 3,
+    image: magicDrainImage,
+    description: "敵に寄生2を付与。寄生した敵を「なぐる」とHPを吸収する。",
+    effect: () => {
+      enemy.addStatus("drain", 2);
+    }
   }
 };
 
@@ -1192,13 +1196,13 @@ let magicDataEX = {
       fighter.addStatus("supershield", 4);
     }
   },
-  "drain": {
-    name: "ドレイン",
-    mp: 4,
+  "plant": {
+    name: "プラント",
+    mp: 3,
     image: magicDrainImage,
-    description: "敵に寄生4を付与。寄生した敵を「なぐる」とHPを吸収できる。",
+    description: "敵に寄生2を付与。寄生された敵を「なぐる」とHPを吸収できる。",
     effect: () => {
-      enemy.addStatus("drain", 4);
+      enemy.addStatus("drain", 2);
     }
   }
 };
@@ -2447,6 +2451,17 @@ let sceneList = {
       sceneInit = false;
       // deal damage
       damageAmount = fighter.dealAttackDamage(enemy, 5 + fighterLv);
+      // text
+      windowImage = null;
+      mainWindowText[0] = fighter.name + "の攻撃！"
+      mainWindowText[1] = enemy.name + "に" + damageAmount + "のダメージを与えた！";
+      mainWindowText[2] = "";
+      // enemy debuff: drain
+      if (enemy.isStatusExist("drain")) {
+        fighter.addHp(damageAmount);
+        enemy.addStatus("drain", -1);
+        mainWindowText[2] = fighter.name + "はHPを" + damageAmount + "回復した！";
+      }
       // achievement: overkill（渾身の一撃！）
       if (damageAmount >= 100) {
         unlockAchievement("overkill");
@@ -2455,11 +2470,6 @@ let sceneList = {
       fighterMp += 1;
       // command counter
       commandCounter[0]++;
-      // text
-      windowImage = null;
-      mainWindowText[0] = fighter.name + "の攻撃！"
-      mainWindowText[1] = enemy.name + "に" + damageAmount + "のダメージを与えた！";
-      mainWindowText[2] = "";
       // anime count
       animeCount = 32;
     }
@@ -2742,6 +2752,14 @@ let sceneList = {
         enemyData[enemy.type].strategy();
         if (damageAmount > 0) {
           mainWindowText[1] = fighter.name + "は" + damageAmount + "のダメージを受けた！";
+          // fighter debuff: drain
+          if (fighter.isStatusExist("drain")) {
+            enemy.addHp(damageAmount);
+            fighter.addStatus("drain", -1);
+            if (mainWindowText[2] === "") {
+              mainWindowText[2] = enemy.name + "はHPを" + damageAmount + "回復した！";
+            }
+          }
         }
       }
       // anime count
