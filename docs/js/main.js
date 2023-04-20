@@ -323,6 +323,9 @@ statusDrinkImage.src = "./img/status_drink.png";
 // image - status:gear
 let statusGearImage = new Image();
 statusGearImage.src = "./img/status_gear.png";
+// image - status:supershield
+let statusSuperShieldImage = new Image();
+statusSuperShieldImage.src = "./img/status_supershield.png";
 
 
 // image - z key animation
@@ -460,7 +463,7 @@ let goodLuck = false;
 let slainEnemy = 0;
 let gameClear = false;
 let isGamingNow = false; // ゲーム中かどうか
-let gameMode = "Normal"; // 闘士が主役の"Normal" or 商人が主役の"EX"
+let gameMode = "EX"; // 闘士が主役の"Normal" or 商人が主役の"EX"
 // for room
 let roomList = [];
 let room1, room2;
@@ -584,6 +587,12 @@ class CharacterObject {
 
   isStatusExist(tag) {
     return (this.status.findIndex((elem) => elem.tag === tag) != -1);
+  };
+
+  statusNum(tag) {
+    let indexOfStatus = this.status.findIndex((elem) => elem.tag === tag);
+    if (indexOfStatus === -1) return 0;
+    return this.status[indexOfStatus].amount;
   };
 
   turnStart() {
@@ -1222,21 +1231,20 @@ let magicData = {
     mp: 1,
     image: magicBougyoImage,
     mode: "EX",
-    description: "2ターンの間、敵から受けるダメージを4分の1にする。",
+    description: "1ターンの間、敵から受けるダメージを4分の1にする。",
     effect: () => {
-      fighter.addStatus("supershield", 2);
+      fighter.addStatus("supershield", 1);
     }
   },
   "oshimai": {
     name: "オシマイ",
-    mp: 0,
+    mp: 7,
     image: magicOshimaiImage,
     mode: "EX",
-    description: "MPが0のときに使うと大ダメージを与え、MPを5〜10回復。",
+    description: "残りMPが7のときに使うと大ダメージを与える。",
     effect: () => {
-      if (fighterMp === 0) {
-        damageAmount = fighter.dealMagicDamage(enemy, 60 + (fighterLv * 2));
-        fighterMp += randInt(5, 10);
+      if (fighterMp === 7) {
+        damageAmount = fighter.dealMagicDamage(enemy, 50 + (fighterLv * 2));
       }
       else {
         damageAmount = fighter.dealMagicDamage(enemy, 1);
@@ -1337,6 +1345,33 @@ let toolData = {
     effect: () => {
       enemy.addStatus("stun", 3);
     }
+  },
+  "yadorigi": {
+    name: "やどりぎ",
+    image: toolYadorigiImage,
+    mode: "EX",
+    isAvailableFromList: false,
+    description: "敵に寄生4を付与。寄生した敵をなぐるとHPを吸収できる。",
+    effect: () => {
+      enemy.addStatus("drain", 4);
+    }
+  },
+  "chun": {
+    name: "つーぱい",
+    image: toolYakuhaiImage,
+    mode: "EX",
+    isAvailableFromList: false,
+    description: "戦闘中に3個使うと敵に100の固定ダメージ。",
+    effect: () => {
+      fighter.addStatus("chun", 1);
+      if (fighter.statusNum("chun") >= 3) {
+        fighter.addStatus("chun", -3);
+        damageAmount = 100;
+        enemy.addHp(-damageAmount);
+        mainWindowText[1] = "「ツモ！」"
+        mainWindowText[2] = enemy.name + "に" + damageAmount + "のダメージを与えた！" 
+      }
+    }
   }
 };
 // all tool key list
@@ -1399,7 +1434,7 @@ let statusData = {
   },
   "supershield": {
     name: "スーパーボウギョ",
-    image: statusShieldImage,
+    image: statusSuperShieldImage,
     isBuff: true,
     type: "turn_start"
   },
@@ -1407,6 +1442,12 @@ let statusData = {
     name: "寄生",
     image: statusDrainImage,
     isBuff: false,
+    type: "stack"
+  },
+  "chun": {
+    name: "中",
+    image: statusChunImage,
+    isBuff: true,
     type: "stack"
   }
 };
