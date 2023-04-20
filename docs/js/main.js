@@ -1226,7 +1226,23 @@ let magicData = {
     effect: () => {
       fighter.addStatus("supershield", 2);
     }
-  }
+  },
+  "oshimai": {
+    name: "オシマイ",
+    mp: 0,
+    image: magicOshimaiImage,
+    mode: "EX",
+    description: "MPが0のときに使うと大ダメージを与え、MPを5〜10回復。",
+    effect: () => {
+      if (fighterMp === 0) {
+        damageAmount = fighter.dealMagicDamage(enemy, 60 + (fighterLv * 2));
+        fighterMp += randInt(5, 10);
+      }
+      else {
+        damageAmount = fighter.dealMagicDamage(enemy, 1);
+      }
+    }
+  },
 };
 // magic key list [flame, heal, …]
 const allMagicList = Object.keys(magicData);
@@ -1520,10 +1536,18 @@ let jissekiList = Object.keys(jissekiData);
 
 // initialize param (part of initialize in "title" scene)
 let initParam = function () {
-  fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
-  fighterMp = 6;
-  fighterMagic = ["flame"];
-  fighterTool = [{tag: "fruit", amount: 1}];
+  if (gameMode === "Normal") {
+    fighter = new CharacterObject("player", "闘士", 45, fighterImage1, fighterImage2);
+    fighterMp = 6;
+    fighterMagic = ["flame"];
+    fighterTool = [{tag: "fruit", amount: 1}];
+  }
+  else {
+    fighter = new CharacterObject("player", "商人", 45, playerMerchantImage1, playerMerchantImage2);
+    fighterMp = 6;
+    fighterMagic = ["flame"];
+    fighterTool = [{tag: "fruit", amount: 1}];
+  }
   fighterLv = 1;
   dungeonFloor = 0;
   money = 50;
