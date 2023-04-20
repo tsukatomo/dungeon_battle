@@ -1212,7 +1212,7 @@ let magicData = {
     mp: 3,
     image: magicDrainImage,
     mode: "EX",
-    description: "敵に寄生2を付与。寄生した敵を「なぐる」とHPを吸収する。",
+    description: "敵に寄生2を付与。寄生した敵をなぐるとHPを吸収できる。",
     effect: () => {
       enemy.addStatus("drain", 2);
     }
