@@ -665,8 +665,7 @@ let enemyData = {
     image1: slimeImage1,
     image2: slimeImage2,
     mode: "Normal",
-    floor_min: 0,
-    floor_max: 0,
+    floor: 0,
     strategy: () => {
       if (enemyStrategyParam === 0 && randInt(0, 2) === 0) {
         enemyStrategyParam = 1;
@@ -689,8 +688,7 @@ let enemyData = {
     image1: gobImage1,
     image2: gobImage2,
     mode: "Normal",
-    floor_min: 0,
-    floor_max: 1,
+    floor: 1,
     strategy: () => {
       if (enemy.hp * 4 >= enemy.maxhp) {
         damageAmount = enemy.dealAttackDamage(fighter, 5);
@@ -710,8 +708,7 @@ let enemyData = {
     image1: coffeeImage1,
     image2: coffeeImage2,
     mode: "Normal",
-    floor_min: 1,
-    floor_max: 1,
+    floor: 1,
     strategy: () => {
       if (!enemy.isStatusExist("shield")) {
         enemy.image1 = coffeeImage1;
@@ -740,8 +737,7 @@ let enemyData = {
     image1: treeImage1,
     image2: treeImage2,
     mode: "Normal",
-    floor_min: 1,
-    floor_max: 1,
+    floor: 1,
     strategy: () => {
       enemyStrategyParam += 1;
       damageAmount = enemy.dealAttackDamage(fighter, enemyStrategyParam);
@@ -755,8 +751,7 @@ let enemyData = {
     image1: fairyImage1,
     image2: fairyImage2,
     mode: "Normal",
-    floor_min: 2,
-    floor_max: 2,
+    floor: 2,
     strategy: () => {
       if (enemy.hp * 2 < enemy.maxhp && enemyStrategyParam < 3) {
         enemyStrategyParam += 1;
@@ -774,8 +769,7 @@ let enemyData = {
   "yadotsumu":{
     name: "やどクジ",
     hp: 80,
-    floor_min: 2,
-    floor_max: 2,
+    floor: 2,
     image1: yadoTsumuImage1,
     image2: yadoTsumuImage2,
     mode: "Normal",
@@ -801,8 +795,7 @@ let enemyData = {
     image1: renchinImage1,
     image2: renchinImage2,
     mode: "Normal",
-    floor_min: 3,
-    floor_max: 3,
+    floor: 3,
     strategy: () => {
       if (enemyStrategyParam % 6 === 5) {
         enemyStrategyParam += 1;
@@ -831,8 +824,7 @@ let enemyData = {
     image1: shieldkusaImage1,
     image2: shieldkusaImage2,
     mode: "Normal",
-    floor_min: 2,
-    floor_max: 2,
+    floor: 2,
     strategy: () => {
       if (enemyStrategyParam++ % 2 === 0) {
         if (randInt(0, 1) === 1) {
@@ -858,8 +850,7 @@ let enemyData = {
     image1: dragonImage1,
     image2: dragonImage2,
     mode: "Normal",
-    floor_min: 3,
-    floor_max: 3,
+    floor: 3,
     strategy: () => {
       if (enemy.hp * 2 < enemy.maxhp && (!enemy.isStatusExist("power"))) {
         enemyStrategyParam = 1;
@@ -893,8 +884,7 @@ let enemyData = {
     image1: deathImage1,
     image2: deathImage2,
     mode: "Normal",
-    floor_min: 3,
-    floor_max: 3,
+    floor: 3,
     strategy: () => {
       enemyStrategyParam++;
       if (enemyStrategyParam >= 7) {
@@ -916,8 +906,7 @@ let enemyData = {
     image1: idolImage1,
     image2: idolImage2,
     mode: "Normal",
-    floor_min: 3,
-    floor_max: 3,
+    floor: 3,
     strategy: () => {
       // 最初のターン：HPが少ないなら回復、そうでないならバフ付与
       if (enemyStrategyParam === 0) {
@@ -964,8 +953,7 @@ let enemyData = {
     image1: mahoSlimeImage1,
     image2: mahoSlimeImage2,
     mode: "Normal",
-    floor_min: 2,
-    floor_max: 2,
+    floor: 2,
     strategy: () => {
       if (enemyStrategyParam === 0) {
         enemyStrategyParam++;
@@ -1000,8 +988,7 @@ let enemyData = {
     image1: merchantBossImage3,
     image2: merchantBossImage4,
     mode: "Normal",
-    floor_min: 4,
-    floor_max: 99,
+    floor: 4,
     strategy: () => {
       // before resurrection
       if (isResurrection === true) {
@@ -2344,7 +2331,7 @@ let sceneList = {
       // create new enemy
       const enemyDatakeys = Object.keys(enemyData); // make key list from enemy data
       let encountList = enemyDatakeys.filter( e => {
-        return (enemyData[e].mode === gameMode && enemyData[e].floor_min <= dungeonFloor && dungeonFloor <= enemyData[e].floor_max && e != enemy.type) // 現在フロアで出現、かつ直前にエンカしてない敵
+        return (enemyData[e].mode === gameMode && enemyData[e].floor === dungeonFloor && e != enemy.type) // 現在フロアで出現、かつ直前にエンカしてない敵
       });
       if (slainEnemy < 2 && dungeonFloor < 2) { // 倒した敵の数が2体未満で1Fにいるときは敵の種類を絞る
         encountList = ["slime", "gob"];
