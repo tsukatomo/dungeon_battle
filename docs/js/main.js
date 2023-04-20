@@ -659,6 +659,18 @@ let enemy = new CharacterObject("enemy", "スライム", 15, slimeImage1, slimeI
 
 // enemy data
 let enemyData = {
+  "bugime":{ // バグ敵（ガワはスライムと同じ）
+    name: "バグイム",
+    hp: 99,
+    image1: slimeImage1,
+    image2: slimeImage2,
+    mode: "BUG",
+    floor: 0,
+    strategy: () => {
+      enemyStrategyCategory = "magic";
+      mainWindowText[0] = "「どうやらバグってるみたいだね。作者に教えてネ」";
+    },
+  },
   "slime":{
     name: "スライム",
     hp: 16,
@@ -1049,6 +1061,14 @@ let enemyData = {
 
 // magic data
 let magicData = {
+  "bugbug": { // バグ魔法
+    name: "バグバグ",
+    mp: 99,
+    image: magicFlameImage,
+    mode: "BUG",
+    description: "これが見えたらバグです。作者に伝えてネ",
+    effect: () => {}
+  },
   "flame": {
     name: "フレイム",
     mp: 3,
@@ -1214,6 +1234,14 @@ const allMagicList = Object.keys(magicData);
 
 // tool data
 let toolData = {
+  "bugtool": { // バグ道具
+    name: "かなぶん",
+    image: toolDiceImage,
+    mode: "BUG",
+    description: "これが見えたらバグです。作者に伝えてネ",
+    isAvailableFromList: true,
+    effect: () => {}
+  },
   "mirror": {
     name: "てかがみ",
     image: toolMirrorImage,
@@ -2336,6 +2364,9 @@ let sceneList = {
       if (slainEnemy < 2 && dungeonFloor < 2) { // 倒した敵の数が2体未満で1Fにいるときは敵の種類を絞る
         encountList = ["slime", "gob"];
       }
+      if (encountList.length === 0) { // 該当する敵がいないときはバグイムを召喚
+        encountList = ["bugime"];
+      }
       //const eKey = "idol"; // テスト用（敵指定）
       let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
@@ -2842,7 +2873,13 @@ let sceneList = {
       // obtain item
       if (randInt(0, 99) < toolDropChance) {
         toolDropChance -= 20;
-        const toolDataKeys = Object.keys(toolData);
+        // get random tool
+        let toolDataKeys = allToolList.filter( e => {
+          return (toolData[e].mode === gameMode);
+        });
+        if (toolDataKeys.length === 0) {
+          toolDataKeys = ["bugtool"];
+        }
         obtainedTool = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
         addTool(obtainedTool, 1);
       }
@@ -2942,17 +2979,30 @@ let sceneList = {
         mainWindowText[0] = "「いらっしゃー」";
         // add shop items
         // - make key list
-        let magicDataKeys = Object.keys(magicData);
-        let toolDataKeys = Object.keys(toolData);
+        let magicDataKeys = allMagicList.filter( e => {
+          return (magicData[e].mode === gameMode);
+        });
+        let toolDataKeys = allToolList.filter( e => {
+          return (toolData[e].mode === gameMode);
+        });
+        if (toolDataKeys.length === 0) {
+          toolDataKeys = ["bugtool"];
+        }
         // - remove magics that the fighter can use
+        magicDataKeys = magicDataKeys.filter( e => {
+          return (fighterMagic.indexOf(e) === -1)
+        });
+        /*
         for (let i = 0; i < fighterMagic.length; i++) {
           magicDataKeys.splice(magicDataKeys.indexOf(fighterMagic[i]), 1);
         }
+        */
         // - shuffle magic key list
         for (let i = 0; i < magicDataKeys.length; i++) {
           let j = randInt(i, magicDataKeys.length - 1);
           [magicDataKeys[i], magicDataKeys[j]] = [magicDataKeys[j], magicDataKeys[i]]; 
         }
+        console.log(magicDataKeys);
         // - tinretsu
         let numOfMagic = (magicDataKeys.length > 3) ? 3 : magicDataKeys.length;
         for (let i = 0; i < numOfMagic; i++) {
@@ -3271,7 +3321,12 @@ let sceneList = {
       // undameshi
       goodLuck = (randInt(0, 4) === 0);
       // get random tool
-      const toolDataKeys = Object.keys(toolData);
+      let toolDataKeys = allToolList.filter( e => {
+        return (toolData[e].mode === gameMode);
+      });
+      if (toolDataKeys.length === 0) {
+        toolDataKeys = ["bugtool"];
+      }
       obtainedTool = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
       addTool(obtainedTool, (goodLuck) ? 2 : 1);
       // achievement unlock: lucky
