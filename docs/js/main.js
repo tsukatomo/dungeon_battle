@@ -249,6 +249,9 @@ magicHaisuiImage.src = "./img/magic_haisui.png";
 // image - magic:oshimai(EX)
 let magicOshimaiImage = new Image();
 magicOshimaiImage.src = "./img/magic_oshimai.png";
+// image - magic:anger(EX)
+let magicAngerImage = new Image();
+magicAngerImage.src = "./img/magic_anger.png";
 
 
 // image - tool:mirror
@@ -326,6 +329,15 @@ statusGearImage.src = "./img/status_gear.png";
 // image - status:supershield
 let statusSuperShieldImage = new Image();
 statusSuperShieldImage.src = "./img/status_supershield.png";
+// image - status:anger
+let statusAngerImage = new Image();
+statusAngerImage.src = "./img/status_anger.png";
+// image - status:angerpower
+let statusAngerPowerImage = new Image();
+statusAngerPowerImage.src = "./img/status_angerpower.png";
+// image - status:angervulnerable
+let statusAngerVulnerableImage = new Image();
+statusAngerVulnerableImage.src = "./img/status_angervulnerable.png";
 
 
 // image - z key animation
@@ -596,9 +608,10 @@ class CharacterObject {
   };
 
   turnStart() {
+    let idx;
     // status: regen
-    let regenIdx = this.status.findIndex((elem) => elem.tag === "regen");
-    if (regenIdx != -1) {
+    idx = this.status.findIndex((elem) => elem.tag === "regen");
+    if (idx != -1) {
       this.addHp(Math.floor(this.maxhp * 0.20));
     }
     // reduce buff/debuff which is categorised as a "turn_start"
@@ -606,6 +619,13 @@ class CharacterObject {
       if (statusData[this.status[i].tag].type === "turn_start") {
         this.addStatus(this.status[i].tag, -1);
       }
+    }
+    // status: anger
+    idx = this.status.findIndex((elem) => elem.tag === "anger");
+    if (idx != -1) {
+      this.addStatus("angerpower", this.status[idx].amount);
+      this.addStatus("angervulnerable", this.status[idx].amount);
+      this.addStatus("anger", -this.status[idx].amount);
     }
   };
 
@@ -623,6 +643,14 @@ class CharacterObject {
     if (this.isStatusExist("power")) {
       amount *= 2;
       this.addStatus("power", -1);
+    }
+    // buff: angerpower
+    if (this.isStatusExist("angerpower")) {
+      amount *= 2;
+    }
+    // opponent debuff: angervulnerable
+    if (opponent.isStatusExist("angervulnerable")) {
+      amount *= 2;
     }
     // debuff: weak
     if (this.isStatusExist("weak")) {
@@ -1251,6 +1279,16 @@ let magicData = {
       }
     }
   },
+  "anger": {
+    name: "プンスカ",
+    mp: 2,
+    image: magicAngerImage,
+    mode: "EX",
+    description: "次の5ターンの間、「なぐる」の威力と被ダメージが2倍。",
+    effect: () => {
+      fighter.addStatus("anger", 5);
+    }
+  },
 };
 // magic key list [flame, heal, …]
 const allMagicList = Object.keys(magicData);
@@ -1439,16 +1477,34 @@ let statusData = {
     type: "turn_start"
   },
   "drain": {
-    name: "寄生",
+    name: "キセイ",
     image: statusDrainImage,
     isBuff: false,
     type: "stack"
   },
   "chun": {
-    name: "中",
+    name: "チュン",
     image: statusChunImage,
     isBuff: true,
     type: "stack"
+  },
+  "anger": {
+    name: "イカリ",
+    image: statusAngerImage,
+    isBuff: true,
+    type: "stack"
+  },
+  "angerpower": {
+    name: "イカリパワー",
+    image: statusAngerPowerImage,
+    isBuff: true,
+    type: "turn_start"
+  },
+  "angervulnerable": {
+    name: "イカリジャクタイ",
+    image: statusAngerVulnerableImage,
+    isBuff: false,
+    type: "turn_start"
   }
 };
 
