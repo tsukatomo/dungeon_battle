@@ -58,6 +58,11 @@ let iconFighterImage1 = new Image();
 iconFighterImage1.src = "./img/icon_fighter1.png";
 let iconFighterImage2 = new Image();
 iconFighterImage2.src = "./img/icon_fighter2.png";
+// image - icon:merchant(EX)
+let iconMerchantImage1 = new Image();
+iconMerchantImage1.src = "./img/icon_merchant1.png";
+let iconMerchantImage2 = new Image();
+iconMerchantImage2.src = "./img/icon_merchant2.png";
 // image - icon:stair
 let iconStairImage = new Image();
 iconStairImage.src = "./img/icon_stair.png";
@@ -1410,6 +1415,20 @@ let toolData = {
         mainWindowText[2] = enemy.name + "に" + damageAmount + "のダメージを与えた！" 
       }
     }
+  },
+  "gear": {
+    name: "はぐるま",
+    image: toolGearImage,
+    mode: "EX",
+    isAvailableFromList: false,
+    description: "自分にかかっているデバフを全て取り除く。",
+    effect: () => {
+      for (let i = fighter.status.length - 1; i >= 0; i--) {
+        if (statusData[fighter.status[i].tag].isBuff === false) {
+          fighter.status.splice(i, 1);
+        }
+      }
+    }
   }
 };
 // all tool key list
@@ -2430,7 +2449,12 @@ let sceneList = {
     displayWindowFlag = false;
     let drawX = mapIndex2RectX(fighterMapPrevX) + ((mapIndex2RectX(fighterMapX) - mapIndex2RectX(fighterMapPrevX)) / 8 * (8 - animeCount));
     let drawY = mapIndex2RectY(fighterMapPrevY) + ((mapIndex2RectY(fighterMapY) - mapIndex2RectY(fighterMapPrevY)) / 8 * (8 - animeCount));
-    drawAnimation(iconFighterImage1, iconFighterImage2, drawX, drawY, charaCtx);
+    if (gameMode === "Normal") {
+      drawAnimation(iconFighterImage1, iconFighterImage2, drawX, drawY, charaCtx);
+    }
+    else {
+      drawAnimation(iconMerchantImage1, iconMerchantImage2, drawX, drawY, charaCtx);
+    }
     if ((stairMapX === fighterMapX) && (stairMapY === fighterMapY)) {
       drawAnimation(zkeyBaroonImage1, zkeyBaroonImage2, mapIndex2RectX(stairMapX) + 64, mapIndex2RectY(stairMapY) - 32, charaCtx);
     }
