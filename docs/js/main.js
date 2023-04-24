@@ -257,6 +257,13 @@ magicOshimaiImage.src = "./img/magic_oshimai.png";
 // image - magic:anger(EX)
 let magicAngerImage = new Image();
 magicAngerImage.src = "./img/magic_anger.png";
+// image - magic:mononage(EX)
+let magicMononageImage = new Image();
+magicMononageImage.src = "./img/magic_mononage.png";
+// image - magic:dorobo(EX)
+let magicDoroboImage = new Image();
+magicDoroboImage.src = "./img/magic_dorobo.png";
+
 
 
 // image - tool:mirror
@@ -493,6 +500,7 @@ let magicCursor = 0;
 let fighterMp = 99;
 let largestMp = 99;
 let castMagic;
+let onceMagic = [];
 // for tool
 let fighterTool = [];
 let toolCursor = 0;
@@ -655,7 +663,7 @@ class CharacterObject {
     }
     // opponent debuff: angervulnerable
     if (opponent.isStatusExist("angervulnerable")) {
-      amount *= 2;
+      amount *= 1.5;
     }
     // debuff: weak
     if (this.isStatusExist("weak")) {
@@ -1106,6 +1114,7 @@ let magicData = {
   "bugbug": { // バグ魔法
     name: "バグバグ",
     mp: 99,
+    isOnce: false,
     image: magicFlameImage,
     mode: "BUG",
     description: "これが見えたらバグです。作者に伝えてネ",
@@ -1114,6 +1123,7 @@ let magicData = {
   "flame": {
     name: "フレイム",
     mp: 3,
+    isOnce: false,
     image: magicFlameImage,
     mode: "Normal",
     description: "炎で攻撃。自分のLvに応じてダメージ量が上昇。",
@@ -1124,6 +1134,7 @@ let magicData = {
   "heal": {
     name: "カイフク",
     mp: 5,
+    isOnce: false,
     image: magicHealImage,
     mode: "Normal",
     description: "最大HPの50%を回復する。",
@@ -1134,6 +1145,7 @@ let magicData = {
   "thunder": {
     name: "ビリビリ",
     mp: 5,
+    isOnce: false,
     image: magicThunderImage,
     mode: "Normal",
     description: "雷で攻撃。70%の確率で敵を3ターン行動不能にする。",
@@ -1146,6 +1158,7 @@ let magicData = {
   "power": {
     name: "ムキムキ",
     mp: 3,
+    isOnce: false,
     image: magicPowerImage,
     mode: "Normal",
     description: "次の2回の「なぐる」の威力を2倍にする。",
@@ -1156,6 +1169,7 @@ let magicData = {
   "hena": {
     name: "ヘナヘナ",
     mp: 2,
+    isOnce: false,
     image: magicHenaImage,
     mode: "Normal",
     description: "敵の攻撃力を半減させる。攻撃3回まで有効。",
@@ -1166,6 +1180,7 @@ let magicData = {
   "shield": {
     name: "シールド",
     mp: 3,
+    isOnce: false,
     image: magicShieldImage,
     mode: "Normal",
     description: "5ターンの間、受けるダメージを半分にする。",
@@ -1176,6 +1191,7 @@ let magicData = {
   "jinx": {
     name: "ジンクス",
     mp: 5,
+    isOnce: false,
     image: magicJinxImage,
     mode: "Normal",
     description: "敵にデバフがかかっているなら大ダメージ。",
@@ -1195,6 +1211,7 @@ let magicData = {
   "sansan": {
     name: "サンサン",
     mp: 3,
+    isOnce: false,
     image: magicThreeImage,
     mode: "Normal",
     description: "固定3ダメージ。コレで敵を倒すとLvが追加で1増える。",
@@ -1209,6 +1226,7 @@ let magicData = {
   "burst": {
     name: "バースト",
     mp: "ALL",
+    isOnce: false,
     image: magicBurstImage,
     mode: "Normal",
     description: "最終兵器。MPに応じてダメージ量が上昇。",
@@ -1219,6 +1237,7 @@ let magicData = {
   "money": {
     name: "マネマネ",
     mp: 3,
+    isOnce: false,
     image: magicMoneyImage,
     mode: "Normal",
     description: "所持金の50%に等しいダメージを与え、所持金を20%失う。",
@@ -1230,6 +1249,7 @@ let magicData = {
   "regen": {
     name: "リジェネ",
     mp: 7,
+    isOnce: false,
     image: magicRegenImage,
     mode: "Normal",
     description: "ターン開始時に最大HPの20%を回復する。4ターン持続。",
@@ -1240,6 +1260,7 @@ let magicData = {
   "pachi": {
     name: "パチパチ",
     mp: 1,
+    isOnce: false,
     image: magicPachiImage,
     mode: "Normal",
     description: "静電気攻撃。90%の確率で敵を行動不能にする。",
@@ -1252,6 +1273,7 @@ let magicData = {
   "plant": {
     name: "プラント",
     mp: 3,
+    isOnce: false,
     image: magicDrainImage,
     mode: "EX",
     description: "敵に寄生2を付与。寄生した敵をなぐるとHPを吸収できる。",
@@ -1262,6 +1284,7 @@ let magicData = {
   "bougyo": {
     name: "ボウギョ",
     mp: 1,
+    isOnce: false,
     image: magicBougyoImage,
     mode: "EX",
     description: "1ターンの間、敵から受けるダメージを4分の1にする。",
@@ -1271,13 +1294,15 @@ let magicData = {
   },
   "oshimai": {
     name: "オシマイ",
-    mp: 7,
+    mp: 0,
+    isOnce: true,
     image: magicOshimaiImage,
     mode: "EX",
-    description: "残りMPが7のときに使うと大ダメージを与える。",
+    description: "残りMPが0のとき、大ダメージを与え、MPを5~10回復。",
     effect: () => {
-      if (fighterMp === 7) {
+      if (fighterMp === 0) {
         damageAmount = fighter.dealMagicDamage(enemy, 50 + (fighterLv * 2));
+        fighterMp += randInt(5, 10);
       }
       else {
         damageAmount = fighter.dealMagicDamage(enemy, 1);
@@ -1287,11 +1312,34 @@ let magicData = {
   "anger": {
     name: "プンスカ",
     mp: 2,
+    isOnce: false,
     image: magicAngerImage,
     mode: "EX",
-    description: "次の5ターンの間、「なぐる」の威力と被ダメージが2倍。",
+    description: "次の5ターン、「なぐる」の威力は2倍、被ダメージは1.5倍。",
     effect: () => {
       fighter.addStatus("anger", 5);
+    }
+  },
+  "mononage": {
+    name: "モノナゲ",
+    mp: 3,
+    isOnce: false,
+    image: magicMononageImage,
+    mode: "EX",
+    description: "所持どうぐ数×5のダメージ。",
+    effect: () => {
+      damageAmount = fighter.dealMagicDamage(enemy, numOfToolInBackPack() * 5);
+    }
+  },
+  "dorobo": {
+    name: "ドロボー",
+    mp: 1,
+    isOnce: true,
+    image: magicDoroboImage,
+    mode: "EX",
+    description: "Lv+5のダメージ。10ダメージ以上でどうぐを1個獲得。",
+    effect: () => {
+      damageAmount = fighter.dealMagicDamage(enemy, 5 + fighterLv);
     }
   },
 };
@@ -1520,7 +1568,7 @@ let statusData = {
     type: "turn_start"
   },
   "angervulnerable": {
-    name: "イカリジャクタイ",
+    name: "ジャクタイ",
     image: statusAngerVulnerableImage,
     isBuff: false,
     type: "turn_start"
@@ -1712,6 +1760,12 @@ let isToolExist = function (tag) {
   return fighterTool.findIndex((elem) => elem.tag === tag) != -1;
 };
 
+// count num of tools
+let numOfToolInBackPack = function() {
+  let n = 0;
+  fighterTool.forEach( (e) => {n += e.amount;} );
+  return n;
+};
 
 
 // create map
@@ -2530,6 +2584,8 @@ let sceneList = {
       commandCounter[0] = 0; // なぐる
       commandCounter[1] = 0; // まほう
       commandCounter[2] = 0; // どうぐ
+      // reset once magic
+      onceMagic = [];
       // text (and merchant special)
       isResurrection = false;
       windowImage = null;
@@ -2723,10 +2779,17 @@ let sceneList = {
     castMagic = magicData[fighterMagic[magicCursor]];
     windowImage = null;
     mainWindowText[0] = castMagic.name + "    消費MP " + castMagic.mp;
+    if (castMagic.isOnce) {
+      mainWindowText[0] += "    【一度きり】"
+    }
     mainWindowText[1] = castMagic.description;
     mainWindowText[2] = "";
     if (fighter.isStatusExist("silence")) {
       mainWindowText[2] = "今はまほうを使えない！";
+      charaCtx.drawImage(cannotCastImage, 288, 150);
+    }
+    else if (onceMagic.indexOf(castMagic.name) != -1) {
+      mainWindowText[2] = "この戦闘ではもう使えない！";
       charaCtx.drawImage(cannotCastImage, 288, 150);
     }
     else if (castMagic.mp != "ALL") {
@@ -2738,7 +2801,7 @@ let sceneList = {
     // cast magic
     if (isKeyPressedNow("z")) {
       // change scene
-      if (!fighter.isStatusExist("silence")) {
+      if (!fighter.isStatusExist("silence") && onceMagic.indexOf(castMagic.name) == -1) {
         if (castMagic.mp === "ALL") {
           setScene("magiccast");
         }
@@ -2773,6 +2836,10 @@ let sceneList = {
       }
       else {
         fighterMp -= castMagic.mp;
+      }
+      // memorise once magic
+      if (castMagic.isOnce) {
+        onceMagic.push(castMagic.name);
       }
       // command counter
       commandCounter[1]++;
