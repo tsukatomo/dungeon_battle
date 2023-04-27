@@ -263,6 +263,12 @@ magicMononageImage.src = "./img/magic_mononage.png";
 // image - magic:dorobo(EX)
 let magicDoroboImage = new Image();
 magicDoroboImage.src = "./img/magic_dorobo.png";
+// image - magic:half(EX)
+let magicHalfImage = new Image();
+magicHalfImage.src = "./img/magic_half.png";
+// image - magic:feed(EX)
+let magicFeedImage = new Image();
+magicFeedImage.src = "./img/magic_feed.png";
 
 
 
@@ -1340,6 +1346,35 @@ let magicData = {
     description: "Lv+5のダメージ。10ダメージ以上でどうぐを1個獲得。",
     effect: () => {
       damageAmount = fighter.dealMagicDamage(enemy, 5 + fighterLv);
+    }
+  },
+  "half": {
+    name: "ハンブン",
+    mp: 5,
+    isOnce: true,
+    image: magicHalfImage,
+    mode: "EX",
+    description: "自分と敵のHPを最大値の半分にする。",
+    effect: () => {
+      fighter.hp = Math.floor(fighter.maxhp / 2);
+      enemy.hp = Math.floor(enemy.maxhp / 2);
+    }
+  },
+  "feed": {
+    name: "ホショク",
+    mp: 5,
+    isOnce: false,
+    image: magicFeedImage,
+    mode: "EX",
+    description: "固定10ダメージ。コレで倒すとHP50%回復、最大HP+5。",
+    effect: () => {
+      damageAmount = 10;
+      enemy.addHp(-damageAmount);
+      if (enemy.hp <= 0 && isResurrection === false) {
+        fighter.addHp(Math.floor(fighter.maxhp / 2));
+        fighter.maxhp += 5;
+        fighter.addHp(5);
+      }
     }
   },
 };
@@ -2778,10 +2813,7 @@ let sceneList = {
     // magic information
     castMagic = magicData[fighterMagic[magicCursor]];
     windowImage = null;
-    mainWindowText[0] = castMagic.name + "    消費MP " + castMagic.mp;
-    if (castMagic.isOnce) {
-      mainWindowText[0] += "    【一度きり】"
-    }
+    mainWindowText[0] = castMagic.name + "    消費MP " + castMagic.mp + (castMagic.isOnce) ? "    【一度きり】" : "";
     mainWindowText[1] = castMagic.description;
     mainWindowText[2] = "";
     if (fighter.isStatusExist("silence")) {
@@ -3320,7 +3352,7 @@ let sceneList = {
     let toolAmount;
     windowImage = null;
     if (itemOnCursor.category === "magic") {
-      mainWindowText[0] = magicData[itemOnCursor.item].name + "    消費MP " + magicData[itemOnCursor.item].mp;
+      mainWindowText[0] = magicData[itemOnCursor.item].name + "    消費MP " + magicData[itemOnCursor.item].mp  + (castMagic.isOnce) ? "    【一度きり】" : "";
       mainWindowText[1] = magicData[itemOnCursor.item].description;
       mainWindowText[2] = "[z]購入";
     }
@@ -3766,7 +3798,7 @@ let subSceneList = {
       useriCtx.drawImage(arrowDownImage, 304, (3 + listItems + 1) * gridSize);
     }
     // description window
-    descriptionWindowText[0] = "消費MP " + magicData[fighterMagic[listCursor]].mp;
+    descriptionWindowText[0] = "消費MP " + magicData[fighterMagic[listCursor]].mp + (castMagic.isOnce) ? "    【一度きり】" : "";
     descriptionWindowText[1] = magicData[fighterMagic[listCursor]].description;
     descriptionWindowText[2] = "";
     descriptionWindowText[3] = "";
