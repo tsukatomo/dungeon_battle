@@ -269,6 +269,9 @@ magicHalfImage.src = "./img/magic_half.png";
 // image - magic:feed(EX)
 let magicFeedImage = new Image();
 magicFeedImage.src = "./img/magic_feed.png";
+// image - magic:break(EX)
+let magicBreakImage = new Image();
+magicBreakImage.src = "./img/magic_break.png";
 
 
 
@@ -353,9 +356,9 @@ statusAngerImage.src = "./img/status_anger.png";
 // image - status:angerpower
 let statusAngerPowerImage = new Image();
 statusAngerPowerImage.src = "./img/status_angerpower.png";
-// image - status:angervulnerable
-let statusAngerVulnerableImage = new Image();
-statusAngerVulnerableImage.src = "./img/status_angervulnerable.png";
+// image - status:vulnerable
+let statusVulnerableImage = new Image();
+statusVulnerableImage.src = "./img/status_angervulnerable.png";
 
 
 // image - z key animation
@@ -643,7 +646,7 @@ class CharacterObject {
     idx = this.status.findIndex((elem) => elem.tag === "anger");
     if (idx != -1) {
       this.addStatus("angerpower", this.status[idx].amount);
-      this.addStatus("angervulnerable", this.status[idx].amount);
+      this.addStatus("vulnerable", this.status[idx].amount);
       this.addStatus("anger", -this.status[idx].amount);
     }
   };
@@ -658,6 +661,8 @@ class CharacterObject {
   };
 
   dealAttackDamage(opponent, amount) {
+    // buff: drink
+    amount += this.statusNum("drink");
     // buff: power
     if (this.isStatusExist("power")) {
       amount *= 2;
@@ -667,8 +672,8 @@ class CharacterObject {
     if (this.isStatusExist("angerpower")) {
       amount *= 2;
     }
-    // opponent debuff: angervulnerable
-    if (opponent.isStatusExist("angervulnerable")) {
+    // opponent debuff: vulnerable
+    if (opponent.isStatusExist("vulnerable")) {
       amount *= 1.5;
     }
     // debuff: weak
@@ -695,6 +700,10 @@ class CharacterObject {
     if (this.isStatusExist("mirror")) {
       amount *= 2;
       this.addStatus("mirror", -1);
+    }
+    // opponent debuff: vulnerable
+    if (opponent.isStatusExist("vulnerable")) {
+      amount *= 1.5;
     }
     // opponent buff: m_shield
     if (opponent.isStatusExist("m_shield")) {
@@ -1377,6 +1386,28 @@ let magicData = {
       }
     }
   },
+  "haisui": {
+    name: "ハイスイ",
+    mp: 5,
+    isOnce: false,
+    image: magicHaisuiImage,
+    mode: "EX",
+    description: "背水の陣。自分のHP減少量に等しいダメージを与える。",
+    effect: () => {
+      damageAmount = fighter.dealMagicDamage(enemy, fighter.maxhp - fighter.hp);
+    }
+  },
+  "break": {
+    name: "ヨワヨワ",
+    mp: 3,
+    isOnce: false,
+    image: magicBreakImage,
+    mode: "EX",
+    description: "次の2ターン、敵の被ダメージが1.5倍になる。",
+    effect: () => {
+      enemy.addStatus("vulnerable", 3);
+    }
+  },
 };
 // magic key list [flame, heal, …]
 const allMagicList = Object.keys(magicData);
@@ -1512,6 +1543,16 @@ let toolData = {
         }
       }
     }
+  },
+  "drink": {
+    name: "どりんく",
+    image: toolDrinkImage,
+    mode: "EX",
+    isAvailableFromList: false,
+    description: "この戦闘中、「なぐる」の威力+3。",
+    effect: () => {
+      fighter.addStatus("drink", 3);
+    }
   }
 };
 // all tool key list
@@ -1602,12 +1643,18 @@ let statusData = {
     isBuff: true,
     type: "turn_start"
   },
-  "angervulnerable": {
+  "vulnerable": {
     name: "ジャクタイ",
-    image: statusAngerVulnerableImage,
+    image: statusVulnerableImage,
     isBuff: false,
     type: "turn_start"
-  }
+  },
+  "drink": {
+    name: "ドリンクパワー",
+    image: statusDrinkImage,
+    isBuff: true,
+    type: "stack"
+  },
 };
 
 
