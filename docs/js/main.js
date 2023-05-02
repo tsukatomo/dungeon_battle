@@ -193,6 +193,15 @@ let yajirushimanImage1 = new Image();
 let yajirushimanImage2 = new Image();
 yajirushimanImage1.src = "./img/yajirushiman1.png";
 yajirushimanImage2.src = "./img/yajirushiman2.png";
+// image - ghost(EX)
+let ghostImage1 = new Image();
+let ghostImage2 = new Image();
+let ghostImage3 = new Image();
+let ghostImage4 = new Image();
+ghostImage1.src = "./img/ghost1.png";
+ghostImage2.src = "./img/ghost2.png";
+ghostImage3.src = "./img/ghost3.png";
+ghostImage4.src = "./img/ghost4.png";
 
 
 // image - itemselect
@@ -306,6 +315,10 @@ toolYadorigiImage.src = "./img/tool_yadorigi.png";
 // image - tool:yakuhai(EX)
 let toolYakuhaiImage = new Image();
 toolYakuhaiImage.src = "./img/tool_yakuhai.png";
+// image - tool:hitodama(EX)
+let toolHitodamaImage = new Image();
+toolHitodamaImage.src = "./img/tool_hitodama.png";
+
 
 
 // image - status:stun
@@ -359,6 +372,9 @@ statusAngerPowerImage.src = "./img/status_angerpower.png";
 // image - status:vulnerable
 let statusVulnerableImage = new Image();
 statusVulnerableImage.src = "./img/status_angervulnerable.png";
+// image - status:vulnerable
+let statusGhostImage = new Image();
+statusGhostImage.src = "./img/status_ghost.png";
 
 
 // image - z key animation
@@ -502,6 +518,7 @@ let roomList = [];
 let room1, room2;
 // for enemy
 let enemyStrategyParam = 0; // a parameter for strategy of enemy
+let enemyStrategyParam2 = 0;
 let enemyStrategyCategory = "attack";
 // for magic & magic list
 let fighterMagic = ["flame"]; // magic can be cast
@@ -689,6 +706,10 @@ class CharacterObject {
     if (opponent.isStatusExist("supershield")) {
       amount /= 4;
     }
+    // opponent buff: ghost
+    if (opponent.isStatusExist("ghost")) {
+      amount = 1;
+    }
     // deal damage
     amount = Math.floor(amount)
     opponent.addHp(-amount);
@@ -708,6 +729,10 @@ class CharacterObject {
     // opponent buff: m_shield
     if (opponent.isStatusExist("m_shield")) {
       amount /= 2;
+    }
+    // opponent buff: ghost
+    if (opponent.isStatusExist("ghost")) {
+      amount = 1;
     }
     // deal damage
     amount = Math.floor(amount)
@@ -1117,6 +1142,79 @@ let enemyData = {
           mainWindowText[0] = "「さーて、耐えられるかなー？」";
         }
         enemyStrategyParam++;
+      }
+    }
+  },
+  // ここから EX
+  "ghost": {
+    name: "ゆうれい",
+    hp: 90,
+    image1: ghostImage1,
+    image2: ghostImage2,
+    mode: "EX",
+    floor: 2,
+    strategy: () => {
+      if (enemyStrategyParam++ % 3 === 2) {
+        enemy.addStatus("ghost", 1);
+        enemyStrategyCategory = "none";
+        mainWindowText[0] = enemy.name + "は姿を消した！";
+        mainWindowText[1] = "次のターンは攻撃が（ほぼ）通らない！";
+        enemy.image1 = ghostImage3;
+        enemy.image2 = ghostImage4;
+      }
+      else {
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(6, 10));
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！";
+        enemy.image1 = ghostImage1;
+        enemy.image2 = ghostImage2;
+      }
+    }
+  },
+  "hokogusa": {
+    name: "ホコグサ",
+    hp: 50,
+    image1: hokogusaImage1,
+    image2: hokogusaImage2,
+    mode: "EX",
+    floor: 2,
+    strategy: () => {
+      if (randInt(0, 1) === 0 && enemyStrategyParam < 2 && !fighter.isStatusExist("drain")) {
+        fighter.addStatus("drain", 2);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の植え付け攻撃！";
+        mainWindowText[1] = fighter.name + "は寄生された！";
+        enemyStrategyParam++;
+      }
+      else {
+        enemyStrategyParam2 += 3;
+        damageAmount = enemy.dealAttackDamage(fighter, enemyStrategyParam2);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！";
+      }
+    }
+  },
+  "doubleSlime": {
+    name: "ダブスラ",
+    hp: 20,
+    image1: doubleslimeImage1,
+    image2: doubleslimeImage2,
+    mode: "EX",
+    floor: 1,
+    strategy: () => {
+      if (randInt(0, 2) === 0 && enemyStrategyParam === 0) {
+        damageAmount = enemy.dealAttackDamage(fighter, 3);
+        fighter.addStatus("weak", 1);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "は連携ワザを使った！";
+        mainWindowText[2] = "「なぐる」の威力が下がった！";
+        enemyStrategyParam = 1;
+      }
+      else {
+        enemyStrategyParam = 0;
+        damageAmount = enemy.dealAttackDamage(fighter, 7);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！";
       }
     }
   }
@@ -1553,6 +1651,16 @@ let toolData = {
     effect: () => {
       fighter.addStatus("drink", 3);
     }
+  },
+  "hitodama": {
+    name: "ひとだま",
+    image: toolHitodamaImage,
+    mode: "EX",
+    isAvailableFromList: false,
+    description: "このターン、ダメージを1に軽減する。",
+    effect: () => {
+      fighter.addStatus("ghost", 1);
+    }
   }
 };
 // all tool key list
@@ -1655,6 +1763,12 @@ let statusData = {
     isBuff: true,
     type: "stack"
   },
+  "ghost": {
+    name: "ゴースト",
+    image: statusGhostImage,
+    isBuff: true,
+    type: "turn_start"
+  }
 };
 
 
@@ -2658,6 +2772,7 @@ let sceneList = {
         enemyData[eKey].image2
       );
       enemyStrategyParam = 0;
+      enemyStrategyParam2 = 0;
       // cursor
       menuCursor = 0;
       // fighting flag
