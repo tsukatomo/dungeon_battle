@@ -397,6 +397,10 @@ let merchantImage1 = new Image();
 let merchantImage2 = new Image();
 merchantImage1.src = "./img/merchant1.png";
 merchantImage2.src = "./img/merchant2.png";
+let merchantExImage1 = new Image();
+let merchantExImage2 = new Image();
+merchantExImage1.src = "./img/merchant_ex1.png";
+merchantExImage2.src = "./img/merchant_ex2.png";
 // image - merchant face
 let merchantFaceImage = new Image();
 merchantFaceImage.src = "./img/merchant_face.png";
@@ -409,6 +413,11 @@ merchantFuryImage.src = "./img/merchant_face_fury.png";
 // image - death face
 let deathFaceImage = new Image();
 deathFaceImage.src = "./img/death_face.png";
+// image - idol face
+let idolFace1Image = new Image();
+let idolFace2Image = new Image();
+idolFace1Image.src = "./img/idol_face1.png";
+idolFace2Image.src = "./img/idol_face2.png";
 
 // image - gemspot
 let gemSpotImage1 = new Image();
@@ -1148,13 +1157,13 @@ let enemyData = {
   // ここから EX
   "ghost": {
     name: "ゆうれい",
-    hp: 90,
+    hp: 77,
     image1: ghostImage1,
     image2: ghostImage2,
     mode: "EX",
     floor: 2,
     strategy: () => {
-      if (enemyStrategyParam++ % 3 === 2) {
+      if (enemyStrategyParam++ % 3 === 1) {
         enemy.addStatus("ghost", 1);
         enemyStrategyCategory = "none";
         mainWindowText[0] = enemy.name + "は姿を消した！";
@@ -1173,7 +1182,7 @@ let enemyData = {
   },
   "hokogusa": {
     name: "ホコグサ",
-    hp: 50,
+    hp: 70,
     image1: hokogusaImage1,
     image2: hokogusaImage2,
     mode: "EX",
@@ -1196,7 +1205,7 @@ let enemyData = {
   },
   "doubleSlime": {
     name: "ダブスラ",
-    hp: 20,
+    hp: 30,
     image1: doubleslimeImage1,
     image2: doubleslimeImage2,
     mode: "EX",
@@ -1657,7 +1666,7 @@ let toolData = {
     image: toolHitodamaImage,
     mode: "EX",
     isAvailableFromList: false,
-    description: "このターン、ダメージを1に軽減する。",
+    description: "1ターンの間、ダメージを1に軽減する。",
     effect: () => {
       fighter.addStatus("ghost", 1);
     }
@@ -3375,14 +3384,14 @@ let sceneList = {
       // counter (buffer)
       animeCount = 8;
       // text 
-      windowImage = merchantFaceImage;
+      windowImage = (gameMode === "Normal") ? merchantFaceImage : idolFace1Image;
       mainWindowText[0] = "「ごゆっくりー」";
       mainWindowText[1] = "";
       mainWindowText[2] = ""; 
       // shop initialize
       if (shopInit) {
         shopInit = false;
-        mainWindowText[0] = "「いらっしゃー」";
+        mainWindowText[0] = (gameMode === "Normal") ? "「いらっしゃー」" : "「よぉ師匠、何か買ってく？」";
         // add shop items
         // - make key list
         let magicDataKeys = allMagicList.filter( e => {
@@ -3429,7 +3438,12 @@ let sceneList = {
     // fighter animation
     fighter.drawAnime(fighterX, characterY, charaCtx);
     // merchant animation
-    drawAnimation(merchantImage1, merchantImage2, 400, 64, charaCtx);
+    if (gameMode === "Normal") {
+      drawAnimation(merchantImage1, merchantImage2, 400, 64, charaCtx);
+    }
+    else {
+      drawAnimation(merchantExImage1, merchantExImage2, 400, 64, charaCtx);
+    }
     // menu
     if (isKeyPressedNow("u")) menuCursor--;
     if (isKeyPressedNow("d")) menuCursor++;
@@ -3579,7 +3593,7 @@ let sceneList = {
         oyakudachiList = oyakudachiInfo;
       }
       // text 
-      windowImage = merchantFaceImage;
+      windowImage = (gameMode === "Normal") ? merchantFaceImage : idolFace1Image;
       let oyakudachiIndex = randInt(0, oyakudachiList.length - 1)
       mainWindowText[0] = "「" + oyakudachiList[oyakudachiIndex][0];
       mainWindowText[1] = "　" + oyakudachiList[oyakudachiIndex][1];
@@ -3589,7 +3603,13 @@ let sceneList = {
     // fighter animation
     fighter.drawAnime(fighterX, characterY, charaCtx);
     // merchant animation
-    drawAnimation(merchantImage1, merchantImage2, 400, 64, charaCtx);
+    // merchant animation
+    if (gameMode === "Normal") {
+      drawAnimation(merchantImage1, merchantImage2, 400, 64, charaCtx);
+    }
+    else {
+      drawAnimation(merchantExImage1, merchantExImage2, 400, 64, charaCtx);
+    }
     // change scene
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
@@ -4090,7 +4110,7 @@ let subSceneList = {
       transAnimeCount = 8;  
     }
     // text 
-    windowImage = merchantFaceImage;
+    windowImage = (gameMode === "Normal") ? merchantSadImage : idolFace1Image;
     mainWindowText[0] = "「まいどー」";
     mainWindowText[1] = "";
     mainWindowText[2] = "";
@@ -4110,8 +4130,8 @@ let subSceneList = {
     }
     // update
     // text 
-    windowImage = merchantSadImage;
-    mainWindowText[0] = "「お金が足りないよー」";
+    windowImage = (gameMode === "Normal") ? merchantSadImage : idolFace2Image;
+    mainWindowText[0] = (gameMode === "Normal") ? "「お金が足りないよー」" : "「冷やかしなら帰んな」";
     mainWindowText[1] = "";
     mainWindowText[2] = "";
     if (transAnimeCount-- < 0) zkeyAnimeSub();
