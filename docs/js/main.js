@@ -173,6 +173,11 @@ let doubleslimeImage1 = new Image();
 let doubleslimeImage2 = new Image();
 doubleslimeImage1.src = "./img/doubleslime1.png";
 doubleslimeImage2.src = "./img/doubleslime2.png";
+// image - kingslime(EX)
+let kingslimeImage1 = new Image();
+let kingslimeImage2 = new Image();
+kingslimeImage1.src = "./img/kingslime1.png";
+kingslimeImage2.src = "./img/kingslime2.png";
 // image - hebi(EX)
 let hebiImage1 = new Image();
 let hebiImage2 = new Image();
@@ -1211,9 +1216,9 @@ let enemyData = {
     mode: "EX",
     floor: 1,
     strategy: () => {
-      if (randInt(0, 2) === 0 && enemyStrategyParam === 0) {
+      if (randInt(0, 1) === 0 && enemyStrategyParam === 0) {
         damageAmount = enemy.dealAttackDamage(fighter, 3);
-        fighter.addStatus("weak", 1);
+        fighter.addStatus("weak", 2);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "は連携ワザを使った！";
         mainWindowText[2] = "「なぐる」の威力が下がった！";
@@ -1222,6 +1227,71 @@ let enemyData = {
       else {
         enemyStrategyParam = 0;
         damageAmount = enemy.dealAttackDamage(fighter, 7);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！";
+      }
+    }
+  },
+  "slimeKing": {
+    name: "スラおう",
+    hp: 100,
+    image1: kingslimeImage1,
+    image2: kingslimeImage2,
+    mode: "EX",
+    floor: 2,
+    strategy: () => {
+      if (enemyStrategyParam === 0) {
+        enemyStrategyParam = 1;
+        fighter.addStatus("weak", 4);
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "はベトベトを撒き散らした！";
+        mainWindowText[1] = "「なぐる」の威力が下がった！";
+      }
+      else if (enemyStrategyParam2 <= 0 && randInt(0, 1) === 0) {
+        enemyStrategyParam2 = 2
+        damageAmount = enemy.dealAttackDamage(fighter, 4);
+        fighter.addStatus("weak", 1);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "のベトベトアタック！";
+        mainWindowText[2] = "「なぐる」の威力が下がった！";
+      }
+      else {
+        enemyStrategyParam2--;
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(7, 10));
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！";
+      }
+    }
+  },
+  "hyoshiki": {
+    name: "サインズ",
+    hp: 88,
+    image1: yajirushimanImage1,
+    image2: yajirushimanImage2,
+    mode: "EX",
+    floor: 2,
+    strategy: () => {
+      if (enemyStrategyParam === 0) {
+        enemyStrategyParam = 1;
+        let randomNum = randInt(0, 1);
+        fighter.addStatus("weak", randomNum + 4);
+        fighter.addStatus("power", randomNum + 2);
+        randomNum = randInt(0, 1);
+        enemy.addStatus("weak", randomNum + 2);
+        enemy.addStatus("power", randomNum + 4);
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "は矢印をたくさんバラ撒いた！";
+      }
+      else if (enemyStrategyParam2 <= 0 && randInt(0, 2) === 0) {
+        enemyStrategyParam2 = 4
+        fighter.addStatus("silence", 2);
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "の停止命令！";
+        mainWindowText[1] = fighter.name + "はまほうを封じられた！";
+      }
+      else {
+        enemyStrategyParam2--;
+        damageAmount = enemy.dealAttackDamage(fighter, 9);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -1423,7 +1493,7 @@ let magicData = {
     description: "残りMPが0のとき、大ダメージを与え、MPを5~10回復。",
     effect: () => {
       if (fighterMp === 0) {
-        damageAmount = fighter.dealMagicDamage(enemy, 50 + (fighterLv * 2));
+        damageAmount = fighter.dealMagicDamage(enemy, 30 + (fighterLv * 2));
         fighterMp += randInt(5, 10);
       }
       else {
@@ -1448,9 +1518,9 @@ let magicData = {
     isOnce: false,
     image: magicMononageImage,
     mode: "EX",
-    description: "所持どうぐ数×5のダメージ。",
+    description: "所持どうぐ数×2の追加ダメージ。",
     effect: () => {
-      damageAmount = fighter.dealMagicDamage(enemy, numOfToolInBackPack() * 5);
+      damageAmount = fighter.dealMagicDamage(enemy, 12 + numOfToolInBackPack() * 2);
     }
   },
   "dorobo": {
@@ -1482,12 +1552,12 @@ let magicData = {
     isOnce: false,
     image: magicFeedImage,
     mode: "EX",
-    description: "固定10ダメージ。コレで倒すとHP50%回復、最大HP+5。",
+    description: "固定7ダメージ。コレで倒すとHP10%回復、最大HP+5。",
     effect: () => {
-      damageAmount = 10;
+      damageAmount = 7;
       enemy.addHp(-damageAmount);
       if (enemy.hp <= 0 && isResurrection === false) {
-        fighter.addHp(Math.floor(fighter.maxhp / 2));
+        fighter.addHp(Math.floor(fighter.maxhp * 0.10));
         fighter.maxhp += 5;
         fighter.addHp(5);
       }
@@ -1625,14 +1695,14 @@ let toolData = {
     image: toolYakuhaiImage,
     mode: "EX",
     isAvailableFromList: false,
-    description: "戦闘中に3個使うと敵に100の固定ダメージ。",
+    description: "ドラ。戦闘中に3個使うと敵に77の固定ダメージ。",
     effect: () => {
       fighter.addStatus("chun", 1);
       if (fighter.statusNum("chun") >= 3) {
         fighter.addStatus("chun", -3);
-        damageAmount = 100;
+        damageAmount = 77;
         enemy.addHp(-damageAmount);
-        mainWindowText[1] = "「ツモ！」"
+        mainWindowText[1] = "「ツモ！  中・ドラ3  7700」"
         mainWindowText[2] = enemy.name + "に" + damageAmount + "のダメージを与えた！" 
       }
     }
