@@ -4349,7 +4349,7 @@ let subSceneList = {
       transAnimeCount = 8;  
     }
     // text 
-    windowImage = (gameMode === "Normal") ? merchantSadImage : idolFace1Image;
+    windowImage = (gameMode === "Normal") ? merchantFaceImage : idolFace1Image;
     mainWindowText[0] = "「まいどー」";
     mainWindowText[1] = "";
     mainWindowText[2] = "";
