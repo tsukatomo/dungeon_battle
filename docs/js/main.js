@@ -39,6 +39,9 @@ titleBackImage.src = "./img/background_title.png";
 // image - title
 let titleImage = new Image();
 titleImage.src = "./img/title.png";
+// image - title(EX)
+let titleExImage = new Image();
+titleExImage.src = "./img/title_ex.png";
 
 
 // image - gate
@@ -542,7 +545,8 @@ let goodLuck = false;
 let slainEnemy = 0;
 let gameClear = false;
 let isGamingNow = false; // ゲーム中かどうか
-let gameMode = "EX"; // 闘士が主役の"Normal" or 商人が主役の"EX"
+let gameMode = "Normal"; // 闘士が主役の"Normal" or 商人が主役の"EX"
+let displayTitle = titleImage;
 // for room
 let roomList = [];
 let room1, room2;
@@ -1176,6 +1180,37 @@ let enemyData = {
     }
   },
   // ここから EX
+  "dekagob":{
+    name: "でかゴブ",
+    hp: 48,
+    image1: dekagobuImage1,
+    image2: dekagobuImage2,
+    mode: "EX",
+    floor: 1,
+    strategy: () => {
+      if (enemy.hp * 2 < enemy.maxhp && enemyStrategyParam === 0) {
+        enemyStrategyParam = 1;
+        enemy.addStatus("angerpower", 5);
+        enemy.addStatus("vulnerable", 5);
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "は怒っている……！";
+      }
+      else {
+        if (randInt(0, 2) === 0) {
+          damageAmount = enemy.dealAttackDamage(fighter, 4);
+          fighter.addStatus("vulnerable", 2);
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "の頭突き攻撃！";
+          mainWindowText[2] = fighter.name + "の防御力が下がった！";
+        }
+        else {
+          damageAmount = enemy.dealAttackDamage(fighter, 6);
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "の攻撃！";
+        }
+      }
+    }
+  },
   "ghost": {
     name: "ゆうれい",
     hp: 77,
@@ -1217,7 +1252,7 @@ let enemyData = {
         enemyStrategyParam++;
       }
       else {
-        enemyStrategyParam2 += 3;
+        if (enemyStrategyParam2 <= 18) enemyStrategyParam2 += 3;
         damageAmount = enemy.dealAttackDamage(fighter, enemyStrategyParam2);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
@@ -1234,7 +1269,7 @@ let enemyData = {
     strategy: () => {
       if (randInt(0, 1) === 0 && enemyStrategyParam === 0) {
         damageAmount = enemy.dealAttackDamage(fighter, 3);
-        fighter.addStatus("weak", 2);
+        fighter.addStatus("weak", 1);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "は連携ワザを使った！";
         mainWindowText[2] = "「なぐる」の威力が下がった！";
@@ -1343,7 +1378,7 @@ let enemyData = {
             enemyStrategyCategory = "none";
             windowImage = robotFaceImage;
             mainWindowText[0] = "「エラー ガ 発生 シマシタ";
-            mainWindowText[1] = "　トラブルシューティング ヲ 実行」";
+            mainWindowText[1] = "　解決方法 ヲ 収集 シマス」";
           }
         }
         else {
@@ -1364,7 +1399,7 @@ let enemyData = {
         else {
           enemyStrategyCategory = "none";
           windowImage = robotFaceImage;
-          mainWindowText[0] = "「ジバク　マデ　アト　" + (4 - enemyStrategyParam) + "…」";
+          mainWindowText[0] = "「ジバク マデ アト " + (4 - enemyStrategyParam) + "…」";
           enemyStrategyParam++;
         }
       }
@@ -1601,7 +1636,7 @@ let magicData = {
     mp: 1,
     isOnce: true,
     image: magicDoroboImage,
-    mode: "EX",
+    mode: "None",
     description: "Lv+5のダメージ。10ダメージ以上でどうぐを1個獲得。",
     effect: () => {
       damageAmount = fighter.dealMagicDamage(enemy, 5 + fighterLv);
@@ -1967,7 +2002,17 @@ let oyakudachiAdditional = [
   ],
 ];
 
-
+let oyakudachiInfoEx = [
+  ["習得したまほうの確認はAキーだ", "もう知ってるよな？」"],
+  ["拾ったどうぐはSキーでチェックだ", "一部のどうぐは戦闘外でも使えるぞ」"],
+  ["寄生した敵を殴ると、与えたダメージ分", "回復できるみてぇだな」"],
+  ["固定ダメージ攻撃はバフ・デバフの", "影響を受けねぇらしいぜ」"],
+  ["一度踏んだショップやジェムは消えるぜ", "踏む順番に気をつけな」"],
+  ["『フレイム』の威力はアンタのLvの2倍に", "8を足した値に等しいぜ」"],
+  ["防御力低下デバフを喰らうと", "被ダメージが1.5倍になるぞ」"],
+  ["早くメジャーデビューしてぇなぁ……", "誰かスカウトしてくれねぇかな」"],
+  ["『なぐる』の威力を下げるデバフは", "『なぐる』を使わないと減らねぇぞ！」"]
+];
 
 // room icon data
 let roomIconData = {
@@ -2556,6 +2601,8 @@ let randInt = function(min, max) {
 
 // unlock achievement
 let unlockAchievement = function (achievementKey) {
+  // ゲームモード違うやんけ！→おわり
+  if (gameMode === "Ex") return;
   // 獲得済みやんけ！→おわり
   if (isAchievementUnlocked(achievementKey)) return;
   // 新規獲得
@@ -2590,10 +2637,15 @@ let tweet = function () {
   // create tweet message
   let tweetmes;
   if (gameClear) {
-    tweetmes = "だんじょんを踏破した！\n"
+    if (gameMode === "Normal") {
+      tweetmes = "だんじょんを踏破した！\n";
+    }
+    else {
+      tweetmes = "デモ版をクリアした！\n";
+    }
   }
   else {
-    tweetmes = dungeonFloor + "階で" + enemy.name + "に倒された……\n"
+    tweetmes = dungeonFloor + "階で" + enemy.name + "に倒された……\n";
   }
   tweetmes += "&url=https://tsukatomo.github.io/dungeon_battle";
   tweetmes += "&hashtags=だんじょん・ばとる";
@@ -2662,6 +2714,8 @@ let sceneList = {
       sceneInit = false;
       // initialize parameters of fighter
       initParam();
+      // title image
+      displayTitle = gameMode === "Normal" ? titleImage : titleExImage;
       // check num of unlocked achievement and new achievement
       let numOfUnlock = 0;
       isNewAchievementExist = false;
@@ -2679,16 +2733,23 @@ let sceneList = {
       animeCount = 64;
     }
     fighter.drawAnime(fighterX, 224, charaCtx);
-    charaCtx.drawImage(titleImage, 192, fixCoordinate(18 - (animeCount * animeCount / 100) * 4)); 
+    charaCtx.drawImage(displayTitle, 192, fixCoordinate(18 - (animeCount * animeCount / 100) * 4)); 
     if (isNewAchievementExist) {
       drawAnimation(jissekiNewTsutiImage1, jissekiNewTsutiImage2, 380, 420, charaCtx);
     }
+    // z: start game
     if (isKeyPressedNow("z")) {
       isGamingNow = true;
       setTransition("map");
     }
+    // x: check achievements
     else if (isKeyPressedNow("x")) {
       setTransition("jisseki");
+    }
+    // down: change Normal/Ex
+    else if (isKeyPressedNow("d")) {
+      gameMode = gameMode === "Normal" ? "EX" : "Normal";
+      setTransition("title");
     }
   },
 
@@ -2888,7 +2949,7 @@ let sceneList = {
       // go to next floor
       if (isKeyPressedNow("z") && (stairMapX === fighterMapX) && (stairMapY === fighterMapY)) {
         mapInit = true;
-        if (dungeonFloor < 4) {
+        if (dungeonFloor < (gameMode === "Normal" ? 4 : 2)) {
           setTransition("map");
         }
         else {
@@ -3749,11 +3810,16 @@ let sceneList = {
       animeCount = 8;
       // make dialog list
       let oyakudachiList;
-      if (1 <= dungeonFloor && dungeonFloor <= 3) {
-        oyakudachiList = oyakudachiInfo.concat(oyakudachiAdditional[dungeonFloor - 1]);
+      if (gameMode === "Normal") {
+        if (1 <= dungeonFloor && dungeonFloor <= 3) {
+          oyakudachiList = oyakudachiInfo.concat(oyakudachiAdditional[dungeonFloor - 1]);
+        }
+        else {
+          oyakudachiList = oyakudachiInfo;
+        }
       }
       else {
-        oyakudachiList = oyakudachiInfo;
+        oyakudachiList = oyakudachiInfoEx;
       }
       // text 
       windowImage = (gameMode === "Normal") ? merchantFaceImage : idolFace1Image;
@@ -3960,16 +4026,21 @@ let sceneList = {
       if (toolCounter >= 10) unlockAchievement("toolmaster");
       if (largestMp >= 30) unlockAchievement("fullMP");
       // text
-      windowImage = merchantFaceImage;
-      mainWindowText[0] = "「クリアおめでとー！」";
+      windowImage = gameMode === "Normal" ? merchantFaceImage : idolFace1Image;
+      mainWindowText[0] = gameMode === "Normal" ? "「クリアおめでとー！」" : "「デモ版はここまで！」";
       mainWindowText[1] = "";
       mainWindowText[2] = "";
       // buffer
       animeCount = 16;
     }
     fighter.drawAnime(fighterX, characterY, charaCtx);
-    drawAnimation(merchantBossImage3, merchantBossImage4, enemyX, characterY, charaCtx);
     drawAnimation(goldenAppleImage1, goldenAppleImage2, 256, characterY, charaCtx);
+    if (gameMode === "Normal") {
+      drawAnimation(merchantBossImage3, merchantBossImage4, enemyX, characterY, charaCtx);
+    }
+    else {
+      drawAnimation(idolImage1, idolImage2, enemyX, characterY, charaCtx);
+    }
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       setScene("cleartweetmenu");
@@ -3983,8 +4054,13 @@ let sceneList = {
     }
     // animation
     fighter.drawAnime(fighterX, characterY, charaCtx);
-    drawAnimation(merchantBossImage3, merchantBossImage4, enemyX, characterY, charaCtx);
     drawAnimation(goldenAppleImage1, goldenAppleImage2, 256, characterY, charaCtx);
+    if (gameMode === "Normal") {
+      drawAnimation(merchantBossImage3, merchantBossImage4, enemyX, characterY, charaCtx);
+    }
+    else {
+      drawAnimation(idolImage1, idolImage2, enemyX, characterY, charaCtx);
+    }
     // menu
     if (isKeyPressedNow("u")) menuCursor--;
     if (isKeyPressedNow("d")) menuCursor++;
