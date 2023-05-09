@@ -2602,7 +2602,7 @@ let randInt = function(min, max) {
 // unlock achievement
 let unlockAchievement = function (achievementKey) {
   // ゲームモード違うやんけ！→おわり
-  if (gameMode === "Ex") return;
+  if (gameMode === "EX") return;
   // 獲得済みやんけ！→おわり
   if (isAchievementUnlocked(achievementKey)) return;
   // 新規獲得
