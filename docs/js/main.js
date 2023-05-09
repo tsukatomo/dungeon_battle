@@ -160,14 +160,18 @@ let yarareImage2 = new Image();
 yarareImage2.src = "./img/yarare2.png";
 
 // image - player_merchant(EX)
-let playerMerchantImage1 = new Image();
-let playerMerchantImage2 = new Image();
-let playerMerchantImage3 = new Image();
-let playerMerchantImage4 = new Image();
+let playerMerchantImage1 = new Image(); // normal 1
+let playerMerchantImage2 = new Image(); // normal 2
+let playerMerchantImage3 = new Image(); // victory 1
+let playerMerchantImage4 = new Image(); // victory 2
+let playerMerchantImage5 = new Image(); // yarare 1
+let playerMerchantImage6 = new Image(); // yarare 2
 playerMerchantImage1.src = "./img/player_merchant1.png";
 playerMerchantImage2.src = "./img/player_merchant2.png";
 playerMerchantImage3.src = "./img/player_merchant3.png";
 playerMerchantImage4.src = "./img/player_merchant4.png";
+playerMerchantImage5.src = "./img/player_merchant5.png";
+playerMerchantImage6.src = "./img/player_merchant6.png";
 // image - doubleslime(EX)
 let doubleslimeImage1 = new Image();
 let doubleslimeImage2 = new Image();
@@ -207,6 +211,15 @@ ghostImage1.src = "./img/ghost1.png";
 ghostImage2.src = "./img/ghost2.png";
 ghostImage3.src = "./img/ghost3.png";
 ghostImage4.src = "./img/ghost4.png";
+// image - robot(EX)
+let robotImage1 = new Image();
+let robotImage2 = new Image();
+let robotImage3 = new Image();
+let robotImage4 = new Image();
+robotImage1.src = "./img/robot1.png";
+robotImage2.src = "./img/robot2.png";
+robotImage3.src = "./img/robot3.png";
+robotImage4.src = "./img/robot4.png";
 
 
 // image - itemselect
@@ -418,6 +431,9 @@ merchantFuryImage.src = "./img/merchant_face_fury.png";
 // image - death face
 let deathFaceImage = new Image();
 deathFaceImage.src = "./img/death_face.png";
+// image - robot face
+let robotFaceImage = new Image();
+robotFaceImage.src = "./img/robot_face.png";
 // image - idol face
 let idolFace1Image = new Image();
 let idolFace2Image = new Image();
@@ -771,7 +787,7 @@ let enemyData = {
     mode: "BUG",
     floor: 0,
     strategy: () => {
-      enemyStrategyCategory = "magic";
+      enemyStrategyCategory = "none";
       mainWindowText[0] = "「どうやらバグってるみたいだね。作者に教えてネ」";
     },
   },
@@ -1296,7 +1312,64 @@ let enemyData = {
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
     }
-  }
+  },
+  "robot": {
+    name: "ロボっち",
+    hp: 150,
+    image1: robotImage1,
+    image2: robotImage2,
+    mode: "EX",
+    floor: 3,
+    strategy: () => {
+      if (enemy.hp * 2 < enemy.maxhp && enemyStrategyParam === 0) {
+        enemyStrategyParam = 1;
+      }
+      if (enemyStrategyParam === 0) {
+        if (enemy.isStatusExist("weak") || enemy.isStatusExist("vulnerable") || enemy.isStatusExist("drain")) {
+          if (enemyStrategyParam2 === 1) {
+            enemyStrategyParam2 = 0;
+            // debuff all clear
+            for (let i = enemy.status.length - 1; i >= 0; i--) {
+              if (statusData[enemy.status[i].tag].isBuff === false) {
+                enemy.status.splice(i, 1);
+              }
+            }
+            enemyStrategyCategory = "magic";
+            mainWindowText[0] = enemy.name + "はトラブルシューティングを完了した！";
+            mainWindowText[1] = enemy.name + "のデバフが全て解除された！";
+          }
+          else {
+            enemyStrategyParam2 = 1;
+            enemyStrategyCategory = "none";
+            windowImage = robotFaceImage;
+            mainWindowText[0] = "「エラー ガ 発生 シマシタ";
+            mainWindowText[1] = "　トラブルシューティング ヲ 実行」";
+          }
+        }
+        else {
+          damageAmount = enemy.dealAttackDamage(fighter, 8);
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "の攻撃！";
+        }
+      }
+      else {
+        if (enemyStrategyParam >= 4) {
+          enemy.image1 = robotImage3;
+          enemy.image2 = robotImage4;
+          damageAmount = enemy.dealAttackDamage(fighter, 50);
+          enemy.hp = 0;
+          enemyStrategyCategory = "explode";
+          mainWindowText[0] = enemy.name + "は大爆発した！";
+        }
+        else {
+          enemyStrategyCategory = "none";
+          windowImage = robotFaceImage;
+          mainWindowText[0] = "「ジバク　マデ　アト　" + (4 - enemyStrategyParam) + "…」";
+          enemyStrategyParam++;
+        }
+      }
+    }
+  },
 };
 
 
@@ -1518,9 +1591,9 @@ let magicData = {
     isOnce: false,
     image: magicMononageImage,
     mode: "EX",
-    description: "所持どうぐ数×2の追加ダメージ。",
+    description: "所持どうぐ数×3の追加ダメージ。",
     effect: () => {
-      damageAmount = fighter.dealMagicDamage(enemy, 12 + numOfToolInBackPack() * 2);
+      damageAmount = fighter.dealMagicDamage(enemy, 12 + numOfToolInBackPack() * 3);
     }
   },
   "dorobo": {
@@ -1536,7 +1609,7 @@ let magicData = {
   },
   "half": {
     name: "ハンブン",
-    mp: 5,
+    mp: 3,
     isOnce: true,
     image: magicHalfImage,
     mode: "EX",
@@ -1565,7 +1638,7 @@ let magicData = {
   },
   "haisui": {
     name: "ハイスイ",
-    mp: 5,
+    mp: 7,
     isOnce: false,
     image: magicHaisuiImage,
     mode: "EX",
@@ -2841,7 +2914,7 @@ let sceneList = {
       if (encountList.length === 0) { // 該当する敵がいないときはバグイムを召喚
         encountList = ["bugime"];
       }
-      //const eKey = "idol"; // テスト用（敵指定）
+      //let eKey = "robot"; // テスト用（敵指定）
       let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
@@ -3319,13 +3392,26 @@ let sceneList = {
     enemy.drawAnime(enemyX + edx, characterY + edy, charaCtx);
     drawHpBar(fighter, fighterX, hpBarY, useriCtx);
     drawHpBar(enemy, enemyX, hpBarY, useriCtx);
+    // explode animation
+    if (enemyStrategyCategory === "explode") {
+      let partsButtobiParam = 20 * (- animeCount + 32);
+      charaCtx.drawImage(toolDiceImage, enemyX + 32 - partsButtobiParam, characterY + 32);
+      charaCtx.drawImage(toolGearImage, enemyX + 32 - partsButtobiParam, characterY + 32 - partsButtobiParam);
+      charaCtx.drawImage(toolGearImage, enemyX + 32 + partsButtobiParam, characterY + 32);
+      charaCtx.drawImage(toolDiceImage, enemyX + 32 + partsButtobiParam, characterY + 32 - partsButtobiParam);
+    }
+    // z key animation
     if (animeCount === 0) zkeyAnime();
+    // z key reaction
     if (isKeyPressedNow("z") && animeCount === 0) {
       // effect at end of turn
       enemy.turnEnd();
       // change scene
       if (fighter.hp <= 0) {
         setScene("defeated");
+      }
+      else if (enemy.hp <= 0) {
+        setScene("victory");
       }
       else if (fighter.isStatusExist("stun")){
         // start turn flag
@@ -3415,16 +3501,23 @@ let sceneList = {
       if (largestMp >= 30) unlockAchievement("fullMP");
       // text 
       windowImage = null;
-      mainWindowText[0] = fighter.name + "は死んでしまった……";
+      mainWindowText[0] = fighter.name + "は力尽きた……";
       mainWindowText[1] = "";
       mainWindowText[2] = "";
       menuCursor = 0;
     }
     // update
-    drawAnimation(yarareImage1, yarareImage2, fighterX + 32, characterY, charaCtx); // ohaka
-    enemy.drawAnime(enemyX, characterY, charaCtx);
+    if (gameMode === "Normal"){
+      drawAnimation(yarareImage1, yarareImage2, fighterX + 32, characterY, charaCtx); // ohaka
+    }
+    else {
+      drawAnimation(playerMerchantImage5, playerMerchantImage6, fighterX - 16, characterY, charaCtx); // ohaka
+    }
     drawHpBar(fighter, fighterX, hpBarY, useriCtx);
-    drawHpBar(enemy, enemyX, hpBarY, useriCtx);
+    if (enemy.hp > 0) {
+      enemy.drawAnime(enemyX, characterY, charaCtx);
+      drawHpBar(enemy, enemyX, hpBarY, useriCtx);
+    }
     // menu
     if (isKeyPressedNow("u") && animeCount === 0) menuCursor--;
     if (isKeyPressedNow("d") && animeCount === 0) menuCursor++;
