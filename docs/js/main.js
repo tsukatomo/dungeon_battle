@@ -565,7 +565,7 @@ let onceMagic = [];
 let fighterTool = [];
 let toolCursor = 0;
 let useTool;
-let obtainedTool;
+let obtainedTool = "none";
 let toolDropChance = 40;
 let toolCounter = 0;
 // for combat
@@ -1182,13 +1182,13 @@ let enemyData = {
   // ここから EX
   "dekagob":{
     name: "でかゴブ",
-    hp: 48,
+    hp: 66,
     image1: dekagobuImage1,
     image2: dekagobuImage2,
     mode: "EX",
     floor: 1,
     strategy: () => {
-      if (enemy.hp * 2 < enemy.maxhp && enemyStrategyParam === 0) {
+      if (enemy.hp < enemy.maxhp && enemyStrategyParam === 0) {
         enemyStrategyParam = 1;
         enemy.addStatus("angerpower", 5);
         enemy.addStatus("vulnerable", 5);
@@ -1197,18 +1197,48 @@ let enemyData = {
       }
       else {
         if (randInt(0, 2) === 0) {
-          damageAmount = enemy.dealAttackDamage(fighter, 4);
+          damageAmount = enemy.dealAttackDamage(fighter, 3);
           fighter.addStatus("vulnerable", 2);
           enemyStrategyCategory = "attack";
-          mainWindowText[0] = enemy.name + "の頭突き攻撃！";
+          mainWindowText[0] = enemy.name + "の突進攻撃！";
           mainWindowText[2] = fighter.name + "の防御力が下がった！";
         }
         else {
-          damageAmount = enemy.dealAttackDamage(fighter, 6);
+          damageAmount = enemy.dealAttackDamage(fighter, 5);
           enemyStrategyCategory = "attack";
           mainWindowText[0] = enemy.name + "の攻撃！";
         }
       }
+    }
+  },
+  "hebi":{
+    name: "くちなわ",
+    hp: 50,
+    image1: hebiImage1,
+    image2: hebiImage2,
+    mode: "EX",
+    floor: 1,
+    strategy: () => {
+      if (enemyStrategyParam === 0) {
+        fighter.addStatus("coil", randInt(2, 4));
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "は" + fighter.name + "に巻き付いた！";
+        mainWindowText[1] = fighter.name + "はしばらくの間、どうぐを使えない！";
+      }
+      else {
+        if (enemyStrategyParam % 3 === 2) {
+          enemy.addStatus("shield", 1)
+          enemy.addStatus("m_shield", 1)
+          mainWindowText[0] = enemy.name + "は" + fighter.name + "を警戒している……";
+          mainWindowText[1] = enemy.name + "の防御力がアップした";
+        }
+        else {
+          damageAmount = enemy.dealAttackDamage(fighter, randInt(5, 8));
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "の噛みつき攻撃！";
+        }
+      }
+      enemyStrategyParam++;
     }
   },
   "ghost": {
@@ -1265,7 +1295,7 @@ let enemyData = {
     image1: doubleslimeImage1,
     image2: doubleslimeImage2,
     mode: "EX",
-    floor: 1,
+    floor: 0,
     strategy: () => {
       if (randInt(0, 1) === 0 && enemyStrategyParam === 0) {
         damageAmount = enemy.dealAttackDamage(fighter, 3);
@@ -1277,7 +1307,7 @@ let enemyData = {
       }
       else {
         enemyStrategyParam = 0;
-        damageAmount = enemy.dealAttackDamage(fighter, 7);
+        damageAmount = enemy.dealAttackDamage(fighter, 6);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -1308,7 +1338,7 @@ let enemyData = {
       }
       else {
         enemyStrategyParam2--;
-        damageAmount = enemy.dealAttackDamage(fighter, randInt(7, 10));
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(6, 9));
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -1377,8 +1407,8 @@ let enemyData = {
             enemyStrategyParam2 = 1;
             enemyStrategyCategory = "none";
             windowImage = robotFaceImage;
-            mainWindowText[0] = "「エラー ガ 発生 シマシタ";
-            mainWindowText[1] = "　解決方法 ヲ 収集 シマス」";
+            mainWindowText[0] = "「問題 ガ 発生 シマシタ";
+            mainWindowText[1] = "　エラー情報 ヲ 収集 シテイマス」";
           }
         }
         else {
@@ -1601,7 +1631,7 @@ let magicData = {
     description: "残りMPが0のとき、大ダメージを与え、MPを5~10回復。",
     effect: () => {
       if (fighterMp === 0) {
-        damageAmount = fighter.dealMagicDamage(enemy, 30 + (fighterLv * 2));
+        damageAmount = fighter.dealMagicDamage(enemy, 20 + (fighterLv * 2));
         fighterMp += randInt(5, 10);
       }
       else {
@@ -1628,7 +1658,7 @@ let magicData = {
     mode: "EX",
     description: "所持どうぐ数×3の追加ダメージ。",
     effect: () => {
-      damageAmount = fighter.dealMagicDamage(enemy, 12 + numOfToolInBackPack() * 3);
+      damageAmount = fighter.dealMagicDamage(enemy, 6 + numOfToolInBackPack() * 3);
     }
   },
   "dorobo": {
@@ -1636,10 +1666,22 @@ let magicData = {
     mp: 1,
     isOnce: true,
     image: magicDoroboImage,
-    mode: "None",
-    description: "Lv+5のダメージ。10ダメージ以上でどうぐを1個獲得。",
+    mode: "EX",
+    description: "敵を「なぐる」。10ダメージ以上でどうぐを1個獲得。",
     effect: () => {
-      damageAmount = fighter.dealMagicDamage(enemy, 5 + fighterLv);
+      damageAmount = fighter.dealAttackDamage(enemy, 5 + fighterLv);
+      if (damageAmount >= 10) {
+        // get random tool
+        let toolDataKeys = allToolList.filter( e => {
+          return (toolData[e].mode === gameMode);
+        });
+        if (toolDataKeys.length === 0) {
+          toolDataKeys = ["bugtool"];
+        }
+        obtainedTool = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
+        addTool(obtainedTool, 1);
+        mainWindowText[2] = toolData[obtainedTool].name + "を盗んだ！";
+      }
     }
   },
   "half": {
@@ -1673,7 +1715,7 @@ let magicData = {
   },
   "haisui": {
     name: "ハイスイ",
-    mp: 7,
+    mp: 8,
     isOnce: false,
     image: magicHaisuiImage,
     mode: "EX",
@@ -1955,6 +1997,12 @@ let statusData = {
     image: statusGhostImage,
     isBuff: true,
     type: "turn_start"
+  },
+  "coil": {
+    name: "マキツキ",
+    image: statusChokeImage,
+    isBuff: false,
+    type: "turn_end"
   }
 };
 
@@ -2970,7 +3018,7 @@ let sceneList = {
         return (enemyData[e].mode === gameMode && enemyData[e].floor === dungeonFloor && e != enemy.type) // 現在フロアで出現、かつ直前にエンカしてない敵
       });
       if (slainEnemy < 2 && dungeonFloor < 2) { // 倒した敵の数が2体未満で1Fにいるときは敵の種類を絞る
-        encountList = ["slime", "gob"];
+        encountList = gameMode === "Normal" ? ["slime", "gob"] : ["doubleSlime", "hebi"];
       }
       if (encountList.length === 0) { // 該当する敵がいないときはバグイムを召喚
         encountList = ["bugime"];
@@ -3230,8 +3278,14 @@ let sceneList = {
     if (sceneInit) {
       // init flag
       sceneInit = false;
+      // text
+      windowImage = null;
+      mainWindowText[0] = fighter.name + "は" + castMagic.name + "を使った！"
+      mainWindowText[1] = "";
+      mainWindowText[2] = "";
       // apply magic
       damageAmount = 0;
+      obtainedTool = null;
       castMagic.effect();
       // achievement: overkill（渾身の一撃！）
       if (damageAmount >= 100) {
@@ -3250,11 +3304,6 @@ let sceneList = {
       }
       // command counter
       commandCounter[1]++;
-      // text
-      windowImage = null;
-      mainWindowText[0] = fighter.name + "は" + castMagic.name + "を使った！"
-      mainWindowText[1] = "";
-      mainWindowText[2] = "";
       if (damageAmount > 0) {
         mainWindowText[1] = enemy.name + "に" + damageAmount + "のダメージを与えた！";
       }
@@ -3281,6 +3330,11 @@ let sceneList = {
     enemy.drawAnime(enemyX + edx, characterY + edy, charaCtx);
     drawHpBar(fighter, fighterX, hpBarY, useriCtx);
     drawHpBar(enemy, enemyX, hpBarY, useriCtx);
+    // show tool on whitebox (magic:dorobo)
+    if (obtainedTool != null) {
+      charaCtx.drawImage(whiteBoxImage, 256, 120);
+      charaCtx.drawImage(toolData[obtainedTool].image, 288, 152);
+    }
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
       fighter.turnEnd();
@@ -3325,8 +3379,12 @@ let sceneList = {
     mainWindowText[0] = useTool.name + "    所持数 " + fighterTool[toolCursor].amount;
     mainWindowText[1] = useTool.description;
     mainWindowText[2] = "";
+    if (fighter.isStatusExist("coil")) {
+      mainWindowText[2] = "今はどうぐを使えない！";
+      charaCtx.drawImage(cannotCastImage, 288, 150);
+    }
     // use tool
-    if (isKeyPressedNow("z")) {
+    if (isKeyPressedNow("z") && !fighter.isStatusExist("coil")) {
       // consume tool
       addTool(fighterTool[toolCursor].tag, -1);
       toolCounter++;
