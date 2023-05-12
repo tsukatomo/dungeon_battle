@@ -219,10 +219,18 @@ let robotImage1 = new Image();
 let robotImage2 = new Image();
 let robotImage3 = new Image();
 let robotImage4 = new Image();
+let explodePartsImage1 = new Image();
+let explodePartsImage2 = new Image();
+let explodePartsImage3 = new Image();
+let explodePartsImage4 = new Image();
 robotImage1.src = "./img/robot1.png";
 robotImage2.src = "./img/robot2.png";
 robotImage3.src = "./img/robot3.png";
 robotImage4.src = "./img/robot4.png";
+explodePartsImage1.src = "./img/explode_parts1.png";
+explodePartsImage2.src = "./img/explode_parts2.png";
+explodePartsImage3.src = "./img/explode_parts3.png";
+explodePartsImage4.src = "./img/explode_parts4.png";
 
 
 // image - itemselect
@@ -1669,7 +1677,15 @@ let magicData = {
     mode: "EX",
     description: "敵を「なぐる」。10ダメージ以上でどうぐを1個獲得。",
     effect: () => {
+      // deal "attack" damage (instead of magic damage)
       damageAmount = fighter.dealAttackDamage(enemy, 5 + fighterLv);
+      // enemy debuff: drain
+      if (enemy.isStatusExist("drain")) {
+        fighter.addHp(damageAmount);
+        enemy.addStatus("drain", -1);
+        mainWindowText[2] = fighter.name + "はHPを" + damageAmount + "回復した！";
+      }
+      // damage >= 10: obtain a tool
       if (damageAmount >= 10) {
         // get random tool
         let toolDataKeys = allToolList.filter( e => {
@@ -3023,8 +3039,8 @@ let sceneList = {
       if (encountList.length === 0) { // 該当する敵がいないときはバグイムを召喚
         encountList = ["bugime"];
       }
-      //let eKey = "robot"; // テスト用（敵指定）
-      let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
+      let eKey = "robot"; // テスト用（敵指定）
+      //let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
         enemyData[eKey].name,
@@ -3514,10 +3530,10 @@ let sceneList = {
     // explode animation
     if (enemyStrategyCategory === "explode") {
       let partsButtobiParam = 20 * (- animeCount + 32);
-      charaCtx.drawImage(toolDiceImage, enemyX + 32 - partsButtobiParam, characterY + 32);
-      charaCtx.drawImage(toolGearImage, enemyX + 32 - partsButtobiParam, characterY + 32 - partsButtobiParam);
-      charaCtx.drawImage(toolGearImage, enemyX + 32 + partsButtobiParam, characterY + 32);
-      charaCtx.drawImage(toolDiceImage, enemyX + 32 + partsButtobiParam, characterY + 32 - partsButtobiParam);
+      charaCtx.drawImage(explodePartsImage1, enemyX + 32 - partsButtobiParam, characterY + 32);
+      charaCtx.drawImage(explodePartsImage2, enemyX + 32 - partsButtobiParam, characterY + 32 - partsButtobiParam);
+      charaCtx.drawImage(explodePartsImage3, enemyX + 32 + partsButtobiParam, characterY + 32);
+      charaCtx.drawImage(explodePartsImage4, enemyX + 32 + partsButtobiParam, characterY + 32 - partsButtobiParam);
     }
     // z key animation
     if (animeCount === 0) zkeyAnime();
