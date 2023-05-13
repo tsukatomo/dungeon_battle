@@ -231,6 +231,11 @@ explodePartsImage1.src = "./img/explode_parts1.png";
 explodePartsImage2.src = "./img/explode_parts2.png";
 explodePartsImage3.src = "./img/explode_parts3.png";
 explodePartsImage4.src = "./img/explode_parts4.png";
+// image - worm(EX)
+let wormImage1 = new Image();
+let wormImage2 = new Image();
+wormImage1.src = "./img/worm1.png";
+wormImage2.src = "./img/worm2.png";
 
 
 // image - itemselect
@@ -404,6 +409,9 @@ statusVulnerableImage.src = "./img/status_angervulnerable.png";
 // image - status:vulnerable
 let statusGhostImage = new Image();
 statusGhostImage.src = "./img/status_ghost.png";
+// image -status:drainedMp
+let statusDrainedMpImage = new Image();
+statusDrainedMpImage.src = "./img/status_drainedmp.png";
 
 
 // image - z key animation
@@ -1235,10 +1243,10 @@ let enemyData = {
       }
       else {
         if (enemyStrategyParam % 3 === 2) {
-          enemy.addStatus("shield", 1)
-          enemy.addStatus("m_shield", 1)
-          mainWindowText[0] = enemy.name + "は" + fighter.name + "を警戒している……";
-          mainWindowText[1] = enemy.name + "の防御力がアップした";
+          enemyStrategyCategory = "magic";
+          enemy.addHp(5);
+          mainWindowText[0] = enemy.name + "は脱皮した！";
+          mainWindowText[1] = enemy.name + "のHPが少し回復";
         }
         else {
           damageAmount = enemy.dealAttackDamage(fighter, randInt(5, 8));
@@ -1441,6 +1449,41 @@ let enemyData = {
           enemyStrategyParam++;
         }
       }
+    }
+  },
+  "worm": {
+    name: "ワムーム",
+    hp: 150,
+    image1: wormImage1,
+    image2: wormImage2,
+    mode: "EX",
+    floor: 3,
+    strategy: () => {
+      if (enemyStrategyParam === 0) {
+        enemyStrategyParam = randInt(1, 3);
+      }
+      if (enemyStrategyParam % 3 === 0) {
+        enemyStrategyCategory = "attack";
+        damageAmount = enemy.dealAttackDamage(fighter, 6);
+        let drainAmount = fighterMp > 3 ? 3 : fighterMp;
+        fighterMp -= drainAmount;
+        mainWindowText[0] = enemy.name + "のドレイン攻撃！";
+        mainWindowText[2] = "MPを吸い取られた！";
+        if (!enemy.isStatusExist("drained_mp")) mainWindowText[2] += " （倒せば取り返せるぞ！）"
+        enemy.addStatus("drained_mp", drainAmount);
+      }
+      else if (enemyStrategyParam % 3 === 2 && randInt(0, 1) === 1) {
+        enemyStrategyCategory = "magic";
+        enemy.addStatus("shield", 1);
+        enemy.addStatus("m_shield", 1);
+        mainWindowText[0] = enemy.name + "は防御体勢をとっている";
+      }
+      else {
+        enemyStrategyCategory = "attack";
+        damageAmount = enemy.dealAttackDamage(fighter, 12);
+        mainWindowText[0] = enemy.name + "の攻撃！";
+      }
+      enemyStrategyParam++;
     }
   },
 };
@@ -2019,7 +2062,13 @@ let statusData = {
     image: statusChokeImage,
     isBuff: false,
     type: "turn_end"
-  }
+  },
+  "drained_mp": {
+    name: "MPキュウシュウ",
+    image: statusDrainedMpImage,
+    isBuff: true,
+    type: "stack"
+  },
 };
 
 
@@ -3013,7 +3062,7 @@ let sceneList = {
       // go to next floor
       if (isKeyPressedNow("z") && (stairMapX === fighterMapX) && (stairMapY === fighterMapY)) {
         mapInit = true;
-        if (dungeonFloor < (gameMode === "Normal" ? 4 : 2)) {
+        if (dungeonFloor < (gameMode === "Normal" ? 4 : 3)) {
           setTransition("map");
         }
         else {
@@ -3039,8 +3088,8 @@ let sceneList = {
       if (encountList.length === 0) { // 該当する敵がいないときはバグイムを召喚
         encountList = ["bugime"];
       }
-      let eKey = "robot"; // テスト用（敵指定）
-      //let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
+      //let eKey = "worm"; // テスト用（敵指定）
+      let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
         enemyData[eKey].name,
@@ -3573,6 +3622,8 @@ let sceneList = {
         isSansanFatal = false;
         levelUp();
       }
+      // take back mp
+      fighterMp += enemy.statusNum("drained_mp");
       // gain money
       let gainMoney = randInt(20, 30);
       money += gainMoney;
