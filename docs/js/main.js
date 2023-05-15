@@ -236,6 +236,11 @@ let wormImage1 = new Image();
 let wormImage2 = new Image();
 wormImage1.src = "./img/worm1.png";
 wormImage2.src = "./img/worm2.png";
+// image - bakeneko(EX)
+let bakenekoImage1 = new Image();
+let bakenekoImage2 = new Image();
+bakenekoImage1.src = "./img/bakeneko1.png";
+bakenekoImage2.src = "./img/bakeneko2.png";
 
 
 // image - itemselect
@@ -1298,8 +1303,8 @@ let enemyData = {
         enemyStrategyParam++;
       }
       else {
-        if (enemyStrategyParam2 <= 18) enemyStrategyParam2 += 3;
-        damageAmount = enemy.dealAttackDamage(fighter, enemyStrategyParam2);
+        if (enemyStrategyParam2 <= 12) enemyStrategyParam2 += 2;
+        damageAmount = enemy.dealAttackDamage(fighter, enemyStrategyParam2 + 4);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
       }
@@ -1396,7 +1401,7 @@ let enemyData = {
   },
   "robot": {
     name: "ロボっち",
-    hp: 150,
+    hp: 160,
     image1: robotImage1,
     image2: robotImage2,
     mode: "EX",
@@ -1453,7 +1458,7 @@ let enemyData = {
   },
   "worm": {
     name: "ワムーム",
-    hp: 150,
+    hp: 120,
     image1: wormImage1,
     image2: wormImage2,
     mode: "EX",
@@ -1486,6 +1491,37 @@ let enemyData = {
       enemyStrategyParam++;
     }
   },
+  "bakeneko": {
+    name: "ばけねこ",
+    hp: 98,
+    image1: bakenekoImage1,
+    image2: bakenekoImage2,
+    mode: "EX",
+    floor: 3,
+    strategy: () => {
+      if (enemyStrategyParam === 3 || enemyStrategyParam === 7) {
+        enemy.addStatus("regen", 2);
+        enemyStrategyCategory = "magic";
+        mainWindowText[0] = enemy.name + "は毛づくろいした！　ツヤツヤだ！";
+        mainWindowText[1] = enemy.name + "はしばらくの間、HPを自動回復！";
+      }
+      else if (enemyStrategyParam2 <= 0 && randInt(0, 2) === 0) {
+        enemyStrategyParam2 = 3;
+        fighter.addStatus("vulnerable", 3);
+        fighter.addStatus("weak", 1);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "のあまえる攻撃！";
+        mainWindowText[1] = fighter.name + "の攻撃力と防御力が下がった！";
+      }
+      else {
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(8, 10));
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "は" + fighter.name + "を引っ掻いた！";
+      }
+      enemyStrategyParam++;
+      enemyStrategyParam2--;
+    }
+  }
 };
 
 
@@ -2242,6 +2278,21 @@ let levelUp = function () {
   fighter.addHp(4);
   // recover mp
   fighterMp += 1;
+};
+
+
+// set parameters (for debug)
+let setParams4Debug = function (level) {
+  fighterLv = level;
+  fighter.hp = 45 + level * 4;
+  fighter.maxhp = 45 + level * 4;
+  fighterMp = 10;
+  allMagicList.forEach ( e => {
+    if (magicData[e].mode === gameMode) fighterMagic.push(e);  
+  });
+  allToolList.forEach( e => {
+    if (toolData[e].mode === gameMode) addTool(e, 1);
+  });
 };
 
 
@@ -3088,7 +3139,7 @@ let sceneList = {
       if (encountList.length === 0) { // 該当する敵がいないときはバグイムを召喚
         encountList = ["bugime"];
       }
-      //let eKey = "worm"; // テスト用（敵指定）
+      //let eKey = "bakeneko"; // テスト用（敵指定）
       let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
