@@ -241,6 +241,15 @@ let bakenekoImage1 = new Image();
 let bakenekoImage2 = new Image();
 bakenekoImage1.src = "./img/bakeneko1.png";
 bakenekoImage2.src = "./img/bakeneko2.png";
+// image - medama(EX)
+let medamaImage1 = new Image();
+let medamaImage2 = new Image();
+let medamaImage3 = new Image();
+let medamaImage4 = new Image();
+medamaImage1.src = "./img/medama1.png";
+medamaImage2.src = "./img/medama2.png";
+medamaImage3.src = "./img/medama3.png";
+medamaImage4.src = "./img/medama4.png";
 
 
 // image - itemselect
@@ -320,6 +329,9 @@ magicFeedImage.src = "./img/magic_feed.png";
 // image - magic:break(EX)
 let magicBreakImage = new Image();
 magicBreakImage.src = "./img/magic_break.png";
+// image - magic:cure(EX)
+let magicCureImage = new Image();
+magicCureImage.src = "./img/magic_cure.png";
 
 
 
@@ -357,6 +369,9 @@ toolYakuhaiImage.src = "./img/tool_yakuhai.png";
 // image - tool:hitodama(EX)
 let toolHitodamaImage = new Image();
 toolHitodamaImage.src = "./img/tool_hitodama.png";
+// image - tool:banana
+let toolBananaImage = new Image();
+toolBananaImage.src = "./img/tool_banana.png";
 
 
 
@@ -417,6 +432,9 @@ statusGhostImage.src = "./img/status_ghost.png";
 // image -status:drainedMp
 let statusDrainedMpImage = new Image();
 statusDrainedMpImage.src = "./img/status_drainedmp.png";
+// image -status:drainedMp
+let statusPressureImage = new Image();
+statusPressureImage.src = "./img/status_pressure.png";
 
 
 // image - z key animation
@@ -1234,7 +1252,7 @@ let enemyData = {
   },
   "hebi":{
     name: "くちなわ",
-    hp: 50,
+    hp: 40,
     image1: hebiImage1,
     image2: hebiImage2,
     mode: "EX",
@@ -1303,7 +1321,7 @@ let enemyData = {
         enemyStrategyParam++;
       }
       else {
-        if (enemyStrategyParam2 <= 12) enemyStrategyParam2 += 2;
+        if (enemyStrategyParam2 < 12) enemyStrategyParam2 += 2;
         damageAmount = enemy.dealAttackDamage(fighter, enemyStrategyParam2 + 4);
         enemyStrategyCategory = "attack";
         mainWindowText[0] = enemy.name + "の攻撃！";
@@ -1336,7 +1354,7 @@ let enemyData = {
   },
   "slimeKing": {
     name: "スラおう",
-    hp: 100,
+    hp: 80,
     image1: kingslimeImage1,
     image2: kingslimeImage2,
     mode: "EX",
@@ -1401,7 +1419,7 @@ let enemyData = {
   },
   "robot": {
     name: "ロボっち",
-    hp: 160,
+    hp: 180,
     image1: robotImage1,
     image2: robotImage2,
     mode: "EX",
@@ -1473,9 +1491,11 @@ let enemyData = {
         let drainAmount = fighterMp > 3 ? 3 : fighterMp;
         fighterMp -= drainAmount;
         mainWindowText[0] = enemy.name + "のドレイン攻撃！";
-        mainWindowText[2] = "MPを吸い取られた！";
-        if (!enemy.isStatusExist("drained_mp")) mainWindowText[2] += " （倒せば取り返せるぞ！）"
-        enemy.addStatus("drained_mp", drainAmount);
+        if (drainAmount > 0) {
+          mainWindowText[2] = "MPを吸い取られた！";
+          if (!enemy.isStatusExist("drained_mp")) mainWindowText[2] += " （倒せば取り返せるぞ！）"
+          enemy.addStatus("drained_mp", drainAmount);
+        }
       }
       else if (enemyStrategyParam % 3 === 2 && randInt(0, 1) === 1) {
         enemyStrategyCategory = "magic";
@@ -1520,6 +1540,38 @@ let enemyData = {
       }
       enemyStrategyParam++;
       enemyStrategyParam2--;
+    }
+  },
+  "medama": {
+    name: "メンタマ",
+    hp: 120,
+    image1: medamaImage1,
+    image2: medamaImage2,
+    mode: "EX",
+    floor: 3,
+    strategy: () => {
+      if (enemyStrategyParam === 0) {
+        fighter.addStatus("pressure", 2);
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "は目力で威圧し、" + fighter.name + "にプレッシャーを与えた！";
+        mainWindowText[1] = "まほうの消費MPが2増えた！"; 
+      }
+      else if (enemyStrategyParam % 3 === 2) {
+        enemy.addStatus("supershield", 1);
+        enemyStrategyCategory = "none";
+        enemy.image1 = medamaImage3;
+        enemy.image2 = medamaImage4;
+        mainWindowText[0] = enemy.name + "は目を閉じた！";
+        mainWindowText[1] = "1ターンの間、" + enemy.name + "が受けるダメージは4分の1になる！"; 
+      }
+      else {
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(10, 12));
+        enemyStrategyCategory = "attack";
+        enemy.image1 = medamaImage1;
+        enemy.image2 = medamaImage2;
+        mainWindowText[0] = enemy.name + "の攻撃！";
+      }
+      enemyStrategyParam++;
     }
   }
 };
@@ -1745,7 +1797,7 @@ let magicData = {
     mode: "EX",
     description: "所持どうぐ数×3の追加ダメージ。",
     effect: () => {
-      damageAmount = fighter.dealMagicDamage(enemy, 6 + numOfToolInBackPack() * 3);
+      damageAmount = fighter.dealMagicDamage(enemy, 8 + numOfToolInBackPack() * 3);
     }
   },
   "dorobo": {
@@ -1797,12 +1849,12 @@ let magicData = {
     isOnce: false,
     image: magicFeedImage,
     mode: "EX",
-    description: "固定7ダメージ。コレで倒すとHP10%回復、最大HP+5。",
+    description: "固定7ダメージ。コレで倒すとHP25%回復、最大HP+5。",
     effect: () => {
       damageAmount = 7;
       enemy.addHp(-damageAmount);
       if (enemy.hp <= 0 && isResurrection === false) {
-        fighter.addHp(Math.floor(fighter.maxhp * 0.10));
+        fighter.addHp(Math.floor(fighter.maxhp * 0.25));
         fighter.maxhp += 5;
         fighter.addHp(5);
       }
@@ -1830,6 +1882,17 @@ let magicData = {
       enemy.addStatus("vulnerable", 3);
     }
   },
+  "cure": {
+    name: "チャージ",
+    mp: 0,
+    isOnce: true,
+    image: magicCureImage,
+    mode: "EX",
+    description: "MP+4。",
+    effect: () => {
+      fighterMp += 4;
+    }
+  }
 };
 // magic key list [flame, heal, …]
 const allMagicList = Object.keys(magicData);
@@ -1925,6 +1988,21 @@ let toolData = {
       enemy.addStatus("stun", 3);
     }
   },
+  "banana": {
+    name: "ばなーな",
+    image: toolBananaImage,
+    mode: "EX",
+    description: "最大HPの50%を回復する。",
+    isAvailableFromList: true,
+    effect: () => {
+      if (fighter.hp === fighter.maxhp) {
+        // increase maxhp
+        fighter.maxhp += 6;
+        fighter.addHp(6);
+      }
+      fighter.addHp(Math.floor(fighter.maxhp / 2));
+    }
+  },
   "yadorigi": {
     name: "やどりぎ",
     image: toolYadorigiImage,
@@ -1940,14 +2018,14 @@ let toolData = {
     image: toolYakuhaiImage,
     mode: "EX",
     isAvailableFromList: false,
-    description: "ドラ。戦闘中に3個使うと敵に77の固定ダメージ。",
+    description: "戦闘中に3個使うと敵に100の固定ダメージ。",
     effect: () => {
       fighter.addStatus("chun", 1);
       if (fighter.statusNum("chun") >= 3) {
         fighter.addStatus("chun", -3);
-        damageAmount = 77;
+        damageAmount = 100;
         enemy.addHp(-damageAmount);
-        mainWindowText[1] = "「ツモ！  中・ドラ3  7700」"
+        mainWindowText[1] = "「ツモ！」"
         mainWindowText[2] = enemy.name + "に" + damageAmount + "のダメージを与えた！" 
       }
     }
@@ -2105,6 +2183,12 @@ let statusData = {
     isBuff: true,
     type: "stack"
   },
+  "pressure": {
+    name: "プレッシャー",
+    image: statusPressureImage,
+    isBuff: false,
+    type: "stack"
+  }
 };
 
 
@@ -2252,7 +2336,7 @@ let initParam = function () {
     fighter = new CharacterObject("player", "商人", 45, playerMerchantImage1, playerMerchantImage2);
     fighterMp = 6;
     fighterMagic = ["flame"];
-    fighterTool = [{tag: "fruit", amount: 1}];
+    fighterTool = [{tag: "banana", amount: 1}];
   }
   fighterLv = 1;
   dungeonFloor = 0;
@@ -3139,7 +3223,7 @@ let sceneList = {
       if (encountList.length === 0) { // 該当する敵がいないときはバグイムを召喚
         encountList = ["bugime"];
       }
-      //let eKey = "bakeneko"; // テスト用（敵指定）
+      //let eKey = "medama"; // テスト用（敵指定）
       let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
@@ -3351,8 +3435,9 @@ let sceneList = {
     drawHpBar(enemy, enemyX, hpBarY, useriCtx);
     // magic information
     castMagic = magicData[fighterMagic[magicCursor]];
+    let consumeMp = (castMagic.mp === "ALL") ? "ALL" : castMagic.mp + fighter.statusNum("pressure");
     windowImage = null;
-    mainWindowText[0] = castMagic.name + "    消費MP " + castMagic.mp + (castMagic.isOnce ? "    【一度きり】" : "");
+    mainWindowText[0] = castMagic.name + "    消費MP " + consumeMp + (castMagic.isOnce ? "    【一度きり】" : "");
     mainWindowText[1] = castMagic.description;
     mainWindowText[2] = "";
     if (fighter.isStatusExist("silence")) {
@@ -3364,7 +3449,7 @@ let sceneList = {
       charaCtx.drawImage(cannotCastImage, 288, 150);
     }
     else if (castMagic.mp != "ALL") {
-      if (fighterMp < castMagic.mp) {
+      if (fighterMp < consumeMp) {
         mainWindowText[2] = "MPが足りない！";
         charaCtx.drawImage(cannotCastImage, 288, 150);
       }
@@ -3376,7 +3461,7 @@ let sceneList = {
         if (castMagic.mp === "ALL") {
           setScene("magiccast");
         }
-        else if (fighterMp >= castMagic.mp) {
+        else if (fighterMp >= consumeMp) {
           setScene("magiccast");
         }
       }
@@ -3412,7 +3497,7 @@ let sceneList = {
         fighterMp = 0; // consume ALL MP
       }
       else {
-        fighterMp -= castMagic.mp;
+        fighterMp -= (castMagic.mp + fighter.statusNum("pressure"));
       }
       // memorise once magic
       if (castMagic.isOnce) {
