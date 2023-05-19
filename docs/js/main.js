@@ -2203,7 +2203,7 @@ let toolData = {
         mainWindowText[2] = enemy.name + "に" + damageAmount + "のダメージを与えた！";
         // achievement: overkill（渾身の一撃！）
         if (damageAmount >= 100) {
-          unlockAchievement("overkill");
+          unlockAchievement("overkill", "Normal");
         }
       }
     }
@@ -2508,7 +2508,8 @@ let oyakudachiAdditionalEx = [
     ["アンタがヤツを倒してくれたおかげで", "ここで店を開けたぜ　ありがとな」"],
     ["この『だんじょん』を作った全ての元凶が", "奥の廊下にいるみてェだな……」"],
     ["ここが最後の店だ　金が余ってるなら", "全部使っちまいな！」"],
-    ["ところで師匠は『だんじょん』を制圧したら", "どうするおつもりなんだ？」"]
+    ["ところで師匠は『だんじょん』を制圧したら", "どうするおつもりなんだ？」"],
+    ["さっきの赤髪のヤツ、アンタに弟子入り", "したがってたぜ」"]
   ]
 ];
 
@@ -2523,7 +2524,7 @@ let roomIconData = {
 
 // achievement data
 let jissekiData = {
-  "dungeonclear": {
+  "dungeon": {
     name: "だんじょんクリア！",
     description: "だんじょんを制覇する。",
     image: jissekiImage1
@@ -2586,63 +2587,63 @@ let jissekiData = {
 };
 
 let jissekiExData = {
-  "dungeonclear": {
-    name: "だんじょんクリア！",
-    description: "だんじょんを制覇する。",
+  "newDeshi": {
+    name: "新たな弟子",
+    description: "闘士を倒す。",
     image: jissekiImage1
   },
-  "perfect": {
-    name: "だんじょんの覇者",
-    description: "全ての敵を倒してだんじょんを制覇する。",
+  "conquered": {
+    name: "だんじょん制圧！",
+    description: "「ぜんじつたん」をクリアする。",
     image: jissekiImage2
   },
-  "infighter": {
-    name: "格闘家",
-    description: "「なぐる」コマンドだけで敵を倒す。",
+  "muscle": {
+    name: "脳筋",
+    description: "「なぐる」1回で50ダメージ以上与える。",
     image: jissekiImage3
   },
-  "magician": {
-    name: "マジシャン",
-    description: "「まほう」コマンドだけで敵を倒す。",
+  "parasite": {
+    name: "寄生生物",
+    description: "「寄生」効果で敵1体から100HP以上吸収する。",
     image: jissekiImage4
   },
-  "fullMP": {
-    name: "エナジー満タン",
-    description: "MPを30以上蓄積する。",
+  "manyTool": {
+    name: "収集家",
+    description: "「どうぐ」を一度に10個以上所持する。",
     image: jissekiImage5
   },
-  "overkill": {
-    name: "渾身の一撃！",
-    description: "1回の攻撃で100ダメージ以上与える。",
-    image: jissekiImage6
+  "girigiri": {
+    name: "崖っぷち",
+    description: "残りHP5以下で敵を倒す。",
+    image: jissekiImage11
   },
-  "pieceofcake": {
-    name: "取るに足りぬ",
+  "pieceofatarime": {
+    name: "余裕のよっちゃん",
     description: "HPを50%以上残してラスボスを撃破する。",
     image: jissekiImage7
   },
-  "toolmaster": {
-    name: "どうぐマスター",
-    description: "1回の攻略でどうぐを10個以上使用する。",
+  "trueEnd": {
+    name: "本当にオシマイ",
+    description: "ラスボスを「オシマイ」で撃破する。",
     image: jissekiImage8
   },
-  "ascension20": {
-    name: "ちりも積もれば",
-    description: "Lv20に到達する。",
+  "thereIsNoGhost": {
+    name: "おばけなんてないさ",
+    description: "姿が見えない状態の「ゆうれい」を倒す。",
+    image: jissekiImage6
+  },
+  "hpIppai": {
+    name: "お腹いっぱい",
+    description: "最大HPを120以上にする。",
     image: jissekiImage9
   },
-  "SOULdOUT": {
-    name: "完売御礼！",
-    description: "ショップの品物を買い占める。", // ありがとー
+  "minimalist": {
+    name: "ミニマリスト",
+    description: "4種類以下のまほうでクリアする。",
     image: jissekiImage10
   },
-  "lucky": {
-    name: "ラッキー！",
-    description: "「くらふと」1回でどうぐを2個手に入れる。",
-    image: jissekiImage11
-  },
-  "thankyou": {
-    name: "遊んでくれてありがとう！",
+  "master": {
+    name: "キミこそがだんじょん・マスターだ！",
     description: "他の実績を全て集める。",
     image: jissekiImage12
   },
@@ -3192,9 +3193,9 @@ let randInt = function(min, max) {
 
 
 // unlock achievement
-let unlockAchievement = function (achievementKey) {
+let unlockAchievement = function (achievementKey, mode) {
   // ゲームモード違うやんけ！→おわり
-  if (gameMode === "EX") return;
+  if (gameMode != mode) return;
   // 獲得済みやんけ！→おわり
   if (isAchievementUnlocked(achievementKey)) return;
   // 新規獲得
@@ -3317,7 +3318,7 @@ let sceneList = {
       });
       // unlock achievement: thankyou
       if (numOfUnlock >= jissekiList.length - 1) {
-        unlockAchievement("thankyou");
+        unlockAchievement("thankyou", "Normal");
         //isNewAchievementExist = true;
       }
       // draw background
@@ -3347,6 +3348,9 @@ let sceneList = {
 
   // scene: jisseki（実績） ----------------------------------------
   "jisseki" : () => {
+    // ゲームモードごとに参照する実績データを分ける
+    let jissekiListOfThisMode = (gameMode === "Normal") ? jissekiList : jissekiExList;
+    let jissekiDataOfThisMode = (gameMode === "Normal") ? jissekiData : jissekiExData;  
     //init
     if (sceneInit) {
       // init flag
@@ -3361,32 +3365,32 @@ let sceneList = {
       backgCtx.fillRect(0, 0, 640, 480);
       // drawing - jisseki list
       let imageOfJisseki, left, top;
-      for (let i = 0; i < jissekiList.length; i++) {
-        imageOfJisseki = isAchievementUnlocked(jissekiList[i]) ? jissekiData[jissekiList[i]].image : jissekiLockedImage;
+      for (let i = 0; i < jissekiListOfThisMode.length; i++) {
+        imageOfJisseki = isAchievementUnlocked(jissekiListOfThisMode[i]) ? jissekiDataOfThisMode[jissekiListOfThisMode[i]].image : jissekiLockedImage;
         left = (i % 6) * 96 + 48;
         top = Math.floor(i / 6) * 96 + 128;
         backgCtx.drawImage(imageOfJisseki, left, top);
-        if (isAchievementNew(jissekiList[i])) {
+        if (isAchievementNew(jissekiListOfThisMode[i])) {
           backgCtx.drawImage(jissekiNewImage, left - 16, top);
         }
       }
       // update achievement (new → old)
-      jissekiList.forEach((e) => {
+      jissekiListOfThisMode.forEach((e) => {
         updateAchievement(e);
       });
     }
     // update
     // show achievement info
     let id = jissekiCursorY * jissekiCol + jissekiCursorX;
-    if (0 <= id && id < jissekiList.length) {
-      if (isAchievementUnlocked([jissekiList[id]])) {
-        mainWindowText[0] = "【" + jissekiData[jissekiList[id]].name + "】";
+    if (0 <= id && id < jissekiListOfThisMode.length) {
+      if (isAchievementUnlocked([jissekiListOfThisMode[id]])) {
+        mainWindowText[0] = "【" + jissekiDataOfThisMode[jissekiListOfThisMode[id]].name + "】";
       }
       else {
         mainWindowText[0] = "【？？？】";
       }
-      if (isAchievementUnlocked([jissekiList[id]]) || isAchievementUnlocked("dungeonclear")) {
-        mainWindowText[1] = jissekiData[jissekiList[id]].description;
+      if (isAchievementUnlocked([jissekiListOfThisMode[id]]) || isAchievementUnlocked(gameMode === "Normal" ? "dungeonclear" : "conquered")) {
+        mainWindowText[1] = jissekiDataOfThisMode[jissekiListOfThisMode[id]].description;
       }
       else {
         mainWindowText[1] = "？？？？？？？？？？";
@@ -3731,7 +3735,7 @@ let sceneList = {
       }
       // achievement: overkill（渾身の一撃！）
       if (damageAmount >= 100) {
-        unlockAchievement("overkill");
+        unlockAchievement("overkill", "Normal");
       }
       // increase mp
       fighterMp += 1;
@@ -3852,7 +3856,7 @@ let sceneList = {
       castMagic.effect();
       // achievement: overkill（渾身の一撃！）
       if (damageAmount >= 100) {
-        unlockAchievement("overkill");
+        unlockAchievement("overkill", "Normal");
       }
       // consume mp
       if (castMagic.mp === "ALL") {
@@ -4147,10 +4151,10 @@ let sceneList = {
       // clear status
       fighter.status = [];
       // achievement unlock: infighter/magician/ascension20/pieceofcake
-      if (commandCounter[1] === 0 && commandCounter[2] === 0) unlockAchievement("infighter");
-      if (commandCounter[0] === 0 && commandCounter[2] === 0) unlockAchievement("magician");
-      if (fighterLv >= 20) unlockAchievement("ascension20");
-      if (enemy.type === "merchant" && fighter.hp * 2 >= fighter.maxhp) unlockAchievement("pieceofcake");
+      if (commandCounter[1] === 0 && commandCounter[2] === 0) unlockAchievement("infighter", "Normal");
+      if (commandCounter[0] === 0 && commandCounter[2] === 0) unlockAchievement("magician", "Normal");
+      if (fighterLv >= 20) unlockAchievement("ascension20", "Normal");
+      if (enemy.type === "merchant" && fighter.hp * 2 >= fighter.maxhp) unlockAchievement("pieceofcake", "Normal");
       // text 
       windowImage = null;
       mainWindowText[0] = enemy.name + "に勝利した！"
@@ -4181,8 +4185,8 @@ let sceneList = {
       // init flag
       sceneInit = false;
       // achievement unlock: toolmaster/fullMP
-      if (toolCounter >= 10) unlockAchievement("toolmaster");
-      if (largestMp >= 30) unlockAchievement("fullMP");
+      if (toolCounter >= 10) unlockAchievement("toolmaster", "Normal");
+      if (largestMp >= 30) unlockAchievement("fullMP", "Normal");
       // text 
       windowImage = null;
       mainWindowText[0] = fighter.name + "は力尽きた……";
@@ -4309,7 +4313,7 @@ let sceneList = {
         shopInit = true; // 品揃え更新フラグ
         setTransition("map");
         // achievement unlock: SOULdOUT
-        if (buys >= numOfItem) unlockAchievement("SOULdOUT");
+        if (buys >= numOfItem) unlockAchievement("SOULdOUT", "Normal");
       }
     }
   },
@@ -4613,7 +4617,7 @@ let sceneList = {
       obtainedTool = toolDataKeys[randInt(0, toolDataKeys.length - 1)];
       addTool(obtainedTool, (goodLuck) ? 2 : 1);
       // achievement unlock: lucky
-      if (goodLuck) unlockAchievement("lucky");
+      if (goodLuck) unlockAchievement("lucky", "Normal");
       // text
       windowImage = null;
       mainWindowText[0] = fighter.name + "は" + toolData[obtainedTool].name + "を" + ((goodLuck) ? "2個" : "") + "手に入れた";
@@ -4649,10 +4653,10 @@ let sceneList = {
       // clear flag
       gameClear = true;
       // unlock achievement: dungeonclear/perfect/toolmaster/fullMP
-      unlockAchievement("dungeonclear");
-      if (slainEnemy >= 13) unlockAchievement("perfect");
-      if (toolCounter >= 10) unlockAchievement("toolmaster");
-      if (largestMp >= 30) unlockAchievement("fullMP");
+      unlockAchievement("dungeonclear", "Normal");
+      if (slainEnemy >= 13) unlockAchievement("perfect", "Normal");
+      if (toolCounter >= 10) unlockAchievement("toolmaster", "Normal");
+      if (largestMp >= 30) unlockAchievement("fullMP", "Normal");
       // text
       windowImage = gameMode === "Normal" ? merchantFaceImage : majutushiFace3Image;
       mainWindowText[0] = gameMode === "Normal" ? "「クリアおめでとー！」" : "「マイリマシタ……」";
