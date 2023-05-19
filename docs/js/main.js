@@ -551,6 +551,18 @@ let jissekiImage9 = new Image();
 let jissekiImage10 = new Image();
 let jissekiImage11 = new Image();
 let jissekiImage12 = new Image();
+let jissekiImage13 = new Image();
+let jissekiImage14 = new Image();
+let jissekiImage15 = new Image();
+let jissekiImage16 = new Image();
+let jissekiImage17 = new Image();
+let jissekiImage18 = new Image();
+let jissekiImage19 = new Image();
+let jissekiImage20 = new Image();
+let jissekiImage21 = new Image();
+let jissekiImage22 = new Image();
+let jissekiImage23 = new Image();
+let jissekiImage24 = new Image();
 jissekiImage1.src = "./img/jisseki1.png";
 jissekiImage2.src = "./img/jisseki2.png";
 jissekiImage3.src = "./img/jisseki3.png";
@@ -563,6 +575,18 @@ jissekiImage9.src = "./img/jisseki9.png";
 jissekiImage10.src = "./img/jisseki10.png";
 jissekiImage11.src = "./img/jisseki11.png";
 jissekiImage12.src = "./img/jisseki12.png";
+jissekiImage13.src = "./img/jisseki13.png";
+jissekiImage14.src = "./img/jisseki14.png";
+jissekiImage15.src = "./img/jisseki15.png";
+jissekiImage16.src = "./img/jisseki16.png";
+jissekiImage17.src = "./img/jisseki17.png";
+jissekiImage18.src = "./img/jisseki18.png";
+jissekiImage19.src = "./img/jisseki19.png";
+jissekiImage20.src = "./img/jisseki20.png";
+jissekiImage21.src = "./img/jisseki21.png";
+jissekiImage22.src = "./img/jisseki22.png";
+jissekiImage23.src = "./img/jisseki23.png";
+jissekiImage24.src = "./img/jisseki24.png";
 let jissekiLockedImage = new Image();
 jissekiLockedImage.src = "./img/jisseki_locked.png";
 let jissekiCursorImage1 = new Image();
@@ -651,6 +675,8 @@ let damageAmount = 0;
 let isSansanFatal = false; // fatal with "sansan"
 let isResurrection = false; // resurrection (merchant)
 let commandCounter = [0, 0, 0];
+let totalDrain = 0;
+let turns = 0;
 // for info
 let fighterLv = 1;
 let dungeonFloor = 0;
@@ -705,7 +731,7 @@ const jissekiRow = 2;
 let jissekiCursorX = 0;
 let jissekiCursorY = 0;
 let isNewAchievementExist = false; // J(¬_¬)「なんで『jisseki』と『achievement』が混在してるんですか？」
-
+let isNewAchievementExistEx = false;
 
 
 // object
@@ -1403,7 +1429,7 @@ let enemyData = {
     image1: doubleslimeImage1,
     image2: doubleslimeImage2,
     mode: "EX",
-    floor: 0,
+    floor: 1,
     strategy: () => {
       if (randInt(0, 1) === 0 && enemyStrategyParam === 0) {
         damageAmount = enemy.dealAttackDamage(fighter, 3);
@@ -1582,7 +1608,7 @@ let enemyData = {
   },
   "bakeneko": {
     name: "ばけねこ",
-    hp: 108,
+    hp: 100,
     image1: bakenekoImage1,
     image2: bakenekoImage2,
     mode: "EX",
@@ -1707,7 +1733,7 @@ let enemyData = {
   // 「ちょっと、なに覗いてんのよ！早く出ていって！！」
   "majo": {
     name: "魔女",
-    hp: 200,
+    hp: 180,
     image1: majutushiImage1,
     image2: majutushiImage2,
     mode: "EX",
@@ -1724,8 +1750,8 @@ let enemyData = {
           enemy.image1 = majutushiImage5;
           enemy.image2 = majutushiImage6;
           windowImage = majutushiFace2Image;
-          mainWindowText[0] = "「も〜〜〜〜〜〜怒った！！　こうなったら";
-          mainWindowText[1] = "　絶対生きて帰さないんだから！」";
+          mainWindowText[0] = "「も〜〜〜〜〜〜怒った！！";
+          mainWindowText[1] = "　私の本気を見せてあげる！」";
         }
         else if (enemyStrategyParam2 === 0) { // HP満タン→待機
           if (enemy.hp === enemy.maxhp) {
@@ -2006,6 +2032,10 @@ let magicData = {
       else {
         damageAmount = fighter.dealMagicDamage(enemy, 1);
       }
+      // unlock achievement: trueEnd
+      if (enemy.hp <= 0 && isResurrection === false && enemy.type === "majo") {
+        unlockAchievement("trueEnd", "EX");
+      }
     }
   },
   "anger": {
@@ -2040,11 +2070,16 @@ let magicData = {
     effect: () => {
       // deal "attack" damage (instead of magic damage)
       damageAmount = fighter.dealAttackDamage(enemy, 5 + fighterLv);
+      // unlock achievement: muscle
+      if (damageAmount >= 50) unlockAchievement("muscle", "EX");
       // enemy debuff: drain
       if (enemy.isStatusExist("drain")) {
         fighter.addHp(damageAmount);
         enemy.addStatus("drain", -1);
         mainWindowText[2] = fighter.name + "はHPを" + damageAmount + "回復した！";
+        // unlock achievement: parasite
+        totalDrain += damageAmount;
+        if (totalDrain >= 100) unlockAchievement("parasite", "EX");
       }
       // damage >= 10: obtain a tool
       if (damageAmount >= 10) {
@@ -2524,7 +2559,7 @@ let roomIconData = {
 
 // achievement data
 let jissekiData = {
-  "dungeon": {
+  "dungeonclear": {
     name: "だんじょんクリア！",
     description: "だんじょんを制覇する。",
     image: jissekiImage1
@@ -2590,62 +2625,62 @@ let jissekiExData = {
   "newDeshi": {
     name: "新たな弟子",
     description: "闘士を倒す。",
-    image: jissekiImage1
+    image: jissekiImage13
   },
   "conquered": {
     name: "だんじょん制圧！",
     description: "「ぜんじつたん」をクリアする。",
-    image: jissekiImage2
+    image: jissekiImage14
   },
   "muscle": {
     name: "脳筋",
     description: "「なぐる」1回で50ダメージ以上与える。",
-    image: jissekiImage3
+    image: jissekiImage15
   },
   "parasite": {
     name: "寄生生物",
     description: "「寄生」効果で敵1体から100HP以上吸収する。",
-    image: jissekiImage4
+    image: jissekiImage16
   },
   "manyTool": {
     name: "収集家",
     description: "「どうぐ」を一度に10個以上所持する。",
-    image: jissekiImage5
+    image: jissekiImage17
   },
-  "girigiri": {
-    name: "崖っぷち",
-    description: "残りHP5以下で敵を倒す。",
-    image: jissekiImage11
+  "TTK": {
+    name: "3ターンクッキング",
+    description: "3Fの敵を3ターン以内に倒す。",
+    image: jissekiImage18
   },
   "pieceofatarime": {
     name: "余裕のよっちゃん",
     description: "HPを50%以上残してラスボスを撃破する。",
-    image: jissekiImage7
+    image: jissekiImage19
   },
   "trueEnd": {
     name: "本当にオシマイ",
     description: "ラスボスを「オシマイ」で撃破する。",
-    image: jissekiImage8
+    image: jissekiImage20
   },
   "thereIsNoGhost": {
     name: "おばけなんてないさ",
     description: "姿が見えない状態の「ゆうれい」を倒す。",
-    image: jissekiImage6
+    image: jissekiImage21
   },
   "hpIppai": {
     name: "お腹いっぱい",
     description: "最大HPを120以上にする。",
-    image: jissekiImage9
+    image: jissekiImage22
   },
   "minimalist": {
     name: "ミニマリスト",
     description: "4種類以下のまほうでクリアする。",
-    image: jissekiImage10
+    image: jissekiImage23
   },
   "master": {
     name: "キミこそがだんじょん・マスターだ！",
     description: "他の実績を全て集める。",
-    image: jissekiImage12
+    image: jissekiImage24
   },
 };
 
@@ -2724,6 +2759,8 @@ let addTool = function (tag, amount) {
   else {
     fighterTool.push({tag: tag, amount: amount});
   }
+  // unlock achievement: manyTool
+  if (numOfToolInBackPack() >= 10) unlockAchievement("manyTool", "EX");
 };
 
 // check if tool is exist
@@ -3234,7 +3271,7 @@ let tweet = function () {
       tweetmes = "だんじょんを踏破した！\n";
     }
     else {
-      tweetmes = "デモ版をクリアした！\n";
+      tweetmes = "全ての元凶を倒し、だんじょんを制圧した！\n";
     }
   }
   else {
@@ -3311,15 +3348,23 @@ let sceneList = {
       displayTitle = gameMode === "Normal" ? titleImage : titleExImage;
       // check num of unlocked achievement and new achievement
       let numOfUnlock = 0;
+      let numOfUnlockEx = 0;
       isNewAchievementExist = false;
+      isNewAchievementExistEx = false;
       jissekiList.forEach((e) => {
         if (isAchievementUnlocked(e)) numOfUnlock++;
         if (isAchievementNew(e)) isNewAchievementExist = true;
       });
+      jissekiExList.forEach((e) => {
+        if (isAchievementUnlocked(e)) numOfUnlockEx++;
+        if (isAchievementNew(e)) isNewAchievementExistEx = true;
+      });
       // unlock achievement: thankyou
       if (numOfUnlock >= jissekiList.length - 1) {
         unlockAchievement("thankyou", "Normal");
-        //isNewAchievementExist = true;
+      }
+      if (numOfUnlockEx >= jissekiExList.length - 1) {
+        unlockAchievement("master", "Ex");
       }
       // draw background
       backgCtx.drawImage(titleBackImage, 0, 0);
@@ -3327,7 +3372,7 @@ let sceneList = {
     }
     fighter.drawAnime(fighterX, 224, charaCtx);
     charaCtx.drawImage(displayTitle, 192, fixCoordinate(18 - (animeCount * animeCount / 100) * 4)); 
-    if (isNewAchievementExist) {
+    if ((isNewAchievementExist && (gameMode === "Normal")) || (isNewAchievementExistEx && (gameMode === "EX"))) {
       drawAnimation(jissekiNewTsutiImage1, jissekiNewTsutiImage2, 380, 420, charaCtx);
     }
     // z: start game
@@ -3433,7 +3478,7 @@ let sceneList = {
       menuCursor = 0;
     }
     // update
-    mainWindowText[0] = "データを消します。本当にいいの？";
+    mainWindowText[0] = "データを全部消します。本当にいいの？";
     mainWindowText[1] = "";
     mainWindowText[2] = "";
     // menu
@@ -3597,6 +3642,9 @@ let sceneList = {
       commandCounter[0] = 0; // なぐる
       commandCounter[1] = 0; // まほう
       commandCounter[2] = 0; // どうぐ
+      turns = 0;
+      isSansanFatal = false;
+      totalDrain = 0;
       // reset once magic
       onceMagic = [];
       // text (and merchant special)
@@ -3645,6 +3693,7 @@ let sceneList = {
       sceneInit = false;
       if (isStartTurn) {
         fighter.turnStart();
+        turns++;
         isStartTurn = false;
       }
       windowImage = null;
@@ -3671,6 +3720,7 @@ let sceneList = {
       sceneInit = false;
       if (isStartTurn) {
         isStartTurn = false;
+        turns++;
         fighter.turnStart();
         damageAmount = 0;
       }
@@ -3722,6 +3772,8 @@ let sceneList = {
       sceneInit = false;
       // deal damage
       damageAmount = fighter.dealAttackDamage(enemy, 5 + fighterLv);
+      // unlock achievement: muscle
+      if (damageAmount >= 50) unlockAchievement("muscle", "EX");
       // text
       windowImage = null;
       mainWindowText[0] = fighter.name + "の攻撃！"
@@ -3732,6 +3784,9 @@ let sceneList = {
         fighter.addHp(damageAmount);
         enemy.addStatus("drain", -1);
         mainWindowText[2] = fighter.name + "はHPを" + damageAmount + "回復した！";
+        // unlock achievement: parasite
+        totalDrain += damageAmount;
+        if (totalDrain >= 100) unlockAchievement("parasite", "EX");
       }
       // achievement: overkill（渾身の一撃！）
       if (damageAmount >= 100) {
@@ -4155,6 +4210,11 @@ let sceneList = {
       if (commandCounter[0] === 0 && commandCounter[2] === 0) unlockAchievement("magician", "Normal");
       if (fighterLv >= 20) unlockAchievement("ascension20", "Normal");
       if (enemy.type === "merchant" && fighter.hp * 2 >= fighter.maxhp) unlockAchievement("pieceofcake", "Normal");
+      // achievement unlock: newDeshi/OTK/thereIsNoGhost/pieceofatarime
+      if (enemy.type === "fighter") unlockAchievement("newDeshi", "EX");
+      if (turns <= 3 && dungeonFloor === 3) unlockAchievement("TTK", "EX");
+      if (enemy.image1 === ghostImage3) unlockAchievement("thereIsNoGhost", "EX");
+      if (enemy.type === "majo" && fighter.hp * 2 >= fighter.maxhp) unlockAchievement("pieceofatarime", "EX");
       // text 
       windowImage = null;
       mainWindowText[0] = enemy.name + "に勝利した！"
@@ -4184,9 +4244,11 @@ let sceneList = {
     if (sceneInit) {
       // init flag
       sceneInit = false;
-      // achievement unlock: toolmaster/fullMP
+      // unlock achievement: toolmaster/fullMP
       if (toolCounter >= 10) unlockAchievement("toolmaster", "Normal");
       if (largestMp >= 30) unlockAchievement("fullMP", "Normal");
+      // unlock achievement: hpIppai
+      if (fighter.maxhp >= 120) unlockAchievement("hpIppai", "EX");
       // text 
       windowImage = null;
       mainWindowText[0] = fighter.name + "は力尽きた……";
@@ -4657,6 +4719,10 @@ let sceneList = {
       if (slainEnemy >= 13) unlockAchievement("perfect", "Normal");
       if (toolCounter >= 10) unlockAchievement("toolmaster", "Normal");
       if (largestMp >= 30) unlockAchievement("fullMP", "Normal");
+      // unlock achievement: conquered/hpIppai/minimalist
+      unlockAchievement("conquered", "EX");
+      if (fighter.maxhp >= 120) unlockAchievement("hpIppai", "EX");
+      if (fighterMagic.length <= 4) unlockAchievement("minimalist", "EX");
       // text
       windowImage = gameMode === "Normal" ? merchantFaceImage : majutushiFace3Image;
       mainWindowText[0] = gameMode === "Normal" ? "「クリアおめでとー！」" : "「マイリマシタ……」";
