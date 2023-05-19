@@ -190,6 +190,11 @@ let hebiImage1 = new Image();
 let hebiImage2 = new Image();
 hebiImage1.src = "./img/hebi1.png";
 hebiImage2.src = "./img/hebi2.png";
+// image - tsumiki(EX)
+let tsumikiImage1 = new Image();
+let tsumikiImage2 = new Image();
+tsumikiImage1.src = "./img/tsumiki1.png";
+tsumikiImage2.src = "./img/tsumiki2.png";
 // image - hokogusa(EX)
 let hokogusaImage1 = new Image();
 let hokogusaImage2 = new Image();
@@ -250,6 +255,28 @@ medamaImage1.src = "./img/medama1.png";
 medamaImage2.src = "./img/medama2.png";
 medamaImage3.src = "./img/medama3.png";
 medamaImage4.src = "./img/medama4.png";
+// image - fighter(enemy)(EX)
+let fighterEnemyImage1 = new Image();
+let fighterEnemyImage2 = new Image();
+fighterEnemyImage1.src = "./img/fighter_enemy1.png";
+fighterEnemyImage2.src = "./img/fighter_enemy2.png";
+// image - majo(EX)
+let majutushiImage1 = new Image(); // 待機
+let majutushiImage2 = new Image();
+let majutushiImage3 = new Image(); // 攻撃（冷静）
+let majutushiImage4 = new Image();
+let majutushiImage5 = new Image(); // 攻撃（怒り）
+let majutushiImage6 = new Image();
+let majutushiImage7 = new Image(); // マイリマシタ……
+let majutushiImage8 = new Image();
+majutushiImage1.src = "./img/majutushi_boss1.png";
+majutushiImage2.src = "./img/majutushi_boss2.png";
+majutushiImage3.src = "./img/majutushi_boss3.png";
+majutushiImage4.src = "./img/majutushi_boss4.png";
+majutushiImage5.src = "./img/majutushi_boss5.png";
+majutushiImage6.src = "./img/majutushi_boss6.png";
+majutushiImage7.src = "./img/majutushi_boss7.png";
+majutushiImage8.src = "./img/majutushi_boss8.png";
 
 
 // image - itemselect
@@ -481,6 +508,16 @@ let idolFace1Image = new Image();
 let idolFace2Image = new Image();
 idolFace1Image.src = "./img/idol_face1.png";
 idolFace2Image.src = "./img/idol_face2.png";
+// image - fighter face
+let fighterFaceImage = new Image();
+fighterFaceImage.src = "./img/fighter_face.png";
+// image - majo face
+let majutushiFace1Image = new Image();
+let majutushiFace2Image = new Image();
+let majutushiFace3Image = new Image();
+majutushiFace1Image.src = "./img/majutushi_face1.png";
+majutushiFace2Image.src = "./img/majutushi_face2.png";
+majutushiFace3Image.src = "./img/majutushi_face3.png";
 
 // image - gemspot
 let gemSpotImage1 = new Image();
@@ -802,6 +839,10 @@ class CharacterObject {
     // opponent buff: m_shield
     if (opponent.isStatusExist("m_shield")) {
       amount /= 2;
+    }
+    // opponent buff: supershield
+    if (opponent.isStatusExist("supershield")) {
+      amount /= 4;
     }
     // opponent buff: ghost
     if (opponent.isStatusExist("ghost")) {
@@ -1280,6 +1321,34 @@ let enemyData = {
       enemyStrategyParam++;
     }
   },
+  "tsumiki":{
+    name: "ブロック",
+    hp: 50,
+    image1: tsumikiImage1,
+    image2: tsumikiImage2,
+    mode: "EX",
+    floor: 1,
+    strategy: () => {
+      if (enemyStrategyParam === 0) {
+        enemyStrategyParam = randInt(1, 2);
+      }
+      if (enemyStrategyParam % 2 === 0) {
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(3, 4));
+        enemy.addStatus("shield", 1)
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！";
+        mainWindowText[2] = enemy.name + "は「なぐる」に対して守りを固めた";
+      }
+      else {
+        damageAmount = enemy.dealAttackDamage(fighter, randInt(3, 4));
+        enemy.addStatus("m_shield", 1)
+        enemyStrategyCategory = "attack";
+        mainWindowText[0] = enemy.name + "の攻撃！";
+        mainWindowText[2] = enemy.name + "は「まほう」に対して守りを固めた";
+      }
+      enemyStrategyParam++;
+    }
+  },
   "ghost": {
     name: "ゆうれい",
     hp: 77,
@@ -1476,7 +1545,7 @@ let enemyData = {
   },
   "worm": {
     name: "ワムーム",
-    hp: 120,
+    hp: 150,
     image1: wormImage1,
     image2: wormImage2,
     mode: "EX",
@@ -1513,7 +1582,7 @@ let enemyData = {
   },
   "bakeneko": {
     name: "ばけねこ",
-    hp: 98,
+    hp: 108,
     image1: bakenekoImage1,
     image2: bakenekoImage2,
     mode: "EX",
@@ -1570,6 +1639,167 @@ let enemyData = {
         enemy.image1 = medamaImage1;
         enemy.image2 = medamaImage2;
         mainWindowText[0] = enemy.name + "の攻撃！";
+      }
+      enemyStrategyParam++;
+    }
+  },
+  "fighter": {
+    name: "闘士",
+    hp: 180,
+    image1: fighterEnemyImage1,
+    image2: fighterEnemyImage2,
+    mode: "EX",
+    floor: 4,
+    strategy: () => {
+      if (enemyStrategyParam2 === 0) { // 前半戦
+        if (enemy.hp * 2 < enemy.maxhp){ // HPが半分切った時
+          enemyStrategyParam = 0;
+          enemyStrategyParam2 = 1;
+          fighter.addStatus("pressure", 2);
+          fighter.addStatus("weak", 1);
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "は" + fighter.name + "を威圧し、プレッシャーを与えた！";
+          mainWindowText[1] = "まほうの消費MPが2増加した！";
+          mainWindowText[2] = "「なぐる」の威力が下がった！";
+        }
+        else if (enemyStrategyParam % 3 === 2 && enemy.statusNum("drained_mp") >= 3) {
+          if (randInt(0, 1) === 0) { // 防御
+            enemy.addStatus("shield", 2);
+            enemy.addStatus("m_shield", 2);
+            enemy.addStatus("drained_mp", -1);
+            enemyStrategyCategory = "magic";
+            mainWindowText[0] = enemy.name + "はMPを1消費し、防御まほうを唱えた！";
+            mainWindowText[1] = enemy.name + "は2ターンの間、ダメージを半減する！";
+          }
+          else { // 脱力
+            fighter.addStatus("weak", 2);
+            enemy.addStatus("drained_mp", -2);
+            enemyStrategyCategory = "magic";
+            mainWindowText[0] = enemy.name + "はMPを2消費し、脱力まほうを唱えた！";
+            mainWindowText[1] = "「なぐる」の威力が下がった！";
+          }
+        }
+        else { // 攻撃＆MP回復
+          damageAmount = enemy.dealAttackDamage(fighter, 12);
+          enemy.addStatus("drained_mp", 1);
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "の攻撃！";
+        }
+      }
+      else { // 後半戦
+        if (enemyStrategyParam % 3 === 2 && enemy.statusNum("drained_mp") >= 3) {
+          enemy.addStatus("power", 2);
+          enemy.addStatus("drained_mp", -3);
+          enemyStrategyCategory = "magic";
+          mainWindowText[0] = enemy.name + "はMPを3消費し、攻撃まほうを唱えた！";
+          mainWindowText[1] = enemy.name + "の攻撃力が2倍になった！";
+        }
+        else { // 攻撃＆MP回復
+          damageAmount = enemy.dealAttackDamage(fighter, 12);
+          enemy.addStatus("drained_mp", 1);
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "の攻撃！";
+        }
+      }
+      enemyStrategyParam++; // ターン数カウント（後半戦突入時、0にリセット）
+    }
+  },
+  // 「ちょっと、なに覗いてんのよ！早く出ていって！！」
+  "majo": {
+    name: "魔女",
+    hp: 200,
+    image1: majutushiImage1,
+    image2: majutushiImage2,
+    mode: "EX",
+    floor: 5,
+    strategy: () => {
+      // 復活前
+      if (isResurrection === true) {
+        if (enemy.hp <= 0){ // HP0→復活
+          isResurrection = false;
+          enemyStrategyParam = 0;
+          enemy.addHp(enemy.maxhp);
+          enemy.addStatus("supershield", 2);
+          enemyStrategyCategory = "magic";
+          enemy.image1 = majutushiImage5;
+          enemy.image2 = majutushiImage6;
+          windowImage = majutushiFace2Image;
+          mainWindowText[0] = "「も〜〜〜〜〜〜怒った！！　こうなったら";
+          mainWindowText[1] = "　絶対生きて帰さないんだから！」";
+        }
+        else if (enemyStrategyParam2 === 0) { // HP満タン→待機
+          if (enemy.hp === enemy.maxhp) {
+            if (enemyStrategyParam === 0) {
+              enemyStrategyCategory = "none";
+              windowImage = majutushiFace1Image;
+              mainWindowText[0] = "「…………」";
+            }
+            else if (enemyStrategyParam === 1) {
+              enemyStrategyCategory = "none";
+              windowImage = majutushiFace1Image;
+              mainWindowText[0] = "「…………?」";
+            }
+            else {
+              enemyStrategyParam2 = 1;
+              enemyStrategyParam = 0;
+              enemy.image1 = majutushiImage3;
+              enemy.image2 = majutushiImage4;
+              enemyStrategyCategory = "none";
+              windowImage = majutushiFace1Image;
+              mainWindowText[0] = "「何してるの……？　早く出ていって！」";
+            }
+          }
+          else {
+            enemyStrategyParam2 = 1;
+            enemyStrategyParam = 0;
+            enemy.image1 = majutushiImage3;
+            enemy.image2 = majutushiImage4;
+            enemyStrategyCategory = "none";
+            windowImage = majutushiFace1Image;
+            mainWindowText[0] = "「痛っ！？　何よいきなり！！」";
+          }
+        }
+        else {
+          damageAmount = enemy.dealAttackDamage(fighter, randInt(8, 12));
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "の攻撃！";
+          if (enemyStrategyParam % 2 === 0) {
+            enemy.addStatus("shield", 1);
+            mainWindowText[2] = enemy.name + "は「ぶつりシールド」を展開した！";
+          }
+          else {
+            enemy.addStatus("m_shield", 1);
+            mainWindowText[2] = enemy.name + "は「まほうシールド」を展開した！";
+          }
+        }
+      }
+      // 復活後
+      else {
+        if (enemyStrategyParam % 3 === 1) {
+          if (enemy.isStatusExist("power")) {
+            mainWindowText[0] = enemy.name + "のアルティメット・シールドバッシュ！";
+          }
+          else {
+            mainWindowText[0] = enemy.name + "のシールドバッシュ！";
+          }
+          damageAmount = enemy.dealAttackDamage(fighter, 25);
+          enemyStrategyCategory = "attack";
+        }
+        else if (enemyStrategyParam % 3 === 2) {
+          fighter.addStatus("weak", 1);
+          enemyStrategyCategory = "attack";
+          mainWindowText[0] = enemy.name + "は脱力まほうを唱えた！";
+          mainWindowText[1] = "「なぐる」の威力が下がった！";
+        }
+        else {
+          enemy.addStatus("m_shield", 1);
+          enemy.addStatus("shield", 1);
+          enemy.addStatus("power", 1);
+          enemyStrategyCategory = "magic";
+          windowImage = majutushiFace2Image;
+          mainWindowText[0] = "「喰らえっ！　魔女流・必殺奥義"
+          mainWindowText[1] = "　『アルティメット・シールドバッシュ』！」";
+        }
       }
       enemyStrategyParam++;
     }
@@ -1795,9 +2025,9 @@ let magicData = {
     isOnce: false,
     image: magicMononageImage,
     mode: "EX",
-    description: "所持どうぐ数×3の追加ダメージ。",
+    description: "所持どうぐ数×5のダメージ。",
     effect: () => {
-      damageAmount = fighter.dealMagicDamage(enemy, 8 + numOfToolInBackPack() * 3);
+      damageAmount = fighter.dealMagicDamage(enemy, numOfToolInBackPack() * 5);
     }
   },
   "dorobo": {
@@ -1873,13 +2103,13 @@ let magicData = {
   },
   "break": {
     name: "ヨワヨワ",
-    mp: 3,
+    mp: 4,
     isOnce: false,
     image: magicBreakImage,
     mode: "EX",
-    description: "次の2ターン、敵の被ダメージが1.5倍になる。",
+    description: "次の3ターン、敵の被ダメージが1.5倍になる。",
     effect: () => {
-      enemy.addStatus("vulnerable", 3);
+      enemy.addStatus("vulnerable", 4);
     }
   },
   "cure": {
@@ -2243,8 +2473,43 @@ let oyakudachiInfoEx = [
   ["一度踏んだショップやジェムは消えるぜ", "踏む順番に気をつけな」"],
   ["『フレイム』の威力はアンタのLvの2倍に", "8を足した値に等しいぜ」"],
   ["防御力低下デバフを喰らうと", "被ダメージが1.5倍になるぞ」"],
-  ["早くメジャーデビューしてぇなぁ……", "誰かスカウトしてくれねぇかな」"],
   ["『なぐる』の威力を下げるデバフは", "『なぐる』を使わないと減らねぇぞ！」"]
+];
+
+let oyakudachiAdditionalEx = [
+  [ // 1F
+    ["積み木みてェな敵は防御が得意だ", "隙を突ける攻撃方法を選びな」"],
+    ["でかゴブは怒ると怖ェが、怒ってる間は", "無防備だな」"],
+    ["ヘビは脱皮でHPを回復するぜ", "ダメージ計算ミスには気をつけな」"],
+    ["スライム？かわいいよな", "……俺のかわいさには及ばないがな」"],
+    ["アンタの真似をして商売を始めたが", "あんまり儲からんな……」"],
+    ["早くメジャーデビューしてぇなぁ……", "誰かスカウトしてくれねぇかな」"],
+  ],
+  [ // 2F
+    ["でけェスライムは粘液攻撃が厄介だ", "デバフ解除手段があればいいが……」"],
+    ["道路標識みてェな敵はかなり攻撃的だ", "矢印をよく見て対策を練るのが大事だな」"],
+    ["ホコグサは『寄生』を使ってくるぜ", "HPを吸収されないよう気をつけな」"],
+    ["ゆうれいは3ターンに1回無敵になるが", "完全に無敵というわけではないらしいな」"],
+    ["この『だんじょん』は元々普通の", "アパートだったらしいな」"],
+    ["『実績』はもう確認したか？」", ""]
+  ],
+  [ // 3F
+    ["あの猫より俺の方がキュートだよな！", "…………何だよその顔は」"],
+    ["ミミズみてェな奴はMPを吸い取ってくるぜ", "取り返すには倒すほかないな」"],
+    ["この階に来てからずっと監視されてる", "気がするんだが、気のせいか……？」"],
+    ["ロボットはデバフを自分で治しちまうんだ", "あと自爆攻撃にも気をつけな」"],
+    ["上の階のアイツは一体何を", "守ってるんだろうな……？」"],
+    ["まほうが売れてもジュースすら買えねェな", "価格設定を間違えたか……？」"]
+  ],
+  [ // 4F
+    ["この階にショップは無ェはずだが……」", ""]
+  ],
+  [ // 5F
+    ["アンタがヤツを倒してくれたおかげで", "ここで店を開けたぜ　ありがとな」"],
+    ["この『だんじょん』を作った全ての元凶が", "奥の廊下にいるみてェだな……」"],
+    ["ここが最後の店だ　金が余ってるなら", "全部使っちまいな！」"],
+    ["ところで師匠は『だんじょん』を制圧したら", "どうするおつもりなんだ？」"]
+  ]
 ];
 
 // room icon data
@@ -2320,7 +2585,71 @@ let jissekiData = {
   },
 };
 
+let jissekiExData = {
+  "dungeonclear": {
+    name: "だんじょんクリア！",
+    description: "だんじょんを制覇する。",
+    image: jissekiImage1
+  },
+  "perfect": {
+    name: "だんじょんの覇者",
+    description: "全ての敵を倒してだんじょんを制覇する。",
+    image: jissekiImage2
+  },
+  "infighter": {
+    name: "格闘家",
+    description: "「なぐる」コマンドだけで敵を倒す。",
+    image: jissekiImage3
+  },
+  "magician": {
+    name: "マジシャン",
+    description: "「まほう」コマンドだけで敵を倒す。",
+    image: jissekiImage4
+  },
+  "fullMP": {
+    name: "エナジー満タン",
+    description: "MPを30以上蓄積する。",
+    image: jissekiImage5
+  },
+  "overkill": {
+    name: "渾身の一撃！",
+    description: "1回の攻撃で100ダメージ以上与える。",
+    image: jissekiImage6
+  },
+  "pieceofcake": {
+    name: "取るに足りぬ",
+    description: "HPを50%以上残してラスボスを撃破する。",
+    image: jissekiImage7
+  },
+  "toolmaster": {
+    name: "どうぐマスター",
+    description: "1回の攻略でどうぐを10個以上使用する。",
+    image: jissekiImage8
+  },
+  "ascension20": {
+    name: "ちりも積もれば",
+    description: "Lv20に到達する。",
+    image: jissekiImage9
+  },
+  "SOULdOUT": {
+    name: "完売御礼！",
+    description: "ショップの品物を買い占める。", // ありがとー
+    image: jissekiImage10
+  },
+  "lucky": {
+    name: "ラッキー！",
+    description: "「くらふと」1回でどうぐを2個手に入れる。",
+    image: jissekiImage11
+  },
+  "thankyou": {
+    name: "遊んでくれてありがとう！",
+    description: "他の実績を全て集める。",
+    image: jissekiImage12
+  },
+};
+
 let jissekiList = Object.keys(jissekiData);
+let jissekiExList = Object.keys(jissekiExData);
 
 
 
@@ -2449,24 +2778,36 @@ let createDungeonMap = function () {
   stairMapY = (dungeonFloor % 2 === 1) ? 2 * dungeonHeight - 1 : 1;
 };
 
-let createFinalMap = function () {
+let normalFinalMap = [
+  "0000000000000",
+  "0111000000000",
+  "0011000000000",
+  "000b000111110",
+  "0001101111110",
+  "000111111g110",
+  "0000001111110",
+  "0000000111110",
+  "0000000000000",
+];
+
+let exFinalMap = [
+  "0000000000000",
+  "0111110000000",
+  "0111111000000",
+  "011s111111000",
+  "0111111011000",
+  "011111000b000",
+  "0000000001100",
+  "0000000001110",
+  "0000000000000",
+];
+
+let createFinalMap = function (finalMap) {
   // reset map
   mapWithIcon = new Array(dungeonWidth * 2 + 1);
   for (let i = 0; i < mapWithIcon.length; i++) {
     mapWithIcon[i] = new Array(dungeonHeight * 2 + 1).fill(WALL);
   }
-  // define fixed map
-  let finalMap =  [
-    "0000000000000",
-    "0111000000000",
-    "0011000000000",
-    "000b000111110",
-    "0001101111110",
-    "000111111g110",
-    "0000001111110",
-    "0000000111110",
-    "0000000000000",
-  ];
   // decode
   for (let y = 0; y < dungeonHeight * 2 + 1; y++){
     for (let x = 0; x < dungeonWidth * 2 + 1; x++) {
@@ -2476,6 +2817,9 @@ let createFinalMap = function () {
           break;
         case 'g':
           mapWithIcon[x][y] = "gemspotin";
+          break;
+        case 's':
+          mapWithIcon[x][y] = "shop";
           break;
         case '1':
           mapWithIcon[x][y] = AISLE;
@@ -2490,10 +2834,10 @@ let createFinalMap = function () {
     }
   }
   // set position of fighter and stair
-  fighterMapX = 2 * dungeonWidth - 1;
-  fighterMapY = 2 * dungeonHeight - 1;
-  stairMapX = 1;
-  stairMapY = 1;
+  fighterMapX = (dungeonFloor % 2 === 1) ? 1 : 2 * dungeonWidth - 1;
+  fighterMapY = (dungeonFloor % 2 === 1) ? 1 : 2 * dungeonHeight - 1;
+  stairMapX = (dungeonFloor % 2 === 1) ? 2 * dungeonWidth - 1 : 1;
+  stairMapY = (dungeonFloor % 2 === 1) ? 2 * dungeonHeight - 1 : 1;
 };
 
 // マップのインデックスを描画座標に変換
@@ -3121,7 +3465,10 @@ let sceneList = {
         mapInit = false;
         dungeonFloor++;
         if (dungeonFloor === 4) { // final floor
-          createFinalMap();
+          createFinalMap(normalFinalMap);
+        }
+        else if (dungeonFloor === 5) { // ex final floor
+          createFinalMap(exFinalMap);
         }
         else {
           createDungeonMap();
@@ -3197,7 +3544,7 @@ let sceneList = {
       // go to next floor
       if (isKeyPressedNow("z") && (stairMapX === fighterMapX) && (stairMapY === fighterMapY)) {
         mapInit = true;
-        if (dungeonFloor < (gameMode === "Normal" ? 4 : 3)) {
+        if (dungeonFloor < (gameMode === "Normal" ? 4 : 5)) {
           setTransition("map");
         }
         else {
@@ -3217,13 +3564,13 @@ let sceneList = {
       let encountList = enemyDatakeys.filter( e => {
         return (enemyData[e].mode === gameMode && enemyData[e].floor === dungeonFloor && e != enemy.type) // 現在フロアで出現、かつ直前にエンカしてない敵
       });
-      if (slainEnemy < 2 && dungeonFloor < 2) { // 倒した敵の数が2体未満で1Fにいるときは敵の種類を絞る
-        encountList = gameMode === "Normal" ? ["slime", "gob"] : ["doubleSlime", "hebi"];
+      if (slainEnemy < 2 && dungeonFloor < 2 && gameMode === "Normal") { // （通常モード）倒した敵の数が2体未満で1Fにいるときは敵の種類を絞る
+        encountList = ["slime", "gob"]; 
       }
       if (encountList.length === 0) { // 該当する敵がいないときはバグイムを召喚
         encountList = ["bugime"];
       }
-      //let eKey = "medama"; // テスト用（敵指定）
+      //let eKey = "majo"; // テスト用（敵指定）
       let eKey = encountList[randInt(0, encountList.length - 1)]; // choose key randomly
       enemy = new CharacterObject(
         eKey,
@@ -3234,6 +3581,10 @@ let sceneList = {
       );
       enemyStrategyParam = 0;
       enemyStrategyParam2 = 0;
+      if (slainEnemy < 2 && dungeonFloor < 2 && gameMode === "EX") { // (EXモード) 倒した敵の数が2体未満なら最大HPを減らす
+        enemy.maxhp = Math.floor(enemy.maxhp * 0.75);
+        enemy.hp = enemy.maxhp;
+      }
       // cursor
       menuCursor = 0;
       // fighting flag
@@ -3254,6 +3605,17 @@ let sceneList = {
         isResurrection = true;
         windowImage = merchantFaceImage;
         mainWindowText[0] = "「いらっしゃー。じゃ、始めよっか」";
+      }
+      else if (eKey === "fighter") {
+        enemy.addStatus("drained_mp", 3);
+        windowImage = fighterFaceImage;
+        mainWindowText[0] = "「この先には行かせない！　いざ勝負！」";
+      }
+      else if (eKey === "majo") {
+        isResurrection = true;
+        windowImage = majutushiFace1Image;
+        mainWindowText[0] = "「あんた誰……？　ここは私の居城よ";
+        mainWindowText[1] = "　用がないなら帰ってくれない？」";
       }
       // start turn flag
       isStartTurn = true;
@@ -4080,7 +4442,12 @@ let sceneList = {
         }
       }
       else {
-        oyakudachiList = oyakudachiInfoEx;
+        if (1 <= dungeonFloor && dungeonFloor <= 5) {
+          oyakudachiList = oyakudachiInfoEx.concat(oyakudachiAdditionalEx[dungeonFloor - 1]);
+        }
+        else {
+          oyakudachiList = oyakudachiInfoEx;
+        }
       }
       // text 
       windowImage = (gameMode === "Normal") ? merchantFaceImage : idolFace1Image;
@@ -4287,20 +4654,22 @@ let sceneList = {
       if (toolCounter >= 10) unlockAchievement("toolmaster");
       if (largestMp >= 30) unlockAchievement("fullMP");
       // text
-      windowImage = gameMode === "Normal" ? merchantFaceImage : idolFace1Image;
-      mainWindowText[0] = gameMode === "Normal" ? "「クリアおめでとー！」" : "「デモ版はここまで！」";
+      windowImage = gameMode === "Normal" ? merchantFaceImage : majutushiFace3Image;
+      mainWindowText[0] = gameMode === "Normal" ? "「クリアおめでとー！」" : "「マイリマシタ……」";
       mainWindowText[1] = "";
       mainWindowText[2] = "";
       // buffer
       animeCount = 16;
     }
     fighter.drawAnime(fighterX, characterY, charaCtx);
-    drawAnimation(goldenAppleImage1, goldenAppleImage2, 256, characterY, charaCtx);
     if (gameMode === "Normal") {
+      drawAnimation(goldenAppleImage1, goldenAppleImage2, 256, characterY, charaCtx);
       drawAnimation(merchantBossImage3, merchantBossImage4, enemyX, characterY, charaCtx);
     }
     else {
-      drawAnimation(idolImage1, idolImage2, enemyX, characterY, charaCtx);
+      fighter.image1 = playerMerchantImage3;
+      fighter.image2 = playerMerchantImage4;
+      drawAnimation(majutushiImage7, majutushiImage8, enemyX, characterY, charaCtx);
     }
     if (animeCount === 0) zkeyAnime();
     if (isKeyPressedNow("z") && animeCount === 0) {
@@ -4315,12 +4684,12 @@ let sceneList = {
     }
     // animation
     fighter.drawAnime(fighterX, characterY, charaCtx);
-    drawAnimation(goldenAppleImage1, goldenAppleImage2, 256, characterY, charaCtx);
     if (gameMode === "Normal") {
+      drawAnimation(goldenAppleImage1, goldenAppleImage2, 256, characterY, charaCtx);
       drawAnimation(merchantBossImage3, merchantBossImage4, enemyX, characterY, charaCtx);
     }
     else {
-      drawAnimation(idolImage1, idolImage2, enemyX, characterY, charaCtx);
+      drawAnimation(majutushiImage7, majutushiImage8, enemyX, characterY, charaCtx);
     }
     // menu
     if (isKeyPressedNow("u")) menuCursor--;
