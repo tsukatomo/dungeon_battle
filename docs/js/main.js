@@ -3364,7 +3364,7 @@ let sceneList = {
         unlockAchievement("thankyou", "Normal");
       }
       if (numOfUnlockEx >= jissekiExList.length - 1) {
-        unlockAchievement("master", "Ex");
+        unlockAchievement("master", "EX");
       }
       // draw background
       backgCtx.drawImage(titleBackImage, 0, 0);
