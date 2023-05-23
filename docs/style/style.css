@@ -1,0 +1,60 @@
+/* pc */
+@media (min-width: 768px) {
+  body {
+    font-size: large;
+    font-family: '筑紫a丸ゴシック', system-ui;
+    line-height: 1.5;
+    margin: 40px;
+  }
+}
+/* sp */
+@media (max-width: 767px) {
+  body {
+    font-size: small;
+    font-family: '筑紫a丸ゴシック', system-ui;
+    line-height: 1.5;
+    margin: 30px;
+  }
+}
+#imagebox{
+  padding: 8px;
+  width: 128px;
+  background-color: #2a2349;
+  border-radius: 4px;
+  image-rendering: pixelated;
+}
+#statusimg{
+  width: 16px;
+  height: 16px;
+  image-rendering: pixelated;
+}
+#flavor{
+  font-style: italic;
+  color: #888888;
+}
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+table, tr, th, td {
+  padding: 0.5em;
+  border: 1px solid black;
+}
+ul {
+  padding-left: 1.5em;
+}
+h2{
+  border-width: 4px;
+  border-bottom-color: #74adbb;
+  border-bottom-style: solid;
+}
+h3{
+  border-width: 2px;
+  border-bottom-color: #4180a0;
+  border-bottom-style: dashed;
+}
+h4{
+  border-width: 2px;
+  border-bottom-color: #2a2349;
+  border-bottom-style: dotted;
+}
