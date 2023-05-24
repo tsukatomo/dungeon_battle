@@ -1,16 +1,17 @@
 <!DOCTYPE HTML>
 <html>
-  <head prefix="og: http://ogp.me/ns#">
-    <meta charset="utf-8">
-    <meta property="og:site_name" content="だんじょん・ばとるWiki">
-    <meta property="og:title" content="だんじょん・ばとるWiki">
-    <meta property="og:description" content="ダンジョンでバトルするゲームの攻略サイト。製作中">
-    <meta property="og:url" content="https://tsukatomo.github.io/dungeon_battle/kouryaku">
-    <meta property="og:type" content="website">
-    <meta property="og:image" content="https://github.com/tsukatomo/dungeon_battle/blob/main/docs/img/fighter1.png?raw=true">
-    <meta name="twitter:card" content="summary">
-    <meta name="twitter:site" content="@katsudontkd">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+<head prefix="og: http://ogp.me/ns#">
+  <link rel="stylesheet" href="../style/style.css" type="text/css">
+  <meta charset="utf-8">
+  <meta property="og:site_name" content="だんじょん・ばとるWiki">
+  <meta property="og:title" content="だんじょん・ばとるWiki">
+  <meta property="og:description" content="ダンジョンでバトルするゲームの攻略サイト。">
+  <meta property="og:url" content="https://tsukatomo.github.io/dungeon_battle/kouryaku">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://github.com/tsukatomo/dungeon_battle/blob/main/docs/img/fighter1.png?raw=true">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:site" content="@katsudontkd">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>だんじょん・ばとるWiki</title>
 </head>
 <body>
@@ -18,11 +19,12 @@
   <h1 style="text-align:center">だんじょん・ばとるWiki</h1>
   
   <p>
-    だんじょん・ばとるの攻略サイトです。随時更新
+    だんじょん・ばとるの攻略サイトです。
   </p>
   <a href="https://tsukatomo.github.io/dungeon_battle">ゲーム本編はコチラ</a>
+  <a href="https://tsukatomo.github.io/dungeon_battle/kouryaku_ex">「ぜんじつたん」攻略はコチラ</a>
   
-  <h2>闘士</h2>
+  <h2 class="midashi">闘士</h2>
   <div id="imagebox"><img src="../img/fighter1.png" alt="闘士の画像" title="闘士ちゃん"></div>
   <p>
     本作のプレイヤーキャラクター。己の技を磨くため、単身でだんじょんに潜る。
@@ -71,9 +73,9 @@
   <img src="../img/icon_gem.png" alt="ジェムのアイコン" title="ジェムのアイコン">
   <p>ジェムパワーを授かれる。以下の3つから1つだけ選択。</p>
   <ul>
-    <li>かいふく……闘士のHPを最大HPの50%だけ回復する。</li>
+    <li>かいふく……最大HPの50%を回復する。</li>
     <li>ほきゅう……MP+5。</li>
-    <li>くらふと……ランダムなどうぐを獲得する。4分の1の確率でどうぐを2個獲得できる（種類は同じ）。</li>
+    <li>くらふと……ランダムなどうぐを獲得する。5分の1の確率でどうぐを2個獲得できる（種類は同じ）。</li>
   </ul>
   
   <h3>ショップ</h3>
@@ -165,7 +167,7 @@
       <td>1</td>
       <td>4</td>
       <td>×0</td>
-      <td>90%の確率で敵に<img src="../img/status_stun.png" width="16px" height="16px">1を付与。</td>
+      <td>90%の確率で敵に<img id="statusimg" src="../img/status_stun.png" width="16px" height="16px">1を付与。</td>
     </tr>
     <tr>
       <td>ビリビリ</td>
@@ -173,7 +175,7 @@
       <td>5</td>
       <td>6</td>
       <td>×1</td>
-      <td>70%の確率で敵に<img src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
+      <td>70%の確率で敵に<img id="statusimg" src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
     </tr>
     <tr>
       <td rowspan="2">ジンクス</td>
@@ -181,7 +183,7 @@
       <td rowspan="2">5</td>
       <td>50</td>
       <td>×2</td>
-      <td>敵に<img src="../img/status_stun.png" width="16px" height="16px">or<img src="../img/status_weak.png" width="16px" height="16px">が付与されているとき</td>
+      <td>敵に<img id="statusimg" src="../img/status_stun.png" width="16px" height="16px">or<img id="statusimg" src="../img/status_weak.png" width="16px" height="16px">が付与されているとき</td>
     </tr>
     <tr>
       <td>5</td>
@@ -233,25 +235,25 @@
       <td>リジェネ</td>
       <td><img src="../img/magic_regen.png" width="32px" height="32px"></td>
       <td>7</td>
-      <td>闘士に<img src="../img/status_regen.png" width="16px" height="16px">4を付与。</td>
+      <td>闘士に<img id="statusimg" src="../img/status_regen.png" width="16px" height="16px">4を付与。</td>
     </tr>
     <tr>
       <td>シールド</td>
       <td><img src="../img/magic_shield.png" width="32px" height="32px"></td>
       <td>3</td>
-      <td>闘士に<img src="../img/status_shield.png" width="16px" height="16px">5を付与。</td>
+      <td>闘士に<img id="statusimg" src="../img/status_shield.png" width="16px" height="16px">5を付与。</td>
     </tr>
     <tr>
       <td>ムキムキ</td>
       <td><img src="../img/magic_power.png" width="32px" height="32px"></td>
       <td>3</td>
-      <td>闘士に<img src="../img/status_power.png" width="16px" height="16px">2を付与。</td>
+      <td>闘士に<img id="statusimg" src="../img/status_power.png" width="16px" height="16px">2を付与。</td>
     </tr>
     <tr>
       <td>ヘナヘナ</td>
       <td><img src="../img/magic_hena.png" width="32px" height="32px"></td>
       <td>2</td>
-      <td>敵に<img src="../img/status_weak.png" width="16px" height="16px">3を付与。</td>
+      <td>敵に<img id="statusimg" src="../img/status_weak.png" width="16px" height="16px">3を付与。</td>
     </tr>
   </table>
 
@@ -285,7 +287,7 @@
       <td>てかがみ</td>
       <td><img src="../img/tool_mirror.png" width="32px" height="32px"></td>
       <td>×</td>
-      <td>闘士に<img src="../img/status_mirror.png" width="16px" height="16px">1を付与。</td>
+      <td>闘士に<img id="statusimg" src="../img/status_mirror.png" width="16px" height="16px">1を付与。</td>
     </tr>
     <tr>
       <td>ばくだん</td>
@@ -303,7 +305,7 @@
       <td>でんげん</td>
       <td><img src="../img/tool_battery.png" width="32px" height="32px"></td>
       <td>×</td>
-      <td>敵に<img src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
+      <td>敵に<img id="statusimg" src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
     </tr>
   </table>
   
@@ -312,6 +314,7 @@
 
   <h4>スライム</h4>
   <div id="imagebox"><img src="../img/slime1.png" alt="敵の画像" title="スライム"></div>
+  <p id="flavor">ぷるぷる不定形生物。いちご味。</p>
   <ul>
     <li>出現階層: 1F（最初の2戦のみ）</li>
     <li>HP: 16</li>
@@ -332,6 +335,7 @@
   
   <h4>ちびゴブ</h4>
   <div id="imagebox"><img src="../img/gob1.png" alt="敵の画像" title="ちびゴブ"></div>
+  <p id="flavor">小さなゴブリン。怒ると怖い。</p>
   <ul>
     <li>出現階層: 1F</li>
     <li>HP: 28</li>
@@ -348,6 +352,7 @@
 
   <h4>コーヒー</h4>
   <div id="imagebox"><img src="../img/coffee1.png" alt="敵の画像" title="コーヒー"></div>
+  <p id="flavor">恥ずかしがり屋の液体生物。<br>趣味は砂糖を限界まで溶かすこと。</p>
   <ul>
     <li>出現階層: 1F（後半2戦のみ）</li>
     <li>HP: 32</li>
@@ -373,6 +378,7 @@
 
   <h4>モクモク</h4>
   <div id="imagebox"><img src="../img/tree1.png" alt="敵の画像" title="モクモク"></div>
+  <p id="flavor">だんじょんで成長を続ける広葉樹。<br>種子はコーヒーの原料になる。</p>
   <ul>
     <li>出現階層: 1F（後半2戦のみ）</li>
     <li>HP: 50</li>
@@ -388,6 +394,7 @@
 
   <h4>やどクジ</h4>
   <div id="imagebox"><img src="../img/yadotsumu1.png" alt="敵の画像" title="やどクジ"></div>
+  <p id="flavor">カタツムリに憧れるナメクジ。<br>理想の殻を求めて今日もうろつく。</p>
   <ul>
     <li>出現階層: 2F</li>
     <li>HP: 80</li>
@@ -408,6 +415,7 @@
 
   <h4>ようせい</h4>
   <div id="imagebox"><img src="../img/fairy1.png" alt="敵の画像" title="ようせい"></div>
+  <p id="flavor">だんじょんのまほうパワーから生まれた生き物。<br>ジェムが大好き。</p>
   <ul>
     <li>出現階層: 2F</li>
     <li>HP: 40</li>
@@ -428,6 +436,7 @@
 
   <h4>タテグサ</h4>
   <div id="imagebox"><img src="../img/shieldkusa1.png" alt="敵の画像" title="タテグサ"></div>
+  <p id="flavor">硬い果実で根元を保護する植物。<br>ホコグサとの縄張り争いに勝利し、着実に生息域を拡大している。</p>
   <ul>
     <li>出現階層: 2F</li>
     <li>HP: 90</li>
@@ -453,6 +462,7 @@
 
   <h4>まほスラ</h4>
   <div id="imagebox"><img src="../img/mahoslime1.png" alt="敵の画像" title="まほスラ"></div>
+  <p id="flavor">ちょっと賢い不定形生物。すぐ魔力切れになる。<br>パイン味。</p>
   <ul>
     <li>出現階層: 2F</li>
     <li>HP: 90</li>
@@ -483,6 +493,7 @@
 
   <h4>レンチン</h4>
   <div id="imagebox"><img src="../img/renchin1.png" alt="敵の画像" title="レンチン"></div>
+  <p id="flavor">故障のために捨てられた、かつての住民の生活必需品。<br>付喪神となって皆に八つ当たりしている。</p>
   <ul>
     <li>出現階層: 3F</li>
     <li>HP: 120</li>
@@ -508,6 +519,7 @@
 
   <h4>ドラゴン</h4>
   <div id="imagebox"><img src="../img/dragon1.png" alt="敵の画像" title="ドラゴン"></div>
+  <p id="flavor">自分こそだんじょん最強だと信じてやまないトカゲ。<br>HPが半分切ってから本気を出す。</p>
   <ul>
     <li>出現階層: 3F</li>
     <li>HP: 156</li>
@@ -538,6 +550,7 @@
 
   <h4>アイドル</h4>
   <div id="imagebox"><img src="../img/idol1.png" alt="敵の画像" title="アイドル"></div>
+  <p id="flavor">商人の弟子。一番弟子の座を賭けて闘士に戦いを挑んでくる。<br>夢はCDデビュー。</p>
   <ul>
     <li>出現階層: 3F</li>
     <li>HP: 140</li>
@@ -574,6 +587,7 @@
 
   <h4>シニガミ</h4>
   <div id="imagebox"><img src="../img/death1.png" alt="敵の画像" title="シニガミ"></div>
+  <p id="flavor">弱い者だけを狩る雑魚専の死神。<br>何度狩っても戻ってくる闘士を怪訝に思っている。</p>
   <ul>
     <li>出現階層: 3F</li>
     <li>HP: 160</li>
@@ -597,6 +611,7 @@
     <img src="../img/merchant_boss3.png" alt="敵の画像" title="商人ちゃん">
     <img src="../img/merchant_boss1.png" alt="敵の画像" title="商人ちゃん第２形態">
   </div>
+  <p id="flavor">格闘の達人にして闘士の師匠。<br>普段は雑貨カフェ経営で生計を立てている。<br>「特訓？何度でも付き合うよー」</p>
   <ul>
     <li>出現階層: 4F</li>
     <li>HP: 200+200</li>
@@ -722,7 +737,7 @@
       <td>ラッキー！</td>
       <td><img src="../img/jisseki11.png" width="32px" height="32px"></td>
       <td>「くらふと」1回でどうぐを2個手に入れる。</td>
-      <td>「くらふと」コマンド選択時、1/4の確率で達成可能。</td>
+      <td>「くらふと」コマンド選択時、1/5の確率で達成可能。</td>
     </tr>
     <tr>
       <td>？？？</td>
@@ -730,33 +745,6 @@
       <td>他の実績を全て集める。</td>
       <td></td>
     </tr>
-
-  <style>
-    body {
-      font-size: large;
-      font-family: '筑紫a丸ゴシック', system-ui;
-      line-height: 1.5;
-    }
-    #imagebox{
-      padding: 4px;
-      width: 128px;
-      background-color: #2a2349;
-      border-radius: 4px;
-      image-rendering: pixelated;
-    }
-    #statusimg{
-      width: 16px;
-      height: 16px;
-      image-rendering: pixelated;
-    }
-    table {
-      border-collapse: collapse;
-      border-spacing: 0;
-    }
-    table, tr, th, td {
-      padding: 0.5em;
-      border: 1px solid black;
-    }
-  </style>
+  </table>
 </body>
 </html>

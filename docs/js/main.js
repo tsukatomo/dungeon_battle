@@ -2070,6 +2070,7 @@ let magicData = {
     effect: () => {
       // deal "attack" damage (instead of magic damage)
       damageAmount = fighter.dealAttackDamage(enemy, 5 + fighterLv);
+      fighterMp++;
       // unlock achievement: muscle
       if (damageAmount >= 50) unlockAchievement("muscle", "EX");
       // enemy debuff: drain
