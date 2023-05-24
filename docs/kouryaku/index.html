@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta property="og:site_name" content="だんじょん・ばとるWiki">
   <meta property="og:title" content="だんじょん・ばとるWiki">
-  <meta property="og:description" content="ダンジョンでバトルするゲームの攻略サイト。製作中">
+  <meta property="og:description" content="ダンジョンでバトルするゲームの攻略サイト。">
   <meta property="og:url" content="https://tsukatomo.github.io/dungeon_battle/kouryaku">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://github.com/tsukatomo/dungeon_battle/blob/main/docs/img/fighter1.png?raw=true">
@@ -22,6 +22,7 @@
     だんじょん・ばとるの攻略サイトです。
   </p>
   <a href="https://tsukatomo.github.io/dungeon_battle">ゲーム本編はコチラ</a>
+  <a href="https://tsukatomo.github.io/dungeon_battle/kouryaku_ex">「ぜんじつたん」攻略はコチラ</a>
   
   <h2 class="midashi">闘士</h2>
   <div id="imagebox"><img src="../img/fighter1.png" alt="闘士の画像" title="闘士ちゃん"></div>
@@ -166,7 +167,7 @@
       <td>1</td>
       <td>4</td>
       <td>×0</td>
-      <td>90%の確率で敵に<img src="../img/status_stun.png" width="16px" height="16px">1を付与。</td>
+      <td>90%の確率で敵に<img id="statusimg" src="../img/status_stun.png" width="16px" height="16px">1を付与。</td>
     </tr>
     <tr>
       <td>ビリビリ</td>
@@ -174,7 +175,7 @@
       <td>5</td>
       <td>6</td>
       <td>×1</td>
-      <td>70%の確率で敵に<img src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
+      <td>70%の確率で敵に<img id="statusimg" src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
     </tr>
     <tr>
       <td rowspan="2">ジンクス</td>
@@ -182,7 +183,7 @@
       <td rowspan="2">5</td>
       <td>50</td>
       <td>×2</td>
-      <td>敵に<img src="../img/status_stun.png" width="16px" height="16px">or<img src="../img/status_weak.png" width="16px" height="16px">が付与されているとき</td>
+      <td>敵に<img id="statusimg" src="../img/status_stun.png" width="16px" height="16px">or<img id="statusimg" src="../img/status_weak.png" width="16px" height="16px">が付与されているとき</td>
     </tr>
     <tr>
       <td>5</td>
@@ -234,25 +235,25 @@
       <td>リジェネ</td>
       <td><img src="../img/magic_regen.png" width="32px" height="32px"></td>
       <td>7</td>
-      <td>闘士に<img src="../img/status_regen.png" width="16px" height="16px">4を付与。</td>
+      <td>闘士に<img id="statusimg" src="../img/status_regen.png" width="16px" height="16px">4を付与。</td>
     </tr>
     <tr>
       <td>シールド</td>
       <td><img src="../img/magic_shield.png" width="32px" height="32px"></td>
       <td>3</td>
-      <td>闘士に<img src="../img/status_shield.png" width="16px" height="16px">5を付与。</td>
+      <td>闘士に<img id="statusimg" src="../img/status_shield.png" width="16px" height="16px">5を付与。</td>
     </tr>
     <tr>
       <td>ムキムキ</td>
       <td><img src="../img/magic_power.png" width="32px" height="32px"></td>
       <td>3</td>
-      <td>闘士に<img src="../img/status_power.png" width="16px" height="16px">2を付与。</td>
+      <td>闘士に<img id="statusimg" src="../img/status_power.png" width="16px" height="16px">2を付与。</td>
     </tr>
     <tr>
       <td>ヘナヘナ</td>
       <td><img src="../img/magic_hena.png" width="32px" height="32px"></td>
       <td>2</td>
-      <td>敵に<img src="../img/status_weak.png" width="16px" height="16px">3を付与。</td>
+      <td>敵に<img id="statusimg" src="../img/status_weak.png" width="16px" height="16px">3を付与。</td>
     </tr>
   </table>
 
@@ -286,7 +287,7 @@
       <td>てかがみ</td>
       <td><img src="../img/tool_mirror.png" width="32px" height="32px"></td>
       <td>×</td>
-      <td>闘士に<img src="../img/status_mirror.png" width="16px" height="16px">1を付与。</td>
+      <td>闘士に<img id="statusimg" src="../img/status_mirror.png" width="16px" height="16px">1を付与。</td>
     </tr>
     <tr>
       <td>ばくだん</td>
@@ -304,7 +305,7 @@
       <td>でんげん</td>
       <td><img src="../img/tool_battery.png" width="32px" height="32px"></td>
       <td>×</td>
-      <td>敵に<img src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
+      <td>敵に<img id="statusimg" src="../img/status_stun.png" width="16px" height="16px">3を付与。</td>
     </tr>
   </table>
   
