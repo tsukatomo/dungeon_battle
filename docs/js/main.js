@@ -3479,6 +3479,8 @@ let sceneList = {
       menuCursor = 0;
     }
     // update
+    // ゲームモードごとに参照する実績データを分ける
+    let jissekiListOfThisMode = (gameMode === "Normal") ? jissekiList : jissekiExList;
     mainWindowText[0] = "データを全部消します。本当にいいの？";
     mainWindowText[1] = "";
     mainWindowText[2] = "";
@@ -3494,7 +3496,9 @@ let sceneList = {
         setScene("jisseki");
       }
       else {
-        localStorage.clear(); // ドカーン！
+        jissekiListOfThisMode.forEach((e) => {
+          localStorage.removeItem(e); // ドカーン！
+        });
         setTransition("title");
       }
     }
