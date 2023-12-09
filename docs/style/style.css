@@ -1,5 +1,5 @@
 /* pc */
-@media (min-width: 768px) {
+@media only screen and (min-width: 768px) {
   body {
     font-size: large;
     font-family: '筑紫a丸ゴシック', system-ui;
@@ -14,7 +14,7 @@
   }
 }
 /* sp */
-@media (max-width: 767px) {
+@media only screen and (max-width: 767px) {
   body {
     font-size: small;
     font-family: '筑紫a丸ゴシック', system-ui;
